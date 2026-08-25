@@ -19,7 +19,12 @@ from objective_recovery.domain.models import (
     DeadlineChange,
     EvaluatedPlan,
     PlanAssumption,
+    ReceiptStatus,
     RecoveryPlan,
+)
+from objective_recovery_agent.calendar_execution import (
+    CalendarActionExecutor,
+    CalendarExecutionFailure,
 )
 from objective_recovery_agent.ledger import WorkflowLedger
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
@@ -137,14 +142,46 @@ def _to_domain_plan(
 
 
 class RecoveryOrchestrator:
-    def __init__(self, ledger: WorkflowLedger, planner: PlanningService) -> None:
+    def __init__(
+        self,
+        ledger: WorkflowLedger,
+        planner: PlanningService,
+        calendar_executor: CalendarActionExecutor | None = None,
+    ) -> None:
         self._ledger = ledger
         self._planner = planner
+        self._calendar_executor = calendar_executor
 
     async def process(self, disruption: DisruptionEvent, message_id: str) -> ProcessResult:
         started = time.perf_counter()
         try:
             claim = self._ledger.claim_event(disruption, message_id)
+        except CalendarExecutionFailure as error:
+            failure_stage = (
+                IncidentStage.EXECUTING if error.retryable else IncidentStage.PARTIAL_FAILURE
+            )
+            self._checkpoint(
+                claim.incident_id,
+                failure_stage,
+                {
+                    "status": "action_retryable" if error.retryable else "partial_failure",
+                    "last_error_category": error.category,
+                },
+                event_id=disruption.event_id,
+            )
+            if error.retryable:
+                self._ledger.release_claim(disruption.event_id, error.category)
+                raise
+            self._ledger.complete_claim(disruption.event_id)
+            incident = self._ledger.load_incident(claim.incident_id)
+            return ProcessResult(
+                claim.incident_id,
+                False,
+                False,
+                failure_stage,
+                incident.get("selected_plan_id"),
+                int((time.perf_counter() - started) * 1000),
+            )
         except Exception as error:
             emit_operational_event(
                 OperationalEvent.INCIDENT_CLAIM_FAILED,
@@ -539,6 +576,54 @@ class RecoveryOrchestrator:
             stage=IncidentStage.PLAN_SELECTED.value,
             strategy_type=selected.strategy,
         )
+        if self._calendar_executor is not None:
+            self._checkpoint(
+                incident_id,
+                IncidentStage.EXECUTING,
+                {"status": "executing", "selected_plan_id": selected.plan_id},
+                event_id=disruption.event_id,
+            )
+            receipt = self._calendar_executor.execute_selected_plan(
+                incident_id=incident_id,
+                plan=selected,
+                context=context,
+            )
+            receipt_event = (
+                WorkflowEventType.ACTION_RECEIPT_VERIFIED
+                if receipt.status is ReceiptStatus.VERIFIED
+                else WorkflowEventType.ACTION_RECEIPT_VERIFICATION_FAILED
+            )
+            self._ledger.record_event(
+                incident_id,
+                receipt_event,
+                receipt.receipt_id,
+                {
+                    "receipt_id": receipt.receipt_id,
+                    "action_id": receipt.action_id,
+                    "status": receipt.status.value,
+                    "external_event_id": receipt.external_event_id,
+                },
+            )
+            self._checkpoint(
+                incident_id,
+                IncidentStage.VERIFYING,
+                {
+                    "status": "action_receipt_verified"
+                    if receipt.status is ReceiptStatus.VERIFIED
+                    else "action_receipt_verification_failed",
+                    "action_receipt_id": receipt.receipt_id,
+                    "action_receipt_status": receipt.status.value,
+                },
+                event_id=disruption.event_id,
+            )
+            return ProcessResult(
+                incident_id,
+                False,
+                False,
+                IncidentStage.VERIFYING,
+                selected.plan_id,
+                0,
+            )
         return ProcessResult(
             incident_id, False, False, IncidentStage.PLAN_SELECTED, selected.plan_id, 0
         )

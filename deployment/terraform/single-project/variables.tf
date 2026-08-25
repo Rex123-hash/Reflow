@@ -18,5 +18,11 @@ variable "region" {
 variable "image_uri" {
   type        = string
   description = "Immutable or controlled Cloud Run image URI."
-  default     = "us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/app@sha256:e9a304e3ca8a29e249d125e142aebfaf3aaf6f27ec97ae4058a0a80a7e44b4f6"
+  default     = "us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/app@sha256:61a73df37294970d27de078b13a709ae13f22da75bcb38c5223c7b53f852635a"
+}
+
+variable "calendar_id" {
+  type        = string
+  description = "Dedicated demo Google Calendar ID shared writer-only with the runtime identity."
+  default     = ""
 }

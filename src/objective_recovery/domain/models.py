@@ -33,6 +33,10 @@ class EvidenceKind(StrEnum):
 
 
 class ReceiptStatus(StrEnum):
+    PENDING = "pending"
+    WRITE_ACKNOWLEDGED = "write_acknowledged"
+    VERIFIED = "verified"
+    VERIFICATION_FAILED = "verification_failed"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
 
@@ -151,6 +155,23 @@ class ActionReceipt:
     evidence_kind: EvidenceKind
     observed_at: datetime
     external_reference: str | None = None
+    incident_id: str | None = None
+    plan_id: str | None = None
+    plan_revision: int | None = None
+    tool: str | None = None
+    operation: str | None = None
+    desired_state_fingerprint: str | None = None
+    external_calendar_id: str | None = None
+    external_event_id: str | None = None
+    write_acknowledged_at: datetime | None = None
+    external_etag: str | None = None
+    read_back_at: datetime | None = None
+    observed_state: tuple[tuple[str, str], ...] = ()
+    verification_differences: tuple[str, ...] = ()
+    compensation_operation: str | None = None
+    compensation_target: str | None = None
+    failure_category: str | None = None
+    retryable: bool = False
 
 
 @dataclass(frozen=True, slots=True)

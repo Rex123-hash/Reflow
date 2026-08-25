@@ -11,6 +11,9 @@ from functools import lru_cache
 from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import ValidationError
 
+from objective_recovery_agent.action_ledger import FirestoreActionReceiptLedger
+from objective_recovery_agent.calendar_execution import CalendarExecutionService
+from objective_recovery_agent.calendar_gateway import GoogleCalendarGateway
 from objective_recovery_agent.ledger import FirestoreWorkflowLedger
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.orchestrator import RecoveryOrchestrator
@@ -23,8 +26,8 @@ if os.getenv("K_SERVICE"):
     setup_telemetry()
 
 app = FastAPI(
-    title="Objective Recovery P1A",
-    description="Event-driven recovery planning spine; no external action endpoints.",
+    title="Objective Recovery P1B",
+    description="Event-driven planning plus a verified, scoped Calendar action.",
     docs_url=None,
     redoc_url=None,
     openapi_url=None,
@@ -36,9 +39,19 @@ def get_orchestrator() -> RecoveryOrchestrator:
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
     if not project_id:
         raise RuntimeError("GOOGLE_CLOUD_PROJECT is required")
+    calendar_id = os.environ.get("GOOGLE_CALENDAR_ID")
+    service_account_email = os.environ.get("OBJECTIVE_RECOVERY_SERVICE_ACCOUNT")
+    calendar_executor = None
+    if calendar_id and service_account_email:
+        calendar_executor = CalendarExecutionService(
+            calendar_id=calendar_id,
+            ledger=FirestoreActionReceiptLedger(project_id),
+            gateway=GoogleCalendarGateway(service_account_email=service_account_email),
+        )
     return RecoveryOrchestrator(
         FirestoreWorkflowLedger(project_id),
         AdkPlanningService(),
+        calendar_executor,
     )
 
 
@@ -46,8 +59,8 @@ def get_orchestrator() -> RecoveryOrchestrator:
 def health() -> dict[str, str]:
     return {
         "status": "ready",
-        "scope": "P1A",
-        "terminal_state": "PLAN_SELECTED",
+        "scope": "P1B",
+        "terminal_state": "VERIFYING",
     }
 
 

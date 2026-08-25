@@ -29,6 +29,7 @@ locals {
     "artifactregistry.googleapis.com",
     "cloudbuild.googleapis.com",
     "cloudtrace.googleapis.com",
+    "calendar-json.googleapis.com",
     "firestore.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
@@ -91,6 +92,12 @@ resource "google_project_iam_member" "app_roles" {
   member  = "serviceAccount:${google_service_account.app.email}"
 }
 
+resource "google_service_account_iam_member" "app_calendar_token_creator" {
+  service_account_id = google_service_account.app.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:${google_service_account.app.email}"
+}
+
 resource "google_service_account" "pubsub_invoker" {
   project      = var.project_id
   account_id   = "${var.project_name}-pubsub"
@@ -141,6 +148,14 @@ resource "google_cloud_run_v2_service" "app" {
         value = "true"
       }
       env {
+        name  = "GOOGLE_CALENDAR_ID"
+        value = var.calendar_id
+      }
+      env {
+        name  = "OBJECTIVE_RECOVERY_SERVICE_ACCOUNT"
+        value = google_service_account.app.email
+      }
+      env {
         name  = "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
         value = "false"
       }
@@ -150,6 +165,7 @@ resource "google_cloud_run_v2_service" "app" {
   depends_on = [
     google_firestore_database.workflow,
     google_project_iam_member.app_roles,
+    google_service_account_iam_member.app_calendar_token_creator,
   ]
 }
 

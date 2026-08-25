@@ -2,7 +2,10 @@
 
 ## Architectural stance
 
-The domain core is framework-independent. Google ADK orchestrates bounded reasoning in P1A, while Firestore and deterministic services remain authoritative. Gmail, GitHub, Calendar, authentication, and UI remain outside this phase.
+The domain core is framework-independent. Google ADK orchestrates bounded reasoning, while
+Firestore and deterministic services remain authoritative. P1B adds one narrowly scoped Google
+Calendar adapter; Gmail, GitHub, product authentication, objective-level failure/replanning, and
+UI remain outside this phase.
 
 ## System context
 
@@ -18,6 +21,11 @@ flowchart LR
     Agents -->|structured calls| Gemini[Vertex AI\nGemini 3.7 Flash]
     Orchestrator --> Policy[Deterministic policy engine]
     Orchestrator --> Selector[Deterministic plan selector]
+    Selector --> Authorizer[Typed Calendar projector + deterministic allow-list]
+    Authorizer --> ActionLedger[(Firestore action claims + receipts)]
+    Authorizer --> Calendar[Dedicated Google Calendar]
+    Calendar -->|separate events.get| Readback[Deterministic action verifier]
+    Readback --> ActionLedger
     Ledger --> Events[Workflow event stream]
     Events --> FutureUI[Later phase: recovery command center]
 ```
@@ -63,7 +71,13 @@ Writes that claim a new action intention or consume an event use a Firestore tra
 4. Persist the typed disruption and traverse the accepted graph deterministically.
 5. Generate exactly three typed candidates and critique each with a separate ADK workflow.
 6. Validate hard policy and blocking unknowns, then select stably in deterministic code.
-7. Persist the selected plan and stop. P1A performs no external action and cannot resolve the incident.
+7. Persist the selected plan at `PLAN_SELECTED`.
+8. Derive and authorize one reversible coordination block only when the selected plan coordinates
+   multiple real workstreams and assignees.
+9. Transactionally claim the intent, preflight its deterministic external event ID, insert only
+   when absent, and persist `WRITE_ACKNOWLEDGED`.
+10. Issue a new Calendar `events.get`, normalize meaningful fields, persist `VERIFIED` or
+    `VERIFICATION_FAILED`, and stop the incident in `VERIFYING`.
 
 Retries use bounded exponential backoff with jitter at adapter boundaries. Poison events move to a dead-letter path with an explicit incident error rather than silent loss. Gmail history synchronization runs periodically because notifications can be delayed or dropped.
 
@@ -100,6 +114,17 @@ stateDiagram-v2
 - Emulated adapters produce `EMULATED` receipts, which objective verification rejects as external proof.
 - Product surfaces show evidence and concise decision summaries, never hidden chain-of-thought.
 
-## P1A versus planned components
+## P1B boundary
 
-P1A implements the Pub/Sub → Cloud Run → Firestore spine and real structured ADK/Gemini planning through `PLAN_SELECTED`. External adapters, action dispatch, independent read-back, verification, resolution, authentication, and UI remain planned and require a later explicit approval.
+P1B extends the frozen Pub/Sub → Cloud Run → Firestore → ADK/Gemini path through one real
+Calendar action and an independently verified action receipt. The caller-supplied event ID is
+`p1b` plus the stable SHA-256 idempotency key, using only Calendar-supported base32hex
+characters. A retry first discovers that object, so a process death between insert and receipt
+persistence cannot create another event. Calendar access uses a short-lived
+`https://www.googleapis.com/auth/calendar.events` token for the runtime service account, which
+has writer access only to the dedicated owner-created demo calendar. No refresh token, client
+secret, domain-wide delegation, primary-calendar access, or attendee notification exists.
+
+Objective verification and `RESOLVED`, plus Gmail, GitHub, compensation execution,
+failure-triggered replanning, product authentication, and UI remain later work requiring explicit
+approval.

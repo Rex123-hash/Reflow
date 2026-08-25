@@ -9,7 +9,7 @@ from objective_recovery.domain.errors import (
     DuplicateIdempotencyKeyError,
     ReceiptMismatchError,
 )
-from objective_recovery.domain.models import Action, ActionReceipt
+from objective_recovery.domain.models import Action, ActionReceipt, ReceiptStatus
 
 
 def derive_idempotency_key(
@@ -53,7 +53,22 @@ class ActionLedger:
             raise ReceiptMismatchError(receipt.idempotency_key)
         existing = self._receipts_by_key.get(receipt.idempotency_key)
         if existing is not None and existing != receipt:
-            raise ReceiptMismatchError(receipt.idempotency_key)
+            allowed = {
+                ReceiptStatus.PENDING: {
+                    ReceiptStatus.WRITE_ACKNOWLEDGED,
+                    ReceiptStatus.FAILED,
+                },
+                ReceiptStatus.WRITE_ACKNOWLEDGED: {
+                    ReceiptStatus.VERIFIED,
+                    ReceiptStatus.VERIFICATION_FAILED,
+                    ReceiptStatus.FAILED,
+                },
+                ReceiptStatus.VERIFICATION_FAILED: {ReceiptStatus.VERIFIED},
+            }
+            if receipt.receipt_id != existing.receipt_id or receipt.status not in allowed.get(
+                existing.status, set()
+            ):
+                raise ReceiptMismatchError(receipt.idempotency_key)
         self._receipts_by_key[receipt.idempotency_key] = receipt
 
     def receipt_for(self, idempotency_key: str) -> ActionReceipt | None:

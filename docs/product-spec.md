@@ -77,9 +77,16 @@ The second disruption will be genuine: a reproducible GitHub required-check/CI f
 - Durable trace events and safe at-least-once deduplication.
 - Stop at `PLAN_SELECTED`; no external side effects or resolution.
 
-### Later judged vertical slice work (not P1A)
+### P1B Calendar action proof
 
-- At least one real Calendar mutation plus read-back.
+- One legitimate release-coordination block derived from the selected plan.
+- Deterministic allow-list authorization, stable internal/external identity, and durable claim.
+- Real dedicated-calendar insert, persisted acknowledgement, separate GET, deterministic
+  comparison, and verified action receipt.
+- Stop in `VERIFYING`; the action receipt does not restore the objective.
+
+### Later judged vertical slice work (not P1B)
+
 - Genuine GitHub CI/external-state failure, reopening, revised action, read-back, and restored invariants.
 - Structured logs that correlate event, incident, plan, action, receipt, and verification IDs.
 
