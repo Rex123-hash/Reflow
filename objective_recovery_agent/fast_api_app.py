@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import ValidationError
 
 from objective_recovery_agent.ledger import FirestoreWorkflowLedger
+from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.orchestrator import RecoveryOrchestrator
 from objective_recovery_agent.planning import AdkPlanningService
 from objective_recovery_agent.schemas import DisruptionEvent, PubSubEnvelope
@@ -57,6 +58,14 @@ async def receive_pubsub(envelope_data: dict[str, object]) -> Response:
         decoded = base64.b64decode(envelope.message.data, validate=True)
         disruption = DisruptionEvent.model_validate_json(decoded)
     except (ValidationError, ValueError, binascii.Error, json.JSONDecodeError) as error:
+        message = envelope_data.get("message")
+        message_id = message.get("messageId") if isinstance(message, dict) else None
+        emit_operational_event(
+            OperationalEvent.PUBSUB_DECODE_FAILED,
+            message_id=message_id,
+            error_category=OperationalEvent.PUBSUB_DECODE_FAILED.value,
+            error_type=type(error).__name__,
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"invalid Pub/Sub disruption envelope: {type(error).__name__}",
@@ -65,10 +74,25 @@ async def receive_pubsub(envelope_data: dict[str, object]) -> Response:
     try:
         result = await get_orchestrator().process(disruption, envelope.message.message_id)
     except Exception as error:
+        emit_operational_event(
+            OperationalEvent.WORKFLOW_FAILED,
+            event_id=disruption.event_id,
+            message_id=envelope.message.message_id,
+            error_type=type(error).__name__,
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"retryable planning failure: {type(error).__name__}",
         ) from error
+
+    if result.in_progress:
+        # A concurrent delivery may be harmless, but it can also be the first retry
+        # after a worker died while its lease is still active. Keep Pub/Sub retrying
+        # until the active worker completes the claim or the lease expires.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="incident claim is still in progress; retry delivery",
+        )
 
     body = {
         "incident_id": result.incident_id,

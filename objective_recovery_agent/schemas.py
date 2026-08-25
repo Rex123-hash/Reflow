@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 from typing import Annotated
+from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -38,6 +39,9 @@ class WorkflowEventType(StrEnum):
     PLAN_REJECTED = "PLAN_REJECTED"
     PLAN_SELECTED = "PLAN_SELECTED"
     PLANNING_FAILED = "PLANNING_FAILED"
+    ALL_PLANS_INVALID = "ALL_PLANS_INVALID"
+    BLOCKING_UNKNOWN = "BLOCKING_UNKNOWN"
+    WORKFLOW_RESUMED = "WORKFLOW_RESUMED"
 
 
 class IncidentStage(StrEnum):
@@ -228,6 +232,7 @@ class CritiqueBundle(StrictModel):
 
 
 class PlanningRun(StrictModel):
+    planning_run_id: str = Field(default_factory=lambda: str(uuid4()))
     candidates: CandidateSet
     critiques: CritiqueBundle
     planner_latency_ms: int
@@ -236,6 +241,23 @@ class PlanningRun(StrictModel):
     input_tokens: int = 0
     output_tokens: int = 0
     failed_perspectives: list[StrategyType] = Field(default_factory=list)
+
+
+class CandidateGeneration(StrictModel):
+    planning_run_id: str
+    candidates: CandidateSet
+    planner_latency_ms: int
+    total_tokens: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+
+class CritiqueGeneration(StrictModel):
+    critiques: CritiqueBundle
+    critic_latency_ms: int
+    total_tokens: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 class PubSubMessage(StrictModel):

@@ -11,6 +11,7 @@ from typing import Any, Protocol, cast
 
 from google.cloud import firestore
 
+from objective_recovery_agent.observability import emit_operational_event
 from objective_recovery_agent.schemas import (
     DisruptionEvent,
     IncidentStage,
@@ -23,6 +24,8 @@ class ClaimResult:
     incident_id: str
     should_process: bool
     deduplicated: bool
+    attempt: int = 1
+    resumed: bool = False
 
 
 class WorkflowLedger(Protocol):
@@ -75,11 +78,13 @@ class FirestoreWorkflowLedger:
             snapshot = claim_ref.get(transaction=transaction)
             if snapshot.exists:
                 data = snapshot.to_dict() or {}
+                attempt = int(data.get("attempts", 1))
                 if data.get("state") == "completed":
-                    return ClaimResult(incident_id, False, True)
+                    return ClaimResult(incident_id, False, True, attempt)
                 lease_until = data.get("lease_until")
                 if isinstance(lease_until, datetime) and lease_until > now:
-                    return ClaimResult(incident_id, False, False)
+                    return ClaimResult(incident_id, False, False, attempt)
+                next_attempt = attempt + 1
                 transaction.update(
                     claim_ref,
                     {
@@ -90,7 +95,7 @@ class FirestoreWorkflowLedger:
                         "updated_at": now,
                     },
                 )
-                return ClaimResult(incident_id, True, False)
+                return ClaimResult(incident_id, True, False, next_attempt, True)
 
             transaction.create(
                 claim_ref,
@@ -119,10 +124,10 @@ class FirestoreWorkflowLedger:
                     "revision": 0,
                 },
             )
-            return ClaimResult(incident_id, True, False)
+            return ClaimResult(incident_id, True, False, 1, False)
 
         result = cast(ClaimResult, claim(transaction))
-        if result.should_process and not result.deduplicated:
+        if result.should_process and not result.deduplicated and not result.resumed:
             self.record_event(
                 incident_id,
                 WorkflowEventType.EVENT_RECEIVED,
@@ -173,8 +178,11 @@ class FirestoreWorkflowLedger:
             "occurred_at": datetime.now(UTC),
         }
         ref.set(payload)
-        print(
-            json.dumps({**payload, "occurred_at": payload["occurred_at"].isoformat()}), flush=True
+        emit_operational_event(
+            event_type.value,
+            incident_id=incident_id,
+            workflow_event=event_type.value,
+            workflow_key=key,
         )
 
     def complete_claim(self, event_id: str) -> None:
@@ -212,10 +220,16 @@ class InMemoryWorkflowLedger:
         incident_id = incident_id_for(event.event_id)
         existing = self.claims.get(event.event_id)
         if existing and existing["state"] == "completed":
-            return ClaimResult(incident_id, False, True)
+            return ClaimResult(incident_id, False, True, int(existing["attempts"]))
         if existing and existing["state"] == "processing":
-            return ClaimResult(incident_id, False, False)
-        self.claims[event.event_id] = {"state": "processing", "message_id": message_id}
+            return ClaimResult(incident_id, False, False, int(existing["attempts"]))
+        attempt = int(existing["attempts"]) + 1 if existing else 1
+        resumed = existing is not None
+        self.claims[event.event_id] = {
+            "state": "processing",
+            "message_id": message_id,
+            "attempts": attempt,
+        }
         if incident_id not in self.incidents:
             self.incidents[incident_id] = {
                 "incident_id": incident_id,
@@ -225,13 +239,14 @@ class InMemoryWorkflowLedger:
                 "disruption": event.model_dump(mode="json"),
                 "revision": 0,
             }
-        self.record_event(
-            incident_id,
-            WorkflowEventType.EVENT_RECEIVED,
-            "transport",
-            {"message_id": message_id, "event_id": event.event_id},
-        )
-        return ClaimResult(incident_id, True, False)
+        if not resumed:
+            self.record_event(
+                incident_id,
+                WorkflowEventType.EVENT_RECEIVED,
+                "transport",
+                {"message_id": message_id, "event_id": event.event_id},
+            )
+        return ClaimResult(incident_id, True, False, attempt, resumed)
 
     def load_incident(self, incident_id: str) -> dict[str, Any]:
         return deepcopy(self.incidents[incident_id])

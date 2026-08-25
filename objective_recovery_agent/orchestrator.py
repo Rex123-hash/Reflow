@@ -22,9 +22,13 @@ from objective_recovery.domain.models import (
     RecoveryPlan,
 )
 from objective_recovery_agent.ledger import WorkflowLedger
-from objective_recovery_agent.planning import pairwise_diversity
+from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
+from objective_recovery_agent.planning import PlanningPhaseError, pairwise_diversity
 from objective_recovery_agent.schemas import (
     AssumptionState,
+    CandidateGeneration,
+    CandidateSet,
+    CritiqueGeneration,
     DisruptionEvent,
     IncidentStage,
     PlanningInput,
@@ -36,7 +40,16 @@ from objective_recovery_agent.world import build_policy_engine, planning_input
 
 
 class PlanningService(Protocol):
-    async def generate(self, planning_input: PlanningInput) -> PlanningRun: ...
+    async def generate_candidates(self, planning_input: PlanningInput) -> CandidateGeneration: ...
+
+    async def critique(
+        self,
+        candidates: CandidateSet,
+        *,
+        planning_run_id: str,
+        event_id: str | None = None,
+        incident_id: str | None = None,
+    ) -> CritiqueGeneration: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,14 +60,6 @@ class ProcessResult:
     stage: IncidentStage
     selected_plan_id: str | None
     end_to_end_latency_ms: int
-
-
-_STAGE_ORDER = {stage: index for index, stage in enumerate(IncidentStage)}
-
-
-def _at_least(document: dict[str, object], stage: IncidentStage) -> bool:
-    current = IncidentStage(str(document["stage"]))
-    return _STAGE_ORDER[current] >= _STAGE_ORDER[stage]
 
 
 def _to_domain_plan(
@@ -138,9 +143,31 @@ class RecoveryOrchestrator:
 
     async def process(self, disruption: DisruptionEvent, message_id: str) -> ProcessResult:
         started = time.perf_counter()
-        claim = self._ledger.claim_event(disruption, message_id)
+        try:
+            claim = self._ledger.claim_event(disruption, message_id)
+        except Exception as error:
+            emit_operational_event(
+                OperationalEvent.INCIDENT_CLAIM_FAILED,
+                event_id=disruption.event_id,
+                error_category=OperationalEvent.INCIDENT_CLAIM_FAILED.value,
+                error_type=type(error).__name__,
+            )
+            raise
         if not claim.should_process:
             incident = self._ledger.load_incident(claim.incident_id)
+            operational_event = (
+                OperationalEvent.DUPLICATE_EVENT_SUPPRESSED
+                if claim.deduplicated
+                else OperationalEvent.EVENT_ALREADY_IN_PROGRESS
+            )
+            emit_operational_event(
+                operational_event,
+                event_id=disruption.event_id,
+                incident_id=claim.incident_id,
+                stage=incident.get("stage"),
+                attempt=claim.attempt,
+                latency_ms=int((time.perf_counter() - started) * 1000),
+            )
             return ProcessResult(
                 claim.incident_id,
                 claim.deduplicated,
@@ -151,27 +178,60 @@ class RecoveryOrchestrator:
             )
 
         try:
-            result = await self._continue(claim.incident_id, disruption)
+            result = await self._continue(
+                claim.incident_id,
+                disruption,
+                attempt=claim.attempt,
+                resumed=claim.resumed,
+            )
         except Exception as error:
-            self._ledger.record_event(
-                claim.incident_id,
-                WorkflowEventType.PLANNING_FAILED,
-                type(error).__name__,
-                {"error_type": type(error).__name__, "summary": str(error)[:500]},
+            error_category = (
+                error.category.value
+                if isinstance(error, PlanningPhaseError)
+                else OperationalEvent.WORKFLOW_FAILED.value
             )
-            self._ledger.save_checkpoint(
-                claim.incident_id,
-                IncidentStage.PLANNING_FAILED,
-                {"status": "planning_failed", "last_error": str(error)[:1000]},
+            emit_operational_event(
+                OperationalEvent.WORKFLOW_FAILED,
+                event_id=disruption.event_id,
+                incident_id=claim.incident_id,
+                attempt=claim.attempt,
+                error_category=error_category,
+                error_type=type(error).__name__,
             )
-            self._ledger.release_claim(disruption.event_id, str(error))
+            try:
+                self._ledger.record_event(
+                    claim.incident_id,
+                    WorkflowEventType.PLANNING_FAILED,
+                    f"attempt-{claim.attempt}",
+                    {
+                        "attempt": claim.attempt,
+                        "error_type": type(error).__name__,
+                        "error_category": error_category,
+                    },
+                )
+                self._checkpoint(
+                    claim.incident_id,
+                    IncidentStage.PLANNING_FAILED,
+                    {
+                        "status": "planning_failed",
+                        "last_error_type": type(error).__name__,
+                        "last_error_category": error_category,
+                    },
+                    event_id=disruption.event_id,
+                )
+                self._ledger.release_claim(disruption.event_id, error_category)
+            except Exception:
+                # The original exception remains authoritative; checkpoint failures log in
+                # _checkpoint and Pub/Sub will retry the delivery.
+                pass
             raise
 
         end_to_end_latency_ms = int((time.perf_counter() - started) * 1000)
-        self._ledger.save_checkpoint(
+        self._checkpoint(
             claim.incident_id,
             result.stage,
             {"end_to_end_latency_ms": end_to_end_latency_ms},
+            event_id=disruption.event_id,
         )
         self._ledger.complete_claim(disruption.event_id)
         return ProcessResult(
@@ -183,15 +243,69 @@ class RecoveryOrchestrator:
             end_to_end_latency_ms=end_to_end_latency_ms,
         )
 
-    async def _continue(self, incident_id: str, disruption: DisruptionEvent) -> ProcessResult:
-        incident = self._ledger.load_incident(incident_id)
-        context = planning_input(incident_id, disruption)
+    def _checkpoint(
+        self,
+        incident_id: str,
+        stage: IncidentStage,
+        fields: dict[str, object],
+        *,
+        event_id: str,
+    ) -> None:
+        try:
+            self._ledger.save_checkpoint(incident_id, stage, fields)
+        except Exception as error:
+            emit_operational_event(
+                OperationalEvent.FIRESTORE_CHECKPOINT_FAILED,
+                event_id=event_id,
+                incident_id=incident_id,
+                stage=stage.value,
+                error_category=OperationalEvent.FIRESTORE_CHECKPOINT_FAILED.value,
+                error_type=type(error).__name__,
+            )
+            raise
 
-        if not _at_least(incident, IncidentStage.EVENT_INTERPRETED):
-            self._ledger.save_checkpoint(
+    async def _continue(
+        self,
+        incident_id: str,
+        disruption: DisruptionEvent,
+        *,
+        attempt: int,
+        resumed: bool,
+    ) -> ProcessResult:
+        incident = self._ledger.load_incident(incident_id)
+        if resumed:
+            emit_operational_event(
+                OperationalEvent.WORKFLOW_RESUMED,
+                event_id=disruption.event_id,
+                incident_id=incident_id,
+                stage=incident.get("stage"),
+                attempt=attempt,
+            )
+            self._ledger.record_event(
+                incident_id,
+                WorkflowEventType.WORKFLOW_RESUMED,
+                f"attempt-{attempt}",
+                {"attempt": attempt, "resumed_from_stage": incident.get("stage")},
+            )
+        try:
+            context = planning_input(incident_id, disruption)
+        except Exception as error:
+            emit_operational_event(
+                OperationalEvent.IMPACT_MAPPING_FAILED,
+                event_id=disruption.event_id,
+                incident_id=incident_id,
+                attempt=attempt,
+                error_category=OperationalEvent.IMPACT_MAPPING_FAILED.value,
+                error_type=type(error).__name__,
+            )
+            raise
+
+        if "canonical_event" not in incident:
+            self._checkpoint(
                 incident_id,
                 IncidentStage.EVENT_INTERPRETED,
                 {"status": "interpreting", "canonical_event": disruption.model_dump(mode="json")},
+                event_id=disruption.event_id,
             )
             self._ledger.record_event(
                 incident_id,
@@ -201,16 +315,17 @@ class RecoveryOrchestrator:
             )
             incident = self._ledger.load_incident(incident_id)
 
-        if not _at_least(incident, IncidentStage.IMPACT_MAPPED):
+        if "impact" not in incident:
             impact = {
                 "objective_id": context.objective_id,
                 "affected_node_ids": context.affected_node_ids,
                 "affected_node_labels": context.affected_node_labels,
             }
-            self._ledger.save_checkpoint(
+            self._checkpoint(
                 incident_id,
                 IncidentStage.IMPACT_MAPPED,
                 {"status": "impact_mapped", "impact": impact},
+                event_id=disruption.event_id,
             )
             self._ledger.record_event(
                 incident_id,
@@ -220,11 +335,12 @@ class RecoveryOrchestrator:
             )
             incident = self._ledger.load_incident(incident_id)
 
-        if not _at_least(incident, IncidentStage.PLAN_GENERATION_STARTED):
-            self._ledger.save_checkpoint(
+        if not incident.get("planning_started"):
+            self._checkpoint(
                 incident_id,
                 IncidentStage.PLAN_GENERATION_STARTED,
-                {"status": "planning"},
+                {"status": "planning", "planning_started": True},
+                event_id=disruption.event_id,
             )
             self._ledger.record_event(
                 incident_id,
@@ -234,20 +350,33 @@ class RecoveryOrchestrator:
             )
             incident = self._ledger.load_incident(incident_id)
 
-        # Durable output, not a terminal/error stage rank, proves the model call completed.
-        # This lets a retry resume after policy/ledger failure without paying for another call.
-        if "planning_run" not in incident:
-            planning_run = await self._planner.generate(context)
-            self._ledger.save_checkpoint(
+        if "candidate_generation" in incident:
+            candidate_generation = CandidateGeneration.model_validate(
+                incident["candidate_generation"]
+            )
+        elif "planning_run" in incident:
+            legacy_run = PlanningRun.model_validate(incident["planning_run"])
+            candidate_generation = CandidateGeneration(
+                planning_run_id=legacy_run.planning_run_id,
+                candidates=legacy_run.candidates,
+                planner_latency_ms=legacy_run.planner_latency_ms,
+                total_tokens=legacy_run.total_tokens,
+                input_tokens=legacy_run.input_tokens,
+                output_tokens=legacy_run.output_tokens,
+            )
+        else:
+            candidate_generation = await self._planner.generate_candidates(context)
+            self._checkpoint(
                 incident_id,
                 IncidentStage.PLANS_GENERATED,
                 {
                     "status": "planning",
-                    "planning_run": planning_run.model_dump(mode="json"),
-                    "diversity": pairwise_diversity(planning_run.candidates.plans),
+                    "candidate_generation": candidate_generation.model_dump(mode="json"),
+                    "diversity": pairwise_diversity(candidate_generation.candidates.plans),
                 },
+                event_id=disruption.event_id,
             )
-            for created_candidate in planning_run.candidates.plans:
+            for created_candidate in candidate_generation.candidates.plans:
                 self._ledger.record_event(
                     incident_id,
                     WorkflowEventType.PLAN_CREATED,
@@ -259,12 +388,34 @@ class RecoveryOrchestrator:
                 )
             incident = self._ledger.load_incident(incident_id)
 
-        planning_run = PlanningRun.model_validate(incident["planning_run"])
-        if not _at_least(incident, IncidentStage.PLANS_CRITIQUED):
-            self._ledger.save_checkpoint(
+        if "planning_run" in incident:
+            planning_run = PlanningRun.model_validate(incident["planning_run"])
+        else:
+            critique_generation = await self._planner.critique(
+                candidate_generation.candidates,
+                planning_run_id=candidate_generation.planning_run_id,
+                event_id=disruption.event_id,
+                incident_id=incident_id,
+            )
+            planning_run = PlanningRun(
+                planning_run_id=candidate_generation.planning_run_id,
+                candidates=candidate_generation.candidates,
+                critiques=critique_generation.critiques,
+                planner_latency_ms=candidate_generation.planner_latency_ms,
+                critic_latency_ms=critique_generation.critic_latency_ms,
+                total_tokens=candidate_generation.total_tokens + critique_generation.total_tokens,
+                input_tokens=candidate_generation.input_tokens + critique_generation.input_tokens,
+                output_tokens=candidate_generation.output_tokens
+                + critique_generation.output_tokens,
+            )
+            self._checkpoint(
                 incident_id,
                 IncidentStage.PLANS_CRITIQUED,
-                {"status": "validating"},
+                {
+                    "status": "validating",
+                    "planning_run": planning_run.model_dump(mode="json"),
+                },
+                event_id=disruption.event_id,
             )
             for critique in planning_run.critiques.critiques:
                 self._ledger.record_event(
@@ -302,18 +453,51 @@ class RecoveryOrchestrator:
                     plan.plan_id,
                     decision_data,
                 )
+            if decision.blocking_unknowns:
+                blocking_details = {
+                    "plan_id": plan.plan_id,
+                    "blocking_unknowns": list(decision.blocking_unknowns),
+                }
+                self._ledger.record_event(
+                    incident_id,
+                    WorkflowEventType.BLOCKING_UNKNOWN,
+                    plan.plan_id,
+                    blocking_details,
+                )
+                emit_operational_event(
+                    OperationalEvent.BLOCKING_UNKNOWN,
+                    event_id=disruption.event_id,
+                    incident_id=incident_id,
+                    planning_run_id=planning_run.planning_run_id,
+                    stage=IncidentStage.PLANS_CRITIQUED.value,
+                    strategy_type=plan.strategy,
+                )
 
         try:
             selected = select_best_valid_plan(evaluated)
         except NoValidPlanError:
-            self._ledger.save_checkpoint(
+            self._ledger.record_event(
+                incident_id,
+                WorkflowEventType.ALL_PLANS_INVALID,
+                planning_run.planning_run_id,
+                {"planning_run_id": planning_run.planning_run_id},
+            )
+            emit_operational_event(
+                OperationalEvent.ALL_PLANS_INVALID,
+                event_id=disruption.event_id,
+                incident_id=incident_id,
+                planning_run_id=planning_run.planning_run_id,
+                stage=IncidentStage.NO_VALID_PLAN.value,
+            )
+            self._checkpoint(
                 incident_id,
                 IncidentStage.NO_VALID_PLAN,
                 {"status": "replanning_required", "policy_decisions": decisions},
+                event_id=disruption.event_id,
             )
             return ProcessResult(incident_id, False, False, IncidentStage.NO_VALID_PLAN, None, 0)
 
-        self._ledger.save_checkpoint(
+        self._checkpoint(
             incident_id,
             IncidentStage.PLAN_SELECTED,
             {
@@ -339,12 +523,21 @@ class RecoveryOrchestrator:
                 },
                 "policy_decisions": decisions,
             },
+            event_id=disruption.event_id,
         )
         self._ledger.record_event(
             incident_id,
             WorkflowEventType.PLAN_SELECTED,
             selected.plan_id,
             {"plan_id": selected.plan_id, "strategy_type": selected.strategy},
+        )
+        emit_operational_event(
+            OperationalEvent.PLAN_SELECTED,
+            event_id=disruption.event_id,
+            incident_id=incident_id,
+            planning_run_id=planning_run.planning_run_id,
+            stage=IncidentStage.PLAN_SELECTED.value,
+            strategy_type=selected.strategy,
         )
         return ProcessResult(
             incident_id, False, False, IncidentStage.PLAN_SELECTED, selected.plan_id, 0

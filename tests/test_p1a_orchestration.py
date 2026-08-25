@@ -12,8 +12,10 @@ from objective_recovery_agent.orchestrator import RecoveryOrchestrator
 from objective_recovery_agent.schemas import (
     ActionParameter,
     AssumptionState,
+    CandidateGeneration,
     CandidateSet,
     CritiqueBundle,
+    CritiqueGeneration,
     DisruptionEvent,
     IncidentStage,
     PlanAssumptionOutput,
@@ -126,15 +128,50 @@ def planning_run(
 
 
 class StubPlanner:
-    def __init__(self, run: PlanningRun | BaseException) -> None:
+    def __init__(
+        self,
+        run: PlanningRun | BaseException,
+        *,
+        critic_error: BaseException | None = None,
+    ) -> None:
         self.run = run
-        self.calls = 0
+        self.critic_error = critic_error
+        self.planner_calls = 0
+        self.critic_calls = 0
 
-    async def generate(self, planning_input: Any) -> PlanningRun:
-        self.calls += 1
+    @property
+    def calls(self) -> int:
+        return self.planner_calls
+
+    async def generate_candidates(self, planning_input: Any) -> CandidateGeneration:
+        self.planner_calls += 1
         if isinstance(self.run, BaseException):
             raise self.run
-        return self.run
+        return CandidateGeneration(
+            planning_run_id=self.run.planning_run_id,
+            candidates=self.run.candidates,
+            planner_latency_ms=self.run.planner_latency_ms,
+            total_tokens=self.run.total_tokens,
+            input_tokens=self.run.input_tokens,
+            output_tokens=self.run.output_tokens,
+        )
+
+    async def critique(
+        self,
+        candidates: CandidateSet,
+        *,
+        planning_run_id: str,
+        event_id: str | None = None,
+        incident_id: str | None = None,
+    ) -> CritiqueGeneration:
+        self.critic_calls += 1
+        if self.critic_error is not None:
+            raise self.critic_error
+        assert not isinstance(self.run, BaseException)
+        return CritiqueGeneration(
+            critiques=self.run.critiques,
+            critic_latency_ms=self.run.critic_latency_ms,
+        )
 
 
 def three_valid_plans() -> PlanningRun:
@@ -159,6 +196,23 @@ async def test_duplicate_delivery_creates_one_incident_and_does_not_replan() -> 
     assert duplicate.incident_id == first.incident_id
     assert len(ledger.incidents) == 1
     assert planner.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_duplicate_before_completion_returns_in_progress_without_planning() -> None:
+    ledger = InMemoryWorkflowLedger()
+    planner = StubPlanner(three_valid_plans())
+    event = disruption("event-in-progress")
+    first_claim = ledger.claim_event(event, "pubsub-message-1")
+
+    duplicate = await RecoveryOrchestrator(ledger, planner).process(event, "pubsub-message-2")
+
+    assert duplicate.in_progress
+    assert not duplicate.deduplicated
+    assert duplicate.incident_id == first_claim.incident_id
+    assert len(ledger.incidents) == 1
+    assert planner.planner_calls == 0
+    assert planner.critic_calls == 0
 
 
 @pytest.mark.asyncio
@@ -223,6 +277,48 @@ async def test_planner_timeout_releases_claim_for_retry_without_resolution() -> 
 
 
 @pytest.mark.asyncio
+async def test_retry_after_planner_failure_calls_planner_once_more_then_completes() -> None:
+    ledger = InMemoryWorkflowLedger()
+    event = disruption("event-planner-retry")
+    planner = StubPlanner(TimeoutError("planner deadline"))
+    orchestrator = RecoveryOrchestrator(ledger, planner)
+
+    with pytest.raises(TimeoutError):
+        await orchestrator.process(event, "message-first")
+
+    planner.run = three_valid_plans()
+    result = await orchestrator.process(event, "message-retry")
+
+    assert result.stage is IncidentStage.PLAN_SELECTED
+    assert planner.planner_calls == 2
+    assert planner.critic_calls == 1
+    assert ledger.claims[event.event_id]["attempts"] == 2
+
+
+@pytest.mark.asyncio
+async def test_retry_after_critic_failure_reuses_persisted_candidates() -> None:
+    ledger = InMemoryWorkflowLedger()
+    event = disruption("event-critic-retry")
+    planner = StubPlanner(three_valid_plans(), critic_error=TimeoutError("critic deadline"))
+    orchestrator = RecoveryOrchestrator(ledger, planner)
+
+    with pytest.raises(TimeoutError):
+        await orchestrator.process(event, "message-first")
+
+    incident = next(iter(ledger.incidents.values()))
+    assert "candidate_generation" in incident
+    assert "planning_run" not in incident
+
+    planner.critic_error = None
+    result = await orchestrator.process(event, "message-retry")
+
+    assert result.stage is IncidentStage.PLAN_SELECTED
+    assert planner.planner_calls == 1
+    assert planner.critic_calls == 2
+    assert ledger.claims[event.event_id]["attempts"] == 2
+
+
+@pytest.mark.asyncio
 async def test_restart_resumes_from_persisted_plans_without_calling_model_again() -> None:
     ledger = InMemoryWorkflowLedger()
     planner = StubPlanner(three_valid_plans())
@@ -241,6 +337,7 @@ async def test_restart_resumes_from_persisted_plans_without_calling_model_again(
     assert resumed.stage is IncidentStage.PLAN_SELECTED
     assert resumed.selected_plan_id == "risk"
     assert planner.calls == 1
+    assert planner.critic_calls == 1
 
 
 def test_malformed_typed_model_output_is_rejected() -> None:
@@ -259,6 +356,7 @@ def test_malformed_typed_model_output_is_rejected() -> None:
 
 def test_pubsub_endpoint_rejects_malformed_payload_without_calling_orchestrator(
     monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setattr(
         fast_api_app,
@@ -276,6 +374,36 @@ def test_pubsub_endpoint_rejects_malformed_payload_without_calling_orchestrator(
         "/apps/objective_recovery_agent/trigger/pubsub", json=envelope
     )
     assert response.status_code == 400
+    assert "PUBSUB_DECODE_FAILED" in capsys.readouterr().out
+
+
+def test_pubsub_endpoint_keeps_in_progress_delivery_retryable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ledger = InMemoryWorkflowLedger()
+    planner = StubPlanner(three_valid_plans())
+    event = disruption("event-overlapping-delivery")
+    ledger.claim_event(event, "message-active-worker")
+    monkeypatch.setattr(
+        fast_api_app,
+        "get_orchestrator",
+        lambda: RecoveryOrchestrator(ledger, planner),
+    )
+    envelope = {
+        "message": {
+            "data": base64.b64encode(event.model_dump_json().encode()).decode(),
+            "messageId": "message-redelivery",
+        },
+        "subscription": "projects/test/subscriptions/test",
+    }
+
+    response = TestClient(fast_api_app.app).post(
+        "/apps/objective_recovery_agent/trigger/pubsub", json=envelope
+    )
+
+    assert response.status_code == 503
+    assert planner.planner_calls == 0
+    assert planner.critic_calls == 0
 
 
 def test_deterministic_selected_plan_is_repeatable_for_same_candidates() -> None:

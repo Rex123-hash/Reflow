@@ -78,6 +78,21 @@ def test_duplicate_idempotency_key_is_rejected() -> None:
         ledger.claim(make_action(action_id="different"))
 
 
+def test_same_idempotency_key_with_different_intent_is_rejected() -> None:
+    ledger = ActionLedger()
+    original = make_action()
+    conflicting = Action(
+        action_id=original.action_id,
+        action_type=original.action_type,
+        target=original.target,
+        parameters=(("attendee", "engineer-c"),),
+        idempotency_key=original.idempotency_key,
+    )
+    assert ledger.claim(original)
+    with pytest.raises(DuplicateIdempotencyKeyError):
+        ledger.claim(conflicting)
+
+
 def test_receipt_must_match_claimed_intention_and_is_idempotent() -> None:
     ledger = ActionLedger()
     action = make_action()

@@ -15,10 +15,14 @@ from google.adk.models import Gemini
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+from pydantic import ValidationError
 
+from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.schemas import (
+    CandidateGeneration,
     CandidateSet,
     CritiqueBundle,
+    CritiqueGeneration,
     PlanningInput,
     PlanningRun,
     RecoveryPlanCandidate,
@@ -28,6 +32,15 @@ from objective_recovery_agent.schemas import (
 
 MODEL_ID = "gemini-3.7-flash"
 PLANNER_TIMEOUT_SECONDS = 45.0
+
+
+class PlanningPhaseError(RuntimeError):
+    """A safe, categorized failure at a typed model boundary."""
+
+    def __init__(self, category: OperationalEvent, cause: BaseException) -> None:
+        super().__init__(f"{category.value}: {type(cause).__name__}")
+        self.category = category
+
 
 _COMMON_PLANNER_INSTRUCTION = """
 You are a recovery-planning agent. Return only the requested typed output. Propose
@@ -306,27 +319,142 @@ def ensure_materially_different(candidates: CandidateSet) -> None:
 class AdkPlanningService:
     """Selected architecture B: one diverse bundle planner plus one critic."""
 
-    async def generate(self, planning_input: PlanningInput) -> PlanningRun:
-        planner_result = await asyncio.wait_for(
-            run_workflow(create_bundle_workflow(), planning_input),
-            timeout=PLANNER_TIMEOUT_SECONDS + 5,
+    async def generate_candidates(self, planning_input: PlanningInput) -> CandidateGeneration:
+        planning_run_id = str(uuid.uuid4())
+        correlation = {
+            "event_id": planning_input.disruption.event_id,
+            "incident_id": planning_input.incident_id,
+            "planning_run_id": planning_run_id,
+            "model": MODEL_ID,
+        }
+        emit_operational_event(OperationalEvent.PLANNER_STARTED, **correlation)
+        try:
+            planner_result = await asyncio.wait_for(
+                run_workflow(create_bundle_workflow(), planning_input),
+                timeout=PLANNER_TIMEOUT_SECONDS + 5,
+            )
+        except TimeoutError as error:
+            emit_operational_event(OperationalEvent.PLANNER_TIMEOUT, **correlation)
+            raise PlanningPhaseError(OperationalEvent.PLANNER_TIMEOUT, error) from error
+        except (json.JSONDecodeError, ValidationError) as error:
+            emit_operational_event(OperationalEvent.PLANNER_SCHEMA_INVALID, **correlation)
+            raise PlanningPhaseError(OperationalEvent.PLANNER_SCHEMA_INVALID, error) from error
+        except Exception as error:
+            emit_operational_event(
+                OperationalEvent.PLANNER_FAILED,
+                error_type=type(error).__name__,
+                **correlation,
+            )
+            raise PlanningPhaseError(OperationalEvent.PLANNER_FAILED, error) from error
+
+        try:
+            candidates = CandidateSet.model_validate(planner_result.output)
+        except ValidationError as error:
+            emit_operational_event(OperationalEvent.PLANNER_SCHEMA_INVALID, **correlation)
+            raise PlanningPhaseError(OperationalEvent.PLANNER_SCHEMA_INVALID, error) from error
+        try:
+            ensure_materially_different(candidates)
+        except ValueError as error:
+            emit_operational_event(
+                OperationalEvent.PLANNER_FAILED,
+                error_type="InsufficientDiversity",
+                **correlation,
+            )
+            raise PlanningPhaseError(OperationalEvent.PLANNER_FAILED, error) from error
+
+        emit_operational_event(
+            OperationalEvent.PLANNER_COMPLETED,
+            latency_ms=planner_result.latency_ms,
+            candidate_count=len(candidates.plans),
+            total_tokens=planner_result.total_tokens,
+            **correlation,
         )
-        candidates = CandidateSet.model_validate(planner_result.output)
-        ensure_materially_different(candidates)
-        critic_result = await asyncio.wait_for(
-            run_workflow(create_critic_workflow(), candidates),
-            timeout=PLANNER_TIMEOUT_SECONDS + 5,
-        )
-        critiques = CritiqueBundle.model_validate(critic_result.output)
-        _validate_critique_ids(candidates, critiques)
-        return PlanningRun(
+        return CandidateGeneration(
+            planning_run_id=planning_run_id,
             candidates=candidates,
-            critiques=critiques,
             planner_latency_ms=planner_result.latency_ms,
+            total_tokens=planner_result.total_tokens,
+            input_tokens=planner_result.input_tokens,
+            output_tokens=planner_result.output_tokens,
+        )
+
+    async def critique(
+        self,
+        candidates: CandidateSet,
+        *,
+        planning_run_id: str,
+        event_id: str | None = None,
+        incident_id: str | None = None,
+    ) -> CritiqueGeneration:
+        correlation = {
+            "planning_run_id": planning_run_id,
+            "model": MODEL_ID,
+            "event_id": event_id,
+            "incident_id": incident_id,
+        }
+        emit_operational_event(
+            OperationalEvent.CRITIC_STARTED,
+            candidate_count=len(candidates.plans),
+            **correlation,
+        )
+        try:
+            critic_result = await asyncio.wait_for(
+                run_workflow(create_critic_workflow(), candidates),
+                timeout=PLANNER_TIMEOUT_SECONDS + 5,
+            )
+        except TimeoutError as error:
+            emit_operational_event(OperationalEvent.CRITIC_TIMEOUT, **correlation)
+            raise PlanningPhaseError(OperationalEvent.CRITIC_TIMEOUT, error) from error
+        except (json.JSONDecodeError, ValidationError) as error:
+            emit_operational_event(OperationalEvent.CRITIC_SCHEMA_INVALID, **correlation)
+            raise PlanningPhaseError(OperationalEvent.CRITIC_SCHEMA_INVALID, error) from error
+        except Exception as error:
+            emit_operational_event(
+                OperationalEvent.CRITIC_FAILED,
+                error_type=type(error).__name__,
+                **correlation,
+            )
+            raise PlanningPhaseError(OperationalEvent.CRITIC_FAILED, error) from error
+
+        try:
+            critiques = CritiqueBundle.model_validate(critic_result.output)
+            _validate_critique_ids(candidates, critiques)
+        except (ValidationError, ValueError) as error:
+            emit_operational_event(OperationalEvent.CRITIC_SCHEMA_INVALID, **correlation)
+            raise PlanningPhaseError(OperationalEvent.CRITIC_SCHEMA_INVALID, error) from error
+
+        emit_operational_event(
+            OperationalEvent.CRITIC_COMPLETED,
+            latency_ms=critic_result.latency_ms,
+            critique_count=len(critiques.critiques),
+            total_tokens=critic_result.total_tokens,
+            **correlation,
+        )
+        return CritiqueGeneration(
+            critiques=critiques,
             critic_latency_ms=critic_result.latency_ms,
-            total_tokens=planner_result.total_tokens + critic_result.total_tokens,
-            input_tokens=planner_result.input_tokens + critic_result.input_tokens,
-            output_tokens=planner_result.output_tokens + critic_result.output_tokens,
+            total_tokens=critic_result.total_tokens,
+            input_tokens=critic_result.input_tokens,
+            output_tokens=critic_result.output_tokens,
+        )
+
+    async def generate(self, planning_input: PlanningInput) -> PlanningRun:
+        candidate_generation = await self.generate_candidates(planning_input)
+        critique_generation = await self.critique(
+            candidate_generation.candidates,
+            planning_run_id=candidate_generation.planning_run_id,
+            event_id=planning_input.disruption.event_id,
+            incident_id=planning_input.incident_id,
+        )
+        return PlanningRun(
+            planning_run_id=candidate_generation.planning_run_id,
+            candidates=candidate_generation.candidates,
+            critiques=critique_generation.critiques,
+            planner_latency_ms=candidate_generation.planner_latency_ms,
+            critic_latency_ms=critique_generation.critic_latency_ms,
+            total_tokens=candidate_generation.total_tokens + critique_generation.total_tokens,
+            input_tokens=candidate_generation.input_tokens + critique_generation.input_tokens,
+            output_tokens=candidate_generation.output_tokens + critique_generation.output_tokens,
             failed_perspectives=[],
         )
 
