@@ -2,37 +2,24 @@
 
 ## Architectural stance
 
-The domain core is framework-independent. Google ADK orchestrates bounded reasoning in P1, while Firestore and deterministic services remain authoritative. GitHub, Gmail, and Calendar are adapters to generic operational contracts.
+The domain core is framework-independent. Google ADK orchestrates bounded reasoning in P1A, while Firestore and deterministic services remain authoritative. Gmail, GitHub, Calendar, authentication, and UI remain outside this phase.
 
 ## System context
 
 ```mermaid
 flowchart LR
-    Gmail[Gmail mailbox] -->|watch notification| PubSub[Cloud Pub/Sub]
-    GitHub[GitHub webhook / CI] -->|signed webhook| Ingress[Cloud Run ingress]
-    PubSub -->|authenticated push| Ingress
+    Publisher[Canonical DisruptionEvent publisher] --> PubSub[Cloud Pub/Sub]
+    PubSub -->|authenticated OIDC push| Ingress[Private Cloud Run ingress]
     Ingress --> Ledger[(Firestore workflow ledger)]
     Ingress --> Orchestrator[Recovery orchestrator]
 
     Orchestrator --> Graph[Operational graph service]
-    Orchestrator --> Agents[ADK 2 workflows]
+    Orchestrator --> Agents[ADK diverse-bundle planner + risk critic]
     Agents -->|structured calls| Gemini[Vertex AI\nGemini 3.7 Flash]
     Orchestrator --> Policy[Deterministic policy engine]
     Orchestrator --> Selector[Deterministic plan selector]
-    Orchestrator --> Router[Action router]
-
-    Router --> Calendar[Google Calendar adapter]
-    Router --> GitHub
-    Router --> Gmail
-    Router --> Receipts[(Action receipts)]
-
-    Verifier[Objective verifier] -->|independent reads| Calendar
-    Verifier -->|independent reads| GitHub
-    Verifier --> Ledger
-    Verifier --> Orchestrator
-
     Ledger --> Events[Workflow event stream]
-    Events --> UI[Later: recovery command center]
+    Events --> FutureUI[Later phase: recovery command center]
 ```
 
 ## Boundaries
@@ -48,7 +35,7 @@ flowchart LR
 ## Agent roles
 
 1. **Event Interpreter** — maps unstructured evidence to a typed disruption with evidence references and unknowns.
-2. **Recovery Planner** — two or three parallel, strategy-constrained instances return schema-valid and materially different futures.
+2. **Recovery Planner** — one diverse-bundle workflow returns exactly three schema-valid, materially different deadline/risk/resource futures.
 3. **Risk Critic** — identifies contradictions, assumptions, missing evidence, and failure modes. It cannot approve a plan.
 
 More agents require evaluation evidence or a distinct context/tool/security boundary.
@@ -73,13 +60,10 @@ Writes that claim a new action intention or consume an event use a Firestore tra
 1. Authenticate Pub/Sub push or verify GitHub signature.
 2. Parse the transport envelope and derive a source event identity.
 3. Transactionally claim/deduplicate the event before acknowledgement.
-4. For Gmail, call `history.list` from the persisted cursor and fetch selected message evidence.
-5. Interpret evidence, persist the typed disruption, and traverse the accepted graph deterministically.
-6. Generate/critique candidate plans; validate and select in code.
-7. Persist action intention before dispatch; adapter writes once per stable key where the external API permits.
-8. Persist receipt separately from verification.
-9. Verifier performs fresh reads and evaluates objective invariants.
-10. Failed verification reopens the incident and creates a new plan revision.
+4. Persist the typed disruption and traverse the accepted graph deterministically.
+5. Generate exactly three typed candidates and critique each with a separate ADK workflow.
+6. Validate hard policy and blocking unknowns, then select stably in deterministic code.
+7. Persist the selected plan and stop. P1A performs no external action and cannot resolve the incident.
 
 Retries use bounded exponential backoff with jitter at adapter boundaries. Poison events move to a dead-letter path with an explicit incident error rather than silent loss. Gmail history synchronization runs periodically because notifications can be delayed or dropped.
 
@@ -116,6 +100,6 @@ stateDiagram-v2
 - Emulated adapters produce `EMULATED` receipts, which objective verification rejects as external proof.
 - Product surfaces show evidence and concise decision summaries, never hidden chain-of-thought.
 
-## P0 versus planned components
+## P1A versus planned components
 
-P0 implements the domain/application contracts and emulated in-memory adapters only. Cloud services, credentials, ADK agents, HTTP endpoints, and UI remain planned until the owner approves cloud/account actions.
+P1A implements the Pub/Sub → Cloud Run → Firestore spine and real structured ADK/Gemini planning through `PLAN_SELECTED`. External adapters, action dispatch, independent read-back, verification, resolution, authentication, and UI remain planned and require a later explicit approval.

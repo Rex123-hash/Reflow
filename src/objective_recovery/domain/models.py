@@ -43,6 +43,7 @@ class IncidentStatus(StrEnum):
     IMPACT_MAPPED = "impact_mapped"
     PLANNING = "planning"
     VALIDATING = "validating"
+    PLAN_SELECTED = "plan_selected"
     EXECUTING = "executing"
     PARTIAL_FAILURE = "partial_failure"
     COMPENSATING = "compensating"
@@ -108,6 +109,10 @@ class RecoveryPlan:
     assignments: tuple[Assignment, ...] = ()
     assumptions: tuple[PlanAssumption, ...] = ()
     deadline_changes: tuple[DeadlineChange, ...] = ()
+    expected_objective_effect: str = ""
+    risks: tuple[str, ...] = ()
+    required_evidence: tuple[str, ...] = ()
+    unknowns: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

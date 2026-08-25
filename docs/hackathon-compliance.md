@@ -7,15 +7,15 @@ Status values are **implemented**, **planned**, and **owner action**. No planned
 | Newly created project | implemented | Fresh folder, source, tests, docs, and independent Git history | Repository history |
 | Pre-existing work disclosure | implemented | Explicit disclosure file; no prior implementation copied | `PREEXISTING_WORK_DISCLOSURE.md` |
 | One track | implemented | Taskmaster only | README and Devpost selection |
-| Gemini 3.5+ | planned | Vertex AI `gemini-3.7-flash` | Configuration, request logs, Vertex AI evidence |
-| Google agent framework | planned | Google ADK Python 2.7.1 | Lockfile, agent code, execution trace |
-| GCP infrastructure | planned | Cloud Run, Pub/Sub, Firestore | Deployment config and Cloud Console/.run proof |
-| Event-driven background workflow | planned | Gmail watch/history → Pub/Sub → Cloud Run; GitHub webhook second event | Live event and correlated logs |
-| Autonomous multi-step action | planned | Impact, futures, validation, Calendar/GitHub action, read-back, replan | Four-minute demo path |
+| Gemini 3.5+ | implemented | Vertex AI `gemini-3.7-flash`; real smoke, experiment, eval, and live workflow | Firestore tokens/latencies and eval trace |
+| Google agent framework | implemented | Google ADK Python 2.7.1 planner and critic workflows | Lockfile, agent code, execution trace |
+| GCP infrastructure | implemented for P1A | Private Cloud Run, OIDC Pub/Sub push, Firestore, DLQ, Artifact Registry | Terraform and real-cloud proof |
+| Event-driven background workflow | implemented for P1A | Canonical Pub/Sub event → Cloud Run → Firestore | Correlated live event and durable events |
+| Autonomous multi-step action | partial by scope | Impact, three futures, critique, policy, selection; external actions intentionally excluded | `PLAN_SELECTED` live proof |
 | BYOF / distinctive friction | implemented in design | Preserve an endangered release objective for a small software team | Product spec and demo narration |
 | Failure-tolerant architecture | foundation implemented; cloud planned | Deterministic core now; transactional dedupe/retries/DLQ in P1 | Tests, architecture, Firestore records |
 | Repository URL | owner action | No remote may be created without approval | Devpost field |
-| Hosted URL if available | owner action | Cloud Run deployment requires approval | Devpost field / `.run` URL |
+| Hosted URL if available | implemented privately | Cloud Run URL exists but requires authenticated invocation | Devpost field / `.run` proof |
 | Spin-up README | foundation implemented | Local foundation commands now; cloud instructions added with P1 | `README.md` |
 | Architecture diagram | implemented | Mermaid system and lifecycle diagrams | `docs/architecture.md` |
 | Public ≤4-minute video | owner action | Record after vertical slice and deployment are real | Public YouTube/Vimeo link |
@@ -33,8 +33,8 @@ Status values are **implemented**, **planned**, and **owner action**. No planned
 |---|---|---|
 | Objective graph/policy/lifecycle | Real deterministic code | Same code backed by durable state |
 | In-memory adapters | Explicitly `EMULATED`; tests only | Never shown as external proof |
-| Pub/Sub / Cloud Run / Firestore | Not implemented | Real GCP services |
-| Gemini / ADK | Not implemented | Real Vertex AI and ADK execution |
+| Pub/Sub / Cloud Run / Firestore | Real P1A deployment | Authenticated delivery, durable state, transactional dedupe |
+| Gemini / ADK | Real P1A execution | Typed Vertex AI planner bundle and risk critic |
 | Gmail | Not implemented | Real authorized mailbox watch/history |
 | Calendar | Not implemented | Real authorized mutation and independent read-back |
 | GitHub | Not implemented | Real demo repo webhook/CI state and API read-back |

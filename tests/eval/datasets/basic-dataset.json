@@ -1,0 +1,15 @@
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "backend_lead_disruption_three_strategies",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "{\"incident_id\":\"eval-backend-lead\",\"objective_id\":\"release-v2\",\"objective_label\":\"Ship Release V2 by Friday 5 PM\",\"protected_deadline\":\"2026-08-28T17:00:00+00:00\",\"disruption\":{\"event_id\":\"eval-backend-lead-unavailable\",\"event_type\":\"resource-unavailable\",\"occurred_at\":\"2026-08-25T12:00:00+00:00\",\"source\":\"p1a-eval\",\"summary\":\"Lead backend engineer is unavailable through the protected release deadline.\",\"disrupted_node_ids\":[\"person-backend-lead\"],\"evidence_references\":[\"evidence://eval/backend-lead-unavailable\"]},\"affected_node_ids\":[\"person-backend-lead\",\"work-api-migration\",\"milestone-backend\",\"commit-release\",\"release-v2\"],\"affected_node_labels\":[\"Lead backend engineer\",\"Complete API migration\",\"Backend release readiness\",\"Protected Friday release\",\"Ship Release V2 by Friday 5 PM\"],\"resources\":[{\"person_id\":\"person-backup\",\"skills\":[\"python\",\"api\"],\"current_load_percent\":55,\"available\":true},{\"person_id\":\"person-generalist\",\"skills\":[\"release\",\"documentation\"],\"current_load_percent\":70,\"available\":true},{\"person_id\":\"person-qa\",\"skills\":[\"qa\",\"python\"],\"current_load_percent\":60,\"available\":true}],\"allowed_work_item_ids\":[\"work-api-migration\",\"work-api-tests\",\"work-release-notes\"],\"allowed_commitment_ids\":[\"commit-release\"],\"policy_summary\":[\"No person may exceed 100 percent projected workload.\",\"Assignments require every declared skill.\",\"The protected release deadline may not move later.\",\"Any blocking unknown makes a plan invalid.\",\"Actions are proposals only; P1A performs no external side effects.\"]}"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -69,10 +69,16 @@ The second disruption will be genuine: a reproducible GitHub required-check/CI f
 - Stable idempotency keys, action receipts, and truthfully labelled emulated adapters.
 - Tests for graph, policy, selection, lifecycle, idempotency, and verification behavior.
 
-### P1 judged vertical slice
+### P1A event and planning spine
 
 - Real Pub/Sub delivery to Cloud Run and durable Firestore incident state.
-- ADK/Gemini interpreter, parallel strategy-constrained planners, and critic using typed output.
+- ADK/Gemini diverse-alternative planner and risk critic using typed output.
+- Deterministic impact mapping, hard-policy validation, and stable plan selection.
+- Durable trace events and safe at-least-once deduplication.
+- Stop at `PLAN_SELECTED`; no external side effects or resolution.
+
+### Later judged vertical slice work (not P1A)
+
 - At least one real Calendar mutation plus read-back.
 - Genuine GitHub CI/external-state failure, reopening, revised action, read-back, and restored invariants.
 - Structured logs that correlate event, incident, plan, action, receipt, and verification IDs.

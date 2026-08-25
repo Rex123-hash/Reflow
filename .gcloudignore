@@ -1,0 +1,14 @@
+.gcloudignore
+.git
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+__pycache__
+*.pyc
+.coverage
+deployment
+docs
+scripts
+tests
+tmp

@@ -15,7 +15,10 @@ _LEGAL_TRANSITIONS: dict[IncidentStatus, frozenset[IncidentStatus]] = {
     IncidentStatus.INTERPRETING: frozenset({IncidentStatus.IMPACT_MAPPED}),
     IncidentStatus.IMPACT_MAPPED: frozenset({IncidentStatus.PLANNING}),
     IncidentStatus.PLANNING: frozenset({IncidentStatus.VALIDATING}),
-    IncidentStatus.VALIDATING: frozenset({IncidentStatus.EXECUTING, IncidentStatus.REPLANNING}),
+    IncidentStatus.VALIDATING: frozenset(
+        {IncidentStatus.PLAN_SELECTED, IncidentStatus.EXECUTING, IncidentStatus.REPLANNING}
+    ),
+    IncidentStatus.PLAN_SELECTED: frozenset(),
     IncidentStatus.EXECUTING: frozenset({IncidentStatus.VERIFYING, IncidentStatus.PARTIAL_FAILURE}),
     IncidentStatus.PARTIAL_FAILURE: frozenset(
         {IncidentStatus.COMPENSATING, IncidentStatus.REPLANNING}
