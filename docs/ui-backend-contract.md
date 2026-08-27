@@ -275,6 +275,7 @@ Fixtures were exported through the presentation models from canonical incident
 
 - [`overview.json`](ui-fixtures/overview.json)
 - [`objectives.json`](ui-fixtures/objectives.json)
+- [`recovery-active.json`](ui-fixtures/recovery-active.json)
 - [`recovery-restored.json`](ui-fixtures/recovery-restored.json)
 - [`evidence.json`](ui-fixtures/evidence.json)
 - [`events.json`](ui-fixtures/events.json)
@@ -282,6 +283,14 @@ Fixtures were exported through the presentation models from canonical incident
 
 They contain real P1D proof identifiers and external references but no secrets. Contract tests also
 exercise an active `EXECUTING` representation without claiming restoration.
+
+`recovery-active.json` is a historical presentation of the same canonical incident at its genuine
+revision-16 `VERIFYING / verifying` boundary. It was reconstructed through the unchanged
+`PresentationService` from the durable revision-2 checkpoints through `promotion_evidence` and
+`calendar_closure_evidence`, the verified action receipts, and workflow events through
+`OBJECTIVE_VERIFICATION_STARTED`. The later revision-17 `closure_result`, incident
+`final_verification`/resolution fields, and `OBJECTIVE_RESTORED` event were excluded. No plan,
+receipt, evidence value, outcome, or hypothetical workflow state was synthesized.
 
 ## Known unsupported claims and controls
 

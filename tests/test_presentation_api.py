@@ -514,6 +514,9 @@ def test_real_sanitized_fixtures_validate_against_exact_contract_models() -> Non
     root = Path(__file__).parents[1] / "docs" / "ui-fixtures"
     OverviewView.model_validate_json((root / "overview.json").read_text(encoding="utf-8"))
     ObjectivesView.model_validate_json((root / "objectives.json").read_text(encoding="utf-8"))
+    active = RecoveryCaseView.model_validate_json(
+        (root / "recovery-active.json").read_text(encoding="utf-8")
+    )
     RecoveryCaseView.model_validate_json(
         (root / "recovery-restored.json").read_text(encoding="utf-8")
     )
@@ -522,3 +525,9 @@ def test_real_sanitized_fixtures_validate_against_exact_contract_models() -> Non
     OperatorContextView.model_validate_json(
         (root / "operator-context.json").read_text(encoding="utf-8")
     )
+    assert active.revision == 16
+    assert active.objective.health is ObjectiveHealth.RECOVERING
+    assert active.objective.workflow_stage is WorkflowStage.VERIFY
+    assert active.objective.is_live is True
+    assert active.attempts[1].branch_from_attempt == 1
+    assert active.verifications[-1].status is VerificationStatus.PENDING
