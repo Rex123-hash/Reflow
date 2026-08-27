@@ -355,6 +355,20 @@ class FirestoreWorkflowLedger:
                 }
                 if any(outbox.get(key) != value for key, value in stable.items()):
                     raise ValueError("P1C continuation handoff identity collision")
+                if not (
+                    incident.get("stage") == IncidentStage.VERIFYING.value
+                    and incident.get("action_receipt_status") == "verified"
+                ):
+                    transaction.set(
+                        incident_ref,
+                        {
+                            **_json_safe(fields),
+                            "stage": IncidentStage.VERIFYING.value,
+                            "updated_at": now,
+                            "revision": firestore.Increment(1),
+                        },
+                        merge=True,
+                    )
                 return _p1c_handoff(outbox, str(outbox.get("state", "PENDING")))
 
             already_terminal = (
@@ -546,6 +560,13 @@ class InMemoryWorkflowLedger:
         if existing is not None:
             if any(existing.get(key) != value for key, value in stable.items()):
                 raise ValueError("P1C continuation handoff identity collision")
+            if not (
+                incident.get("stage") == "VERIFYING"
+                and incident.get("action_receipt_status") == "verified"
+            ):
+                source_revision = int(incident.get("revision", 0)) + 1
+                incident.update(deepcopy(_json_safe(fields)))
+                incident.update({"stage": "VERIFYING", "revision": source_revision})
             return _p1c_handoff(existing, str(existing.get("state", "PENDING")))
         already_terminal = (
             incident.get("stage") == "VERIFYING"

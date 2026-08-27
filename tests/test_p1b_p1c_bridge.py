@@ -86,6 +86,24 @@ def test_p1c_publish_crash_and_completion_marker_crash_are_replay_safe() -> None
     assert len(publisher.calls) == 2
 
 
+def test_existing_outbox_adoption_restores_verified_terminal_truth_before_republish() -> None:
+    ledger = ledger_at_p1b_boundary()
+    fingerprint = "d" * 64
+    first = ledger.persist_p1c_continuation("incident-p1b", terminal_fields(), fingerprint)
+    ledger.incidents["incident-p1b"].update(
+        {"stage": "EXECUTING", "status": "executing", "revision": 14}
+    )
+
+    adopted = ledger.persist_p1c_continuation("incident-p1b", terminal_fields(), fingerprint)
+
+    assert adopted.handoff_id == first.handoff_id
+    assert len(ledger.recovery_outbox) == 1
+    assert ledger.incidents["incident-p1b"]["stage"] == "VERIFYING"
+    assert ledger.incidents["incident-p1b"]["status"] == "action_receipt_verified"
+    assert ledger.incidents["incident-p1b"]["action_receipt_status"] == "verified"
+    assert ledger.incidents["incident-p1b"]["revision"] == 15
+
+
 def test_bridge_requires_authoritative_plan_and_verified_receipt() -> None:
     ledger = ledger_at_p1b_boundary()
     ledger.incidents["incident-p1b"].pop("selected_plan_id")
