@@ -252,6 +252,17 @@ def test_assignment_proposal_actions_are_retained_but_not_executable() -> None:
     )
 
 
+def test_historical_replanning_checkpoint_loads_before_resource_context_fields() -> None:
+    historical = context([artifact(B)]).model_dump(mode="json")
+    historical.pop("resources")
+    historical.pop("allowed_work_item_ids")
+    historical.pop("allowed_commitment_ids")
+    restored = ReplanningInput.model_validate(historical)
+    assert restored.resources == []
+    assert restored.allowed_work_item_ids == []
+    assert restored.allowed_commitment_ids == []
+
+
 def promotion_intent() -> GitHubReleaseIntent:
     action = Action(
         "promote",
