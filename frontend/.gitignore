@@ -1,4 +1,7 @@
 node_modules/
 dist/
-.vite/
-*.local
+
+# Blender authoring scratch: .blend/.blend1 working files, intermediate GLBs and
+# capture videos. Nothing in src/ references these; the runtime assets the app
+# actually loads live in public/.
+orb-authored-experiment/

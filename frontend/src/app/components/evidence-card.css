@@ -1,0 +1,124 @@
+/* One evidence resource, two densities. The left edge is the only colour. */
+
+.evidence-card {
+  border: 1px solid var(--line);
+  border-left-width: 2px;
+  border-left-color: var(--sage);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--surface);
+  padding: var(--space-3) var(--space-4);
+}
+
+.evidence-card.tone-verified {
+  border-left-color: var(--forest);
+}
+
+.evidence-card.tone-failed {
+  border-left-color: var(--failure);
+}
+
+.evidence-card.tone-motion {
+  border-left-color: var(--brass);
+}
+
+.evidence-card.tone-neutral,
+.evidence-card.tone-absent {
+  border-left-color: var(--sage);
+  border-left-style: dashed;
+}
+
+.evidence-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.evidence-card-identity {
+  min-width: 0;
+}
+
+.evidence-card-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  font-weight: 700;
+}
+
+.evidence-card-identity b {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 0.81rem;
+  font-weight: 600;
+  line-height: 1.32;
+}
+
+.evidence-card.is-proof .evidence-card-identity b {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.12rem;
+  letter-spacing: -0.01em;
+}
+
+.evidence-card-summary {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--body);
+  line-height: 1.5;
+}
+
+.evidence-card > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--line-soft);
+}
+
+.evidence-card > footer time {
+  font-size: 0.64rem;
+  color: var(--secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.evidence-proof {
+  display: grid;
+  grid-template-columns: minmax(120px, 170px) 1fr;
+  gap: 0;
+  margin: var(--space-3) calc(var(--space-4) * -1) 0;
+  border-top: 1px solid var(--line);
+}
+
+.evidence-proof dt {
+  padding: 8px var(--space-2) 8px var(--space-4);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--secondary);
+  background: var(--surface-elevated);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.evidence-proof dd {
+  margin: 0;
+  padding: 8px var(--space-4) 8px var(--space-3);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  line-height: 1.45;
+  word-break: break-all;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.evidence-card.is-proof > footer {
+  margin-top: 0;
+  padding-top: var(--space-3);
+  border-top: 0;
+}

@@ -1,0 +1,63 @@
+<svg width="1400" height="360" viewBox="0 0 1400 360" fill="none"
+xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Reflow operational node states</title>
+<desc id="desc">Reusable visual states for healthy, affected, blocked, at-risk, and verified operational nodes.</desc>
+<defs>
+  <filter id="nodeShadow" x="-40%" y="-40%" width="180%" height="180%">
+    <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#17211C" flood-opacity="0.07"/>
+  </filter>
+</defs>
+
+<text x="70" y="52" fill="#17211C" font-family="Geist, Inter, sans-serif" font-size="24" font-weight="700">OPERATIONAL NODE STATES</text>
+
+<g filter="url(#nodeShadow)" font-family="Geist, Inter, sans-serif" text-anchor="middle">
+  <g transform="translate(160 175)">
+    <circle r="52" fill="#FFFDF9" stroke="#91A995" stroke-width="2.2"/>
+    <circle r="37" fill="#E7EEE7"/>
+    <circle r="13" fill="#1D4C39"/>
+    <circle cx="38" cy="-36" r="8" fill="#91A995" stroke="#FFFDF9" stroke-width="2"/>
+    <text y="88" fill="#17211C" font-size="17" font-weight="700">HEALTHY</text>
+    <text y="112" fill="#59645D" font-size="14">stable dependency</text>
+  </g>
+
+  <g transform="translate(430 175)">
+    <circle r="52" fill="#FFFDF9" stroke="#91A995" stroke-width="2.2"/>
+    <circle r="37" fill="#E7EEE7"/>
+    <circle r="13" fill="#1D4C39"/>
+    <path d="M-33 31C-5 54 26 49 43 24" stroke="#C49355" stroke-width="3" stroke-dasharray="3 7"/>
+    <circle cx="40" cy="-35" r="8" fill="#B89A64" stroke="#FFFDF9" stroke-width="2"/>
+    <text y="88" fill="#17211C" font-size="17" font-weight="700">AFFECTED</text>
+    <text y="112" fill="#59645D" font-size="14">blast radius reached</text>
+  </g>
+
+  <g transform="translate(700 175)">
+    <circle r="52" fill="#FFFDF9" stroke="#A76658" stroke-width="2.4"/>
+    <circle r="37" fill="#F6E7E2"/>
+    <circle r="13" fill="#A76658"/>
+    <path d="M-20 -20L20 20M20 -20L-20 20" stroke="#FFFDF9" stroke-width="4"/>
+    <circle cx="39" cy="-36" r="8" fill="#A76658" stroke="#FFFDF9" stroke-width="2"/>
+    <text y="88" fill="#17211C" font-size="17" font-weight="700">BLOCKED</text>
+    <text y="112" fill="#A76658" font-size="14">hard disruption</text>
+  </g>
+
+  <g transform="translate(970 175)">
+    <circle r="52" fill="#FFFDF9" stroke="#C49355" stroke-width="2.4"/>
+    <circle r="37" fill="#F4ECE2"/>
+    <circle r="13" fill="#1D4C39"/>
+    <path d="M-28 26A40 40 0 0 1 29 -27" stroke="#C49355" stroke-width="3"/>
+    <circle cx="39" cy="-36" r="8" fill="#B89A64" stroke="#FFFDF9" stroke-width="2"/>
+    <text y="88" fill="#17211C" font-size="17" font-weight="700">AT RISK</text>
+    <text y="112" fill="#C49355" font-size="14">objective threatened</text>
+  </g>
+
+  <g transform="translate(1240 175)">
+    <circle r="52" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2.4"/>
+    <circle r="37" fill="#E7EEE7"/>
+    <circle r="17" fill="#1D4C39"/>
+    <path d="M-8 0L-2 6L10 -7" stroke="#FFFDF9" stroke-width="3.3"/>
+    <circle cx="39" cy="-36" r="8" fill="#B89A64" stroke="#FFFDF9" stroke-width="2"/>
+    <text y="88" fill="#17211C" font-size="17" font-weight="700">VERIFIED</text>
+    <text y="112" fill="#1D4C39" font-size="14">read-back matches</text>
+  </g>
+</g>
+</svg>

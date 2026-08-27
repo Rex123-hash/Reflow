@@ -1,0 +1,40 @@
+{
+  "set": "D",
+  "name": "Three Futures / Counterfactual Recovery System",
+  "purpose": "Visual language for candidate generation, policy evaluation, rejection, selection, and convergence.",
+  "files": [
+    "three-futures-branching-system.svg",
+    "candidate-lifecycle-states.svg",
+    "deterministic-policy-gate.svg",
+    "selected-route-convergence.svg",
+    "adaptive-candidate-topology.svg",
+    "future-branch-motion-grammar.svg"
+  ],
+  "rules": {
+    "candidateCount": "Support 1\u20133 real candidates. Never fabricate absent futures.",
+    "selectedRoute": "Forest green, stronger stroke, optional brass progress marker.",
+    "rejectedRoute": "Sage/de-emphasized route; failure/rust localized to terminal rejection state.",
+    "cards": "DOM in production; SVG cards in exports are visual references only.",
+    "responsive": "Inline SVG should be generated from measured anchors rather than stretching fixed exports.",
+    "truth": "Reference screenshots are composition references, not proof data. Real backend may produce 3 valid candidates."
+  },
+  "palette": {
+    "canvas": "#F6F3EA",
+    "surface": "#FFFDF9",
+    "paper": "#FBF9F3",
+    "ink": "#17211C",
+    "body": "#59645D",
+    "muted": "#838C85",
+    "forest": "#1D4C39",
+    "forest2": "#173D2E",
+    "sage": "#91A995",
+    "pale": "#E7EEE7",
+    "brass": "#B89A64",
+    "warning": "#C49355",
+    "failure": "#A76658",
+    "line": "#C9D3CB",
+    "line2": "#DDE4DD",
+    "reject_bg": "#F4ECE7",
+    "valid_bg": "#EEF4EF"
+  }
+}

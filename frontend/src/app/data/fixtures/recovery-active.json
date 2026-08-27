@@ -1,0 +1,669 @@
+{
+  "actions": [
+    {
+      "action_id": "calendar-9bb0de0227d16b3713af",
+      "desired_state_summary": "Create a private recovery coordination block.",
+      "evidence_id": "calendar:receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+      "external_reference": "google_calendar:p1b9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+      "kind": "calendar_coordination",
+      "read_back_at": "2026-08-27T13:00:38.502261+00:00",
+      "read_back_completed": true,
+      "receipt_id": "receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+      "receipt_status": "VERIFIED",
+      "recovery_attempt": 1,
+      "system": "google_calendar",
+      "verification_state": "PASSED",
+      "write_acknowledged": true,
+      "write_acknowledged_at": "2026-08-27T13:00:37.612179+00:00"
+    },
+    {
+      "action_id": "validate-release-v2",
+      "desired_state_summary": "Create/adopt Candidate A prerelease and validate its exact workflow run.",
+      "evidence_id": "github-validation:github-cd0a32978a645e079242e5af068b547409f426ec25fadd4b437751902f63b671",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074677098",
+      "kind": "candidate_validation",
+      "read_back_at": "2026-08-27T13:01:19.348531+00:00",
+      "read_back_completed": true,
+      "receipt_id": "github-cd0a32978a645e079242e5af068b547409f426ec25fadd4b437751902f63b671",
+      "receipt_status": "VERIFIED",
+      "recovery_attempt": 1,
+      "system": "github",
+      "verification_state": "FAILED",
+      "write_acknowledged": true,
+      "write_acknowledged_at": "2026-08-27T13:01:03.124204+00:00"
+    },
+    {
+      "action_id": "p1d-github_release_validation-9c613523dd025de0",
+      "desired_state_summary": "Create/adopt Candidate B prerelease and validate its exact workflow run.",
+      "evidence_id": "github-validation:github-9c613523dd025de0cb3370cba8c58917ea534156f537cfc58ddf40ddd1cd91c1",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074746109",
+      "kind": "candidate_validation",
+      "read_back_at": "2026-08-27T13:02:23.314259+00:00",
+      "read_back_completed": true,
+      "receipt_id": "github-9c613523dd025de0cb3370cba8c58917ea534156f537cfc58ddf40ddd1cd91c1",
+      "receipt_status": "VERIFIED",
+      "recovery_attempt": 2,
+      "system": "github",
+      "verification_state": "PASSED",
+      "write_acknowledged": true,
+      "write_acknowledged_at": "2026-08-27T13:01:54.009922+00:00"
+    },
+    {
+      "action_id": "p1d-promote-608c9646e22ca5e8",
+      "desired_state_summary": "Promote the exact validated Candidate B release to latest full release.",
+      "evidence_id": "github-promotion:github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
+      "kind": "full_release_promotion",
+      "read_back_at": "2026-08-27T13:02:25.204043+00:00",
+      "read_back_completed": true,
+      "receipt_id": "github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
+      "receipt_status": "VERIFIED",
+      "recovery_attempt": 2,
+      "system": "github",
+      "verification_state": "PASSED",
+      "write_acknowledged": true,
+      "write_acknowledged_at": "2026-08-27T13:02:25.204043+00:00"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_number": 1,
+      "branch_from_attempt": null,
+      "branch_reason": null,
+      "candidate_sha": "5353cf7c664f384d6642b5348c7f190187b06b4c",
+      "label": "Recovery 01",
+      "selected_plan_id": "plan-risk-minimization-first",
+      "stages": [
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [],
+          "semantic_kind": "DETECT",
+          "stage_id": "recovery-1-detect",
+          "status": "COMPLETED",
+          "subtitle": "Disruption accepted into durable recovery state.",
+          "timestamp": "2026-08-27T12:59:49.423854+00:00",
+          "title": "Detect"
+        },
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [],
+          "semantic_kind": "IMPACT",
+          "stage_id": "recovery-1-impact",
+          "status": "COMPLETED",
+          "subtitle": "Affected objective path was computed deterministically.",
+          "timestamp": "2026-08-27T12:59:49.799585+00:00",
+          "title": "Impact"
+        },
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [],
+          "semantic_kind": "PLAN",
+          "stage_id": "recovery-1-plan",
+          "status": "COMPLETED",
+          "subtitle": "Candidate futures were critiqued and selected.",
+          "timestamp": "2026-08-27T13:00:37.011758+00:00",
+          "title": "Plan"
+        },
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [
+            "calendar:receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+            "github-validation:github-cd0a32978a645e079242e5af068b547409f426ec25fadd4b437751902f63b671"
+          ],
+          "semantic_kind": "ACT",
+          "stage_id": "recovery-1-act",
+          "status": "COMPLETED",
+          "subtitle": "Calendar coordination and Candidate A validation executed.",
+          "timestamp": "2026-08-27T13:01:05.002756+00:00",
+          "title": "Act"
+        },
+        {
+          "failure_reason": "Validate release compatibility failed.",
+          "related_evidence_ids": [],
+          "semantic_kind": "VERIFY",
+          "stage_id": "recovery-1-verify",
+          "status": "FAILED",
+          "subtitle": "The external action was verified but CI remained unhealthy.",
+          "timestamp": "2026-08-27T13:01:19.348531+00:00",
+          "title": "Verify"
+        }
+      ],
+      "status": "FAILED"
+    },
+    {
+      "attempt_number": 2,
+      "branch_from_attempt": 1,
+      "branch_reason": "Recovery 01 was action-verified, but release-validation-green was false.",
+      "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
+      "label": "Recovery 02",
+      "selected_plan_id": "plan-resource-balance-first",
+      "stages": [
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [],
+          "semantic_kind": "REPLAN",
+          "stage_id": "recovery-2-replan",
+          "status": "COMPLETED",
+          "subtitle": "Failed Recovery 01 evidence became the new planning context.",
+          "timestamp": "2026-08-27T13:01:25.564529+00:00",
+          "title": "Replan"
+        },
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [],
+          "semantic_kind": "PLAN",
+          "stage_id": "recovery-2-plan",
+          "status": "COMPLETED",
+          "subtitle": "Revised futures passed deterministic selection.",
+          "timestamp": "2026-08-27T13:01:53.754770+00:00",
+          "title": "Plan"
+        },
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [
+            "github-validation:github-9c613523dd025de0cb3370cba8c58917ea534156f537cfc58ddf40ddd1cd91c1",
+            "github-promotion:github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66"
+          ],
+          "semantic_kind": "ACT",
+          "stage_id": "recovery-2-act",
+          "status": "COMPLETED",
+          "subtitle": "Candidate B validation and full-release promotion executed.",
+          "timestamp": "2026-08-27T13:01:55.371242+00:00",
+          "title": "Act"
+        },
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [],
+          "semantic_kind": "VERIFY",
+          "stage_id": "recovery-2-verify",
+          "status": "CURRENT",
+          "subtitle": "External evidence was read back and objective invariants evaluated.",
+          "timestamp": "2026-08-27T13:02:27.213518+00:00",
+          "title": "Verify"
+        },
+        {
+          "failure_reason": null,
+          "related_evidence_ids": [],
+          "semantic_kind": "RESTORED",
+          "stage_id": "recovery-2-restored",
+          "status": "PENDING",
+          "subtitle": "All required objective invariants passed.",
+          "timestamp": null,
+          "title": "Restored"
+        }
+      ],
+      "status": "CURRENT"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "calendar:receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+      "evidence_kind": "external_read_back",
+      "external_reference": "google_calendar:p1b9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+      "observed_at": "2026-08-27T13:00:38.502261+00:00",
+      "proof_fields": {
+        "event_id": "p1b9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+        "status": "confirmed"
+      },
+      "recovery_attempt": 1,
+      "semantic_status": "VERIFIED_HEALTHY",
+      "source_system": "Google Calendar",
+      "summary": "The private coordination event was independently read back.",
+      "title": "Recovery coordination preserved"
+    },
+    {
+      "evidence_id": "github-run:33074677098",
+      "evidence_kind": "workflow_run_read_back",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074677098",
+      "observed_at": "2026-08-27T13:01:19.348531+00:00",
+      "proof_fields": {
+        "candidate_sha": "5353cf7c664f384d6642b5348c7f190187b06b4c",
+        "conclusion": "failure",
+        "release_id": 377826344,
+        "run_attempt": 1,
+        "run_id": 33074677098,
+        "workflow_id": 343576501,
+        "workflow_path": ".github/workflows/release-validation.yml"
+      },
+      "recovery_attempt": 1,
+      "semantic_status": "VERIFIED_UNHEALTHY",
+      "source_system": "GitHub Actions",
+      "summary": "Exact pinned run completed with conclusion failure.",
+      "title": "Candidate validation run 33074677098"
+    },
+    {
+      "evidence_id": "github-run:33074746109",
+      "evidence_kind": "workflow_run_read_back",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074746109",
+      "observed_at": "2026-08-27T13:02:23.314259+00:00",
+      "proof_fields": {
+        "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
+        "conclusion": "success",
+        "release_id": 377826902,
+        "run_attempt": 1,
+        "run_id": 33074746109,
+        "workflow_id": 343576501,
+        "workflow_path": ".github/workflows/release-validation.yml"
+      },
+      "recovery_attempt": 2,
+      "semantic_status": "VERIFIED_HEALTHY",
+      "source_system": "GitHub Actions",
+      "summary": "Exact pinned run completed with conclusion success.",
+      "title": "Candidate validation run 33074746109"
+    },
+    {
+      "evidence_id": "github-promotion:377826902",
+      "evidence_kind": "full_release_read_back",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
+      "observed_at": "2026-08-27T13:02:25.204043+00:00",
+      "proof_fields": {
+        "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
+        "draft": false,
+        "latest_release_id": 377826902,
+        "prerelease": false,
+        "release_id": 377826902
+      },
+      "recovery_attempt": 2,
+      "semantic_status": "VERIFIED_HEALTHY",
+      "source_system": "GitHub",
+      "summary": "The exact validated release was read back after promotion.",
+      "title": "Validated release promoted to full latest release"
+    },
+    {
+      "evidence_id": "objective-verification:1",
+      "evidence_kind": "objective_verification",
+      "external_reference": null,
+      "observed_at": "2026-08-27T13:01:19.348531+00:00",
+      "proof_fields": {
+        "invariant_count": 1,
+        "status": "FAILED"
+      },
+      "recovery_attempt": 1,
+      "semantic_status": "VERIFIED_UNHEALTHY",
+      "source_system": "Reflow deterministic verifier",
+      "summary": "At least one required objective invariant failed.",
+      "title": "Recovery 01 objective verification"
+    },
+    {
+      "evidence_id": "objective-verification:2",
+      "evidence_kind": "objective_verification",
+      "external_reference": null,
+      "observed_at": null,
+      "proof_fields": {
+        "invariant_count": 0,
+        "status": "PENDING"
+      },
+      "recovery_attempt": 2,
+      "semantic_status": "PENDING",
+      "source_system": "Reflow deterministic verifier",
+      "summary": "Objective verification has not produced authoritative evidence yet.",
+      "title": "Recovery 02 objective verification"
+    }
+  ],
+  "objective": {
+    "current_recovery_number": 2,
+    "deadline_timezone": "Etc/UTC",
+    "health": "RECOVERING",
+    "incident_stage": "VERIFYING",
+    "incident_status": "verifying",
+    "is_live": true,
+    "objective_id": "release-v2",
+    "objective_version": 1,
+    "protected_deadline": "2026-08-28T17:00:00+00:00",
+    "revision": 16,
+    "title": "SHIP RELEASE V2",
+    "workflow_stage": "VERIFY"
+  },
+  "plans": [
+    {
+      "assumptions_summary": [
+        "person-backup has immediate repository context for work-api-migration",
+        "Unknown: Exact hours remaining on work-api-migration"
+      ],
+      "candidate_sha": null,
+      "critic_summary": "The plan relies on unknown remaining workload while operating assignees near total capacity, creating a severe deadline and overload risk without buffer.",
+      "deterministic_rejection_reason": null,
+      "plan_id": "plan-deadline-first",
+      "policy": {
+        "blocking_unknowns": [],
+        "plan_id": "plan-deadline-first",
+        "valid": true,
+        "violations": []
+      },
+      "proposed_action_summary": [
+        "reassign_task \u2192 work-api-migration",
+        "assign_task \u2192 work-release-notes"
+      ],
+      "recovery_attempt": 1,
+      "revision": 1,
+      "risk_score": 7,
+      "selected": false,
+      "title": "Deadline First",
+      "valid": true
+    },
+    {
+      "assumptions_summary": [
+        "Test specifications for work-api-tests are up to date",
+        "Unknown: Scope of edge cases required in work-api-tests"
+      ],
+      "candidate_sha": null,
+      "critic_summary": "Critical regression testing scope remains unquantified while QA bandwidth is constrained near capacity, threatening release gating.",
+      "deterministic_rejection_reason": null,
+      "plan_id": "plan-risk-minimization-first",
+      "policy": {
+        "blocking_unknowns": [],
+        "plan_id": "plan-risk-minimization-first",
+        "valid": true,
+        "violations": []
+      },
+      "proposed_action_summary": [
+        "reassign_task \u2192 work-api-migration",
+        "assign_task \u2192 work-api-tests"
+      ],
+      "recovery_attempt": 1,
+      "revision": 1,
+      "risk_score": 6,
+      "selected": true,
+      "title": "Risk Minimization First",
+      "valid": true
+    },
+    {
+      "assumptions_summary": [
+        "Documentation and test tasks can proceed concurrently with API migration completion",
+        "Unknown: Additional sync time needed across three distributed streams"
+      ],
+      "candidate_sha": null,
+      "critic_summary": "Assumes complete independence of concurrent tasks despite downstream dependencies between API changes, testing, and documentation.",
+      "deterministic_rejection_reason": null,
+      "plan_id": "plan-resource-balance-first",
+      "policy": {
+        "blocking_unknowns": [],
+        "plan_id": "plan-resource-balance-first",
+        "valid": true,
+        "violations": []
+      },
+      "proposed_action_summary": [
+        "reassign_task \u2192 work-api-migration",
+        "assign_task \u2192 work-api-tests",
+        "assign_task \u2192 work-release-notes"
+      ],
+      "recovery_attempt": 1,
+      "revision": 1,
+      "risk_score": 6,
+      "selected": false,
+      "title": "Resource Balance First",
+      "valid": true
+    },
+    {
+      "assumptions_summary": [
+        "Candidate B SHA 7b7881ed1785cc37e038c44193ff2373badf54e7 resolves the compatibility validation failure observed in Candidate A",
+        "Unknown: Exact execution time required for GitHub workflow run on candidate SHA 7b7881ed1785cc37e038c44193ff2373badf54e7"
+      ],
+      "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
+      "critic_summary": "Targets valid Candidate B and resolves release notes omission, but relies on high individual utilization (90% load across all assignees) without runtime validation evidence.",
+      "deterministic_rejection_reason": null,
+      "plan_id": "plan-deadline-first",
+      "policy": {
+        "blocking_unknowns": [],
+        "plan_id": "plan-deadline-first",
+        "valid": true,
+        "violations": []
+      },
+      "proposed_action_summary": [
+        "github_release_validation \u2192 Rex123-hash/EXperiments",
+        "reassign_task \u2192 work-api-migration",
+        "assign_task \u2192 work-api-tests",
+        "assign_task \u2192 work-release-notes"
+      ],
+      "recovery_attempt": 2,
+      "revision": 2,
+      "risk_score": 4,
+      "selected": false,
+      "title": "Deadline First",
+      "valid": true
+    },
+    {
+      "assumptions_summary": [
+        "Release documentation work can proceed in parallel with automated validation",
+        "Unknown: Scope of edge cases required in work-api-tests"
+      ],
+      "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
+      "critic_summary": "Correctly shifts to Candidate B and includes documentation deliverable, but carries over unquantified regression depth unknown (unk-qa-regression-depth) under tight 90% QA workload.",
+      "deterministic_rejection_reason": null,
+      "plan_id": "plan-risk-minimization-first",
+      "policy": {
+        "blocking_unknowns": [],
+        "plan_id": "plan-risk-minimization-first",
+        "valid": true,
+        "violations": []
+      },
+      "proposed_action_summary": [
+        "github_release_validation \u2192 Rex123-hash/EXperiments",
+        "reassign_task \u2192 work-api-migration",
+        "assign_task \u2192 work-api-tests",
+        "assign_task \u2192 work-release-notes"
+      ],
+      "recovery_attempt": 2,
+      "revision": 2,
+      "risk_score": 5,
+      "selected": false,
+      "title": "Risk Minimization First",
+      "valid": true
+    },
+    {
+      "assumptions_summary": [
+        "Reduced allocations provide sufficient buffer across team members while satisfying work item needs",
+        "Unknown: Overhead of validation runner when executing candidate SHA 7b7881ed1785cc37e038c44193ff2373badf54e7"
+      ],
+      "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
+      "critic_summary": "Maintains safer team utilization buffers at 85% and adopts Candidate B, but reducing allocation percentages risks deliverable completion pace ahead of the protected deadline.",
+      "deterministic_rejection_reason": null,
+      "plan_id": "plan-resource-balance-first",
+      "policy": {
+        "blocking_unknowns": [],
+        "plan_id": "plan-resource-balance-first",
+        "valid": true,
+        "violations": []
+      },
+      "proposed_action_summary": [
+        "github_release_validation \u2192 Rex123-hash/EXperiments",
+        "reassign_task \u2192 work-api-migration",
+        "assign_task \u2192 work-api-tests",
+        "assign_task \u2192 work-release-notes"
+      ],
+      "recovery_attempt": 2,
+      "revision": 2,
+      "risk_score": 3,
+      "selected": true,
+      "title": "Resource Balance First",
+      "valid": true
+    }
+  ],
+  "revision": 16,
+  "summary": {
+    "what_changed": "Recovery 02 uses a materially revised candidate and new external action identities.",
+    "what_happened": "Backend lead became unavailable during Release V2 delivery; recover the protected objective without moving its deadline.",
+    "why_current_recovery_exists": "Recovery 01 completed its external action, but exact CI evidence left release-validation-green false."
+  },
+  "verifications": [
+    {
+      "invariants": [
+        {
+          "evidence_id": "recovery-1:release-validation-green",
+          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074677098",
+          "expected": "true",
+          "invariant_id": "release-validation-green",
+          "observed": "false",
+          "reason": "external state violates the invariant",
+          "status": "FAILED"
+        }
+      ],
+      "objective_id": "release-v2",
+      "observed_at": "2026-08-27T13:01:19.348531+00:00",
+      "recovery_attempt": 1,
+      "status": "FAILED",
+      "verification_id": "recovery-1"
+    },
+    {
+      "invariants": [],
+      "objective_id": "release-v2",
+      "observed_at": null,
+      "recovery_attempt": 2,
+      "status": "PENDING",
+      "verification_id": "recovery-2"
+    }
+  ],
+  "what_changed": [
+    {
+      "field": "candidate",
+      "recovery_1": "5353cf7c664f384d6642b5348c7f190187b06b4c",
+      "recovery_2": "7b7881ed1785cc37e038c44193ff2373badf54e7"
+    },
+    {
+      "field": "CI result",
+      "recovery_1": "failure",
+      "recovery_2": "success"
+    },
+    {
+      "field": "coordination state",
+      "recovery_1": "verified",
+      "recovery_2": "preserved by fresh read-back"
+    },
+    {
+      "field": "objective result",
+      "recovery_1": "FAILED",
+      "recovery_2": "PENDING"
+    },
+    {
+      "field": "release state",
+      "recovery_1": "prerelease",
+      "recovery_2": "full latest release"
+    }
+  ],
+  "world": {
+    "edges": [
+      {
+        "relation": "depends_on",
+        "source": "release-v2",
+        "target": "commit-release"
+      },
+      {
+        "relation": "depends_on",
+        "source": "commit-release",
+        "target": "milestone-backend"
+      },
+      {
+        "relation": "depends_on",
+        "source": "milestone-backend",
+        "target": "work-api-migration"
+      },
+      {
+        "relation": "depends_on",
+        "source": "milestone-backend",
+        "target": "work-api-tests"
+      },
+      {
+        "relation": "depends_on",
+        "source": "milestone-backend",
+        "target": "work-release-notes"
+      },
+      {
+        "relation": "depends_on",
+        "source": "work-api-migration",
+        "target": "person-backend-lead"
+      },
+      {
+        "relation": "depends_on",
+        "source": "work-api-tests",
+        "target": "person-qa"
+      },
+      {
+        "relation": "depends_on",
+        "source": "work-release-notes",
+        "target": "person-generalist"
+      }
+    ],
+    "nodes": [
+      {
+        "affected": true,
+        "critical_path": true,
+        "kind": "objective",
+        "label": "Ship Release V2 by Friday 5 PM",
+        "node_id": "release-v2",
+        "state": "recovering"
+      },
+      {
+        "affected": true,
+        "critical_path": true,
+        "kind": "commitment",
+        "label": "Protected Friday release",
+        "node_id": "commit-release",
+        "state": "stable"
+      },
+      {
+        "affected": true,
+        "critical_path": true,
+        "kind": "milestone",
+        "label": "Backend release readiness",
+        "node_id": "milestone-backend",
+        "state": "stable"
+      },
+      {
+        "affected": true,
+        "critical_path": true,
+        "kind": "work_item",
+        "label": "Complete API migration",
+        "node_id": "work-api-migration",
+        "state": "stable"
+      },
+      {
+        "affected": false,
+        "critical_path": false,
+        "kind": "work_item",
+        "label": "Complete API regression tests",
+        "node_id": "work-api-tests",
+        "state": "stable"
+      },
+      {
+        "affected": false,
+        "critical_path": false,
+        "kind": "work_item",
+        "label": "Prepare release notes",
+        "node_id": "work-release-notes",
+        "state": "stable"
+      },
+      {
+        "affected": true,
+        "critical_path": false,
+        "kind": "person",
+        "label": "Lead backend engineer",
+        "node_id": "person-backend-lead",
+        "state": "disrupted"
+      },
+      {
+        "affected": false,
+        "critical_path": false,
+        "kind": "person",
+        "label": "Backup backend engineer",
+        "node_id": "person-backup",
+        "state": "stable"
+      },
+      {
+        "affected": false,
+        "critical_path": false,
+        "kind": "person",
+        "label": "Product generalist",
+        "node_id": "person-generalist",
+        "state": "stable"
+      },
+      {
+        "affected": false,
+        "critical_path": false,
+        "kind": "person",
+        "label": "QA engineer",
+        "node_id": "person-qa",
+        "state": "stable"
+      }
+    ]
+  }
+}

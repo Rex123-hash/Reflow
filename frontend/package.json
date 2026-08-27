@@ -5,23 +5,45 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run contract:check && npm run fixtures:check && npm run marks:check && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview"
+    "lint": "oxlint src/app src/Root.tsx src/main.tsx scripts/generate-ui-contract.mjs scripts/sync-fixtures.mjs scripts/generate-integration-marks.mjs",
+    "format": "prettier --write \"src/app/**/*.{ts,tsx,css}\" src/Root.tsx src/main.tsx vitest.config.ts scripts/generate-ui-contract.mjs scripts/sync-fixtures.mjs scripts/generate-integration-marks.mjs",
+    "format:check": "prettier --check \"src/app/**/*.{ts,tsx,css}\" src/Root.tsx src/main.tsx vitest.config.ts scripts/generate-ui-contract.mjs scripts/sync-fixtures.mjs scripts/generate-integration-marks.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview",
+    "contract:generate": "node scripts/generate-ui-contract.mjs",
+    "contract:check": "node scripts/generate-ui-contract.mjs --check",
+    "fixtures:sync": "node scripts/sync-fixtures.mjs",
+    "fixtures:check": "node scripts/sync-fixtures.mjs --check",
+    "marks:generate": "node scripts/generate-integration-marks.mjs",
+    "marks:check": "node scripts/generate-integration-marks.mjs --check"
   },
   "dependencies": {
     "@react-three/fiber": "^9.7.0",
     "gsap": "^3.15.0",
+    "lenis": "^1.3.26",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2",
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.6",
+    "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "jsdom": "^29.1.1",
+    "oxlint": "^1.80.0",
+    "prettier": "^3.9.6",
+    "simple-icons": "^16.28.0",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vitest": "^3.2.7"
   }
 }

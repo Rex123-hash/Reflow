@@ -1,7 +1,39 @@
+import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { RecoveryStory } from "./components/RecoveryStory";
 import { SiteHeader } from "./components/SiteHeader";
 
+function lazyNamed<T extends Record<string, ComponentType>>(loader: () => Promise<T>, name: keyof T) {
+  return lazy(async () => ({ default: (await loader())[name] }));
+}
+
+const OrbFidelityLab = lazyNamed(() => import("./fidelity/OrbFidelityLab"), "OrbFidelityLab");
+const ProductionOrbLab = lazyNamed(() => import("./fidelity/ProductionOrbLab"), "ProductionOrbLab");
+const AuthoredOrbLab = lazyNamed(() => import("./fidelity/AuthoredOrbLab"), "AuthoredOrbLab");
+const ProductionPresentationLab = lazyNamed(() => import("./fidelity/ProductionPresentationLab"), "ProductionPresentationLab");
+const BrowserConvergenceLab = lazyNamed(() => import("./fidelity/BrowserConvergenceLab"), "BrowserConvergenceLab");
+
+function LabShell({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<main className="lab-loading" aria-label="Loading visual laboratory" />}>{children}</Suspense>;
+}
+
 function App() {
+  const lab = new URLSearchParams(window.location.search).get("lab");
+  if (lab === "browser-convergence") {
+    return <LabShell><BrowserConvergenceLab /></LabShell>;
+  }
+  if (lab === "presentation") {
+    return <LabShell><ProductionPresentationLab /></LabShell>;
+  }
+  if (lab === "authored-orb") {
+    return <LabShell><AuthoredOrbLab /></LabShell>;
+  }
+  if (lab === "production-orb") {
+    return <LabShell><ProductionOrbLab /></LabShell>;
+  }
+  if (lab === "orb") {
+    return <LabShell><OrbFidelityLab /></LabShell>;
+  }
+
   return (
     <div className="site-shell" id="top">
       <SiteHeader />

@@ -1,0 +1,12 @@
+# Generated from backend-owned sources. The generator owns their formatting;
+# reformatting them here would make `npm run build`'s staleness check fail.
+src/app/contract/uiContract.ts
+src/app/assets/integrationMarks.ts
+src/app/data/fixtures/
+
+# Pre-existing marketing build tooling, left as authored.
+scripts/generate-fidelity-glb.mjs
+scripts/measure_glb.ts
+
+dist
+node_modules

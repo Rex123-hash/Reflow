@@ -1,0 +1,112 @@
+.objectives {
+  max-width: 1240px;
+}
+
+.objectives-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+
+.objectives-head h1 {
+  margin: var(--space-2) 0 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2.1rem;
+  letter-spacing: -0.03em;
+}
+
+.objectives-filters {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.objectives-filters button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--secondary);
+  padding: 6px 14px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.objectives-filters button:hover {
+  color: var(--ink);
+}
+
+.objectives-filters button.is-on {
+  background: var(--forest);
+  color: #fffdf9;
+}
+
+.objectives-table-card {
+  overflow: hidden;
+}
+
+.objectives-table tbody td {
+  vertical-align: middle;
+}
+
+.objective-title {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.objective-id {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.64rem;
+  color: var(--secondary);
+}
+
+.objective-observed {
+  display: block;
+  font-size: 0.72rem;
+}
+
+.objective-updated {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.62rem;
+  color: var(--secondary);
+}
+
+.objectives-footnote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 2px solid var(--brass);
+  background: var(--surface-elevated);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.76rem;
+  color: var(--body);
+}
+
+.objectives-footnote svg {
+  flex: 0 0 auto;
+  color: var(--brass);
+}
+
+@media (max-width: 900px) {
+  .objectives-table-card {
+    overflow-x: auto;
+  }
+
+  .objectives-table {
+    min-width: 860px;
+  }
+}

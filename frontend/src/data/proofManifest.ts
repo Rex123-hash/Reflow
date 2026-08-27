@@ -30,21 +30,21 @@ export const STORY_CAPABILITIES: readonly StoryCapability[] = [
     label: "Disruption and impact",
     proofLevel: "architecture",
     milestone: "P1B",
-    proofLabel: "P1B architecture",
+    proofLabel: "Current architecture",
   },
   {
     id: "futures",
     label: "Recovery futures",
     proofLevel: "architecture",
     milestone: "P1B",
-    proofLabel: "P1B architecture",
+    proofLabel: "Current architecture",
   },
   {
     id: "action",
     label: "Action and verification",
     proofLevel: "recorded-proof",
     milestone: "P1B",
-    proofLabel: "Recorded P1B proof",
+    proofLabel: "Recorded tool proof",
   },
   {
     id: "incomplete",
@@ -70,13 +70,23 @@ export const STORY_CAPABILITIES: readonly StoryCapability[] = [
 ] as const;
 
 export const STORY_FRAME_PROGRESS: Record<StoryStageId, number> = {
-  hero: 0.035,
-  risk: 0.2,
-  futures: 0.36,
-  action: 0.525,
-  incomplete: 0.68,
-  replan: 0.79,
-  restored: 0.915,
+  hero: 0.055,
+  risk: 0.19,
+  futures: 0.33,
+  action: 0.48,
+  incomplete: 0.62,
+  replan: 0.76,
+  restored: 0.92,
+};
+
+const STORY_STAGE_PROGRESS: Record<StoryStageId, number> = {
+  hero: 0,
+  risk: 0.12,
+  futures: 0.255,
+  action: 0.405,
+  incomplete: 0.555,
+  replan: 0.685,
+  restored: 0.835,
 };
 
 export interface RecordedCalendarProof {
@@ -112,7 +122,7 @@ export const RECORDED_CALENDAR_PROOF: RecordedCalendarProof = {
   verificationDifferenceCount: 0,
   receiptIdShort: "receipt-018d…857ac",
   externalEventIdShort: "p1b018d…857ac",
-  calendarDisplayLabel: "Objective Recovery P1B Demo",
+  calendarDisplayLabel: "Objective Recovery Demo",
 };
 
 export function capabilityFor(id: StoryStageId): StoryCapability {
@@ -124,7 +134,7 @@ export function capabilityFor(id: StoryStageId): StoryCapability {
 }
 
 export function stageFromProgress(progress: number): StoryStageId {
-  const entries = Object.entries(STORY_FRAME_PROGRESS) as [StoryStageId, number][];
+  const entries = Object.entries(STORY_STAGE_PROGRESS) as [StoryStageId, number][];
   return entries.reduce<StoryStageId>((current, [id, threshold]) => {
     return progress >= threshold ? id : current;
   }, "hero");

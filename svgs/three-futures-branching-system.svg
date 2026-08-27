@@ -1,0 +1,105 @@
+<svg width="1600" height="720" viewBox="0 0 1600 720" fill="none"
+xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Reflow three-futures branching system</title>
+<desc id="desc">One objective branches into three recovery futures, with two policy-rejected alternatives and one selected path.</desc>
+<defs>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+    <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#17211C" flood-opacity="0.07"/>
+  </filter>
+  <filter id="softGlow" x="-200%" y="-200%" width="500%" height="500%">
+    <feGaussianBlur stdDeviation="10"/>
+  </filter>
+</defs>
+
+<!-- objective hub -->
+<g transform="translate(800 128)" filter="url(#shadow)">
+  <circle r="57" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2.4"/>
+  <circle r="40" fill="#E7EEE7"/>
+  <circle r="15" fill="#1D4C39"/>
+  <circle cx="42" cy="-35" r="8" fill="#B89A64" stroke="#FFFDF9" stroke-width="2"/>
+  <path d="M-25 5A30 30 0 0 1 17 -27" stroke="#1D4C39" stroke-width="3.2"/>
+  <path d="M24 -19A30 30 0 0 1 27 10" stroke="#91A995" stroke-width="2.4"/>
+</g>
+
+<g font-family="Geist, Inter, sans-serif" text-anchor="middle">
+  <text x="800" y="52" fill="#1D4C39" font-size="14" font-weight="700" letter-spacing="2.2">RECOVERY SEARCH</text>
+  <text x="800" y="78" fill="#17211C" font-size="21" font-weight="700">One objective · three counterfactual futures</text>
+</g>
+
+<!-- branch underlay -->
+<path d="M800 186C800 235 654 241 473 324C406 355 360 385 337 430"
+      stroke="#E7EEE7" stroke-width="14" stroke-linecap="round"/>
+<path d="M800 186V430"
+      stroke="#E7EEE7" stroke-width="14" stroke-linecap="round"/>
+<path d="M800 186C800 235 946 241 1127 324C1194 355 1240 385 1263 430"
+      stroke="#E7EEE7" stroke-width="14" stroke-linecap="round"/>
+
+<!-- A rejected route -->
+<path d="M800 186C800 235 654 241 473 324C406 355 360 385 337 430"
+      stroke="#91A995" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 10" opacity="0.75"/>
+<circle cx="548" cy="286" r="5" fill="#B89A64"/>
+<circle cx="337" cy="430" r="21" fill="#FFFDF9" stroke="#C49355" stroke-width="2.2"/>
+<text x="337" y="437" font-family="Geist, Inter, sans-serif" text-anchor="middle" fill="#C49355" font-size="18" font-weight="800">A</text>
+
+<!-- B selected route -->
+<path d="M800 186V430"
+      stroke="#1D4C39" stroke-width="5" stroke-linecap="round"/>
+<circle cx="800" cy="302" r="6" fill="#B89A64"/>
+<circle cx="800" cy="430" r="23" fill="#1D4C39"/>
+<text x="800" y="437" font-family="Geist, Inter, sans-serif" text-anchor="middle" fill="#FFFDF9" font-size="18" font-weight="800">B</text>
+<circle cx="800" cy="430" r="34" fill="#1D4C39" opacity="0.10" filter="url(#softGlow)"/>
+
+<!-- C rejected route -->
+<path d="M800 186C800 235 946 241 1127 324C1194 355 1240 385 1263 430"
+      stroke="#91A995" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 10" opacity="0.75"/>
+<circle cx="1052" cy="286" r="5" fill="#B89A64"/>
+<circle cx="1263" cy="430" r="21" fill="#FFFDF9" stroke="#C49355" stroke-width="2.2"/>
+<text x="1263" y="437" font-family="Geist, Inter, sans-serif" text-anchor="middle" fill="#C49355" font-size="18" font-weight="800">C</text>
+
+<!-- candidate cards -->
+<g filter="url(#shadow)" font-family="Geist, Inter, sans-serif">
+  <!-- A -->
+  <g transform="translate(120 472)">
+    <rect width="430" height="188" rx="26" fill="#FFFDF9" stroke="#DFC7BD" stroke-width="1.8"/>
+    <rect x="28" y="24" width="104" height="28" rx="14" fill="#F4ECE7"/>
+    <circle cx="44" cy="38" r="5" fill="#A76658"/>
+    <text x="58" y="43" fill="#A76658" font-size="12.5" font-weight="800" letter-spacing="1.4">REJECTED</text>
+    <text x="28" y="92" fill="#17211C" font-size="24" font-weight="700">Overload senior engineer</text>
+    <text x="28" y="121" fill="#59645D" font-size="15">124% projected workload</text>
+    <path d="M28 143H402" stroke="#DDE4DD" stroke-width="1.4"/>
+    <circle cx="38" cy="166" r="7.2" fill="#FFFDF9" stroke="#A76658" stroke-width="2"/>
+    <path d="M34.5 162.5L41.5 169.5M41.5 162.5L34.5 169.5" stroke="#A76658" stroke-width="1.7"/>
+    <text x="56" y="171" fill="#A76658" font-size="13.5" font-weight="800" letter-spacing="1.2">POLICY REJECTED</text>
+  </g>
+
+  <!-- B -->
+  <g transform="translate(585 462)">
+    <rect width="430" height="208" rx="26" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2.2"/>
+    <rect x="28" y="24" width="98" height="28" rx="14" fill="#EEF4EF"/>
+    <circle cx="44" cy="38" r="5" fill="#1D4C39"/>
+    <text x="58" y="43" fill="#1D4C39" font-size="12.5" font-weight="800" letter-spacing="1.4">SELECTED</text>
+    <text x="28" y="92" fill="#17211C" font-size="24" font-weight="700">Redistribute implementation</text>
+    <text x="28" y="121" fill="#59645D" font-size="15">Preserve deadline · rebalance work</text>
+    <path d="M28 143H402" stroke="#DDE4DD" stroke-width="1.4"/>
+    <circle cx="38" cy="166" r="7.2" fill="#E7EEE7" stroke="#1D4C39" stroke-width="2"/>
+    <path d="M34.5 166L37 168.5L42 163.5" stroke="#1D4C39" stroke-width="1.8"/>
+    <text x="56" y="171" fill="#1D4C39" font-size="13.5" font-weight="800" letter-spacing="1.2">POLICY VALID</text>
+    <rect x="128" y="183" width="174" height="38" rx="12" fill="#1D4C39"/>
+    <text x="215" y="207" fill="#FFFDF9" font-size="13" font-weight="800" letter-spacing="1.6" text-anchor="middle">PLAN SELECTED</text>
+  </g>
+
+  <!-- C -->
+  <g transform="translate(1050 472)">
+    <rect width="430" height="188" rx="26" fill="#FFFDF9" stroke="#DFC7BD" stroke-width="1.8"/>
+    <rect x="28" y="24" width="104" height="28" rx="14" fill="#F4ECE7"/>
+    <circle cx="44" cy="38" r="5" fill="#A76658"/>
+    <text x="58" y="43" fill="#A76658" font-size="12.5" font-weight="800" letter-spacing="1.4">REJECTED</text>
+    <text x="28" y="92" fill="#17211C" font-size="24" font-weight="700">Delay release +24h</text>
+    <text x="28" y="121" fill="#59645D" font-size="15">Protected commitment violated</text>
+    <path d="M28 143H402" stroke="#DDE4DD" stroke-width="1.4"/>
+    <circle cx="38" cy="166" r="7.2" fill="#FFFDF9" stroke="#A76658" stroke-width="2"/>
+    <path d="M34.5 162.5L41.5 169.5M41.5 162.5L34.5 169.5" stroke="#A76658" stroke-width="1.7"/>
+    <text x="56" y="171" fill="#A76658" font-size="13.5" font-weight="800" letter-spacing="1.2">POLICY REJECTED</text>
+  </g>
+</g>
+</svg>

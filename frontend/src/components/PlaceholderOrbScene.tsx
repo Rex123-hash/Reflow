@@ -2,6 +2,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import * as THREE from "three";
 import type { OrbPose } from "../story/storyTypes";
+import { useAnchor3D } from "../anchors";
 
 interface PlaceholderOrbSceneProps {
   pose: MutableRefObject<OrbPose>;
@@ -57,6 +58,9 @@ function PlaceholderOrb({ pose }: { pose: MutableRefObject<OrbPose> }) {
   const verifiedMaterial = useRef<THREE.MeshStandardMaterial>(null);
   const outerRing = useRef<THREE.Mesh>(null);
   const innerRing = useRef<THREE.Mesh>(null);
+
+  // Register anchor so OrbitalRailSystem and route SVGs can track orb position
+  useAnchor3D("orbRecoveryRoute", [2.35, 0, 0], group);
 
   useFrame(() => {
     const value = pose.current;

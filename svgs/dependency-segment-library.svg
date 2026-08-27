@@ -1,0 +1,72 @@
+<svg width="1280" height="560" viewBox="0 0 1280 560" fill="none"
+xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Reflow dependency segment library</title>
+<desc id="desc">Reusable straight, curved, stepped, terminal, and interrupted connector segments for responsive operational topology.</desc>
+<defs>
+  <marker id="arrowForest" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0 0L10 5L0 10Z" fill="#1D4C39"/>
+  </marker>
+  <marker id="arrowSage" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0 0L10 5L0 10Z" fill="#91A995"/>
+  </marker>
+</defs>
+
+<g font-family="Geist, Inter, sans-serif" font-size="15" fill="#59645D">
+  <text x="80" y="60" fill="#17211C" font-size="22" font-weight="700">DEPENDENCY SEGMENTS</text>
+  <text x="80" y="91">Reference geometry for inline responsive SVG components.</text>
+</g>
+
+<!-- straight -->
+<g transform="translate(90 150)">
+  <text x="0" y="-24" font-family="Geist, Inter, sans-serif" font-size="14" fill="#838C85" letter-spacing="1.5">STRAIGHT</text>
+  <circle cx="0" cy="0" r="7" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+  <path d="M8 0H245" stroke="#1D4C39" stroke-width="3" marker-end="url(#arrowForest)"/>
+  <circle cx="255" cy="0" r="7" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+  <circle cx="130" cy="0" r="4" fill="#B89A64"/>
+</g>
+
+<!-- soft bezier -->
+<g transform="translate(430 150)">
+  <text x="0" y="-24" font-family="Geist, Inter, sans-serif" font-size="14" fill="#838C85" letter-spacing="1.5">SOFT CURVE</text>
+  <circle cx="0" cy="0" r="7" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+  <path d="M8 0C70 -64 175 64 245 0" stroke="#1D4C39" stroke-width="3" marker-end="url(#arrowForest)"/>
+  <circle cx="255" cy="0" r="7" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+</g>
+
+<!-- stepped -->
+<g transform="translate(780 150)">
+  <text x="0" y="-24" font-family="Geist, Inter, sans-serif" font-size="14" fill="#838C85" letter-spacing="1.5">STEPPED</text>
+  <circle cx="0" cy="0" r="7" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+  <path d="M8 0H92Q110 0 110 18V58Q110 76 128 76H245" stroke="#1D4C39" stroke-width="3" marker-end="url(#arrowForest)"/>
+  <circle cx="255" cy="76" r="7" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+  <circle cx="110" cy="38" r="4" fill="#B89A64"/>
+</g>
+
+<!-- latent -->
+<g transform="translate(90 340)">
+  <text x="0" y="-24" font-family="Geist, Inter, sans-serif" font-size="14" fill="#838C85" letter-spacing="1.5">LATENT / UNCONFIRMED</text>
+  <circle cx="0" cy="0" r="7" fill="#FFFDF9" stroke="#91A995" stroke-width="2"/>
+  <path d="M8 0H245" stroke="#91A995" stroke-width="2.6" stroke-dasharray="4 9" marker-end="url(#arrowSage)"/>
+  <circle cx="255" cy="0" r="7" fill="#FFFDF9" stroke="#91A995" stroke-width="2"/>
+</g>
+
+<!-- interrupted -->
+<g transform="translate(430 340)">
+  <text x="0" y="-24" font-family="Geist, Inter, sans-serif" font-size="14" fill="#838C85" letter-spacing="1.5">INTERRUPTED</text>
+  <circle cx="0" cy="0" r="7" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+  <path d="M8 0H108" stroke="#1D4C39" stroke-width="3"/>
+  <path d="M110 0L120 -11L130 10L140 -7L151 0" stroke="#A76658" stroke-width="3"/>
+  <path d="M151 0H245" stroke="#91A995" stroke-width="2.6" stroke-dasharray="4 9" marker-end="url(#arrowSage)"/>
+  <circle cx="255" cy="0" r="7" fill="#FFFDF9" stroke="#91A995" stroke-width="2"/>
+</g>
+
+<!-- terminal -->
+<g transform="translate(780 340)">
+  <text x="0" y="-24" font-family="Geist, Inter, sans-serif" font-size="14" fill="#838C85" letter-spacing="1.5">OBJECTIVE TERMINAL</text>
+  <circle cx="0" cy="0" r="7" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+  <path d="M8 0H215" stroke="#1D4C39" stroke-width="3"/>
+  <circle cx="240" cy="0" r="25" fill="#FFFDF9" stroke="#C49355" stroke-width="2.2"/>
+  <circle cx="240" cy="0" r="10" fill="#1D4C39"/>
+  <circle cx="258" cy="-18" r="5.5" fill="#B89A64" stroke="#FFFDF9" stroke-width="1.8"/>
+</g>
+</svg>

@@ -19,3 +19,13 @@ artifacts/
 *.tfplan
 *.tfstate
 *.tfstate.*
+
+# Local editor/agent tooling
+/.claude/
+/.codex-p1e-build-*/
+
+# Design exploration scratch and generated reference imagery
+/design/
+/Pages/
+/svg/
+/REFERENCE PAGES/

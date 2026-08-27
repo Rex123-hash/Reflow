@@ -1,0 +1,89 @@
+<svg width="1500" height="520" viewBox="0 0 1500 520" fill="none"
+xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Reflow deterministic policy gate system</title>
+<desc id="desc">Candidate futures pass through deterministic policy checks for workload, deadline, skills, and protected commitments before selection.</desc>
+<defs>
+  <filter id="shadow" x="-20%" y="-30%" width="140%" height="160%">
+    <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#17211C" flood-opacity="0.06"/>
+  </filter>
+</defs>
+
+<text x="70" y="55" fill="#17211C" font-family="Geist, Inter, sans-serif" font-size="25" font-weight="800">DETERMINISTIC POLICY GATE</text>
+<text x="70" y="84" fill="#59645D" font-family="Geist, Inter, sans-serif" font-size="15">Gemini may propose. Code decides whether a future is legal.</text>
+
+<!-- incoming future -->
+<g transform="translate(100 230)" font-family="Geist, Inter, sans-serif">
+  <circle cx="0" cy="0" r="30" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2.2"/>
+  <circle cx="0" cy="0" r="10" fill="#1D4C39"/>
+  <text x="-30" y="-56" fill="#838C85" font-size="12.5" font-weight="800" letter-spacing="1.6">CANDIDATE</text>
+  <text x="-30" y="-34" fill="#17211C" font-size="17" font-weight="700">Recovery future</text>
+</g>
+<path d="M135 230H245" stroke="#1D4C39" stroke-width="3.2"/>
+<circle cx="190" cy="230" r="5" fill="#B89A64"/>
+
+<!-- gate -->
+<g transform="translate(260 125)" filter="url(#shadow)" font-family="Geist, Inter, sans-serif">
+  <rect width="650" height="300" rx="28" fill="#FFFDF9" stroke="#C9D3CB" stroke-width="1.8"/>
+  <text x="32" y="48" fill="#1D4C39" font-size="12.5" font-weight="800" letter-spacing="1.8">POLICY ENGINE</text>
+  <text x="32" y="80" fill="#17211C" font-size="23" font-weight="700">Hard constraints</text>
+
+  <!-- workload -->
+  <g transform="translate(32 110)">
+    <circle cx="12" cy="12" r="12" fill="#E7EEE7"/>
+    <path d="M7 12L11 16L18 8" stroke="#1D4C39" stroke-width="2.2"/>
+    <text x="38" y="16" fill="#17211C" font-size="15" font-weight="700">Workload</text>
+    <text x="280" y="16" fill="#59645D" font-size="14">≤ 90%</text>
+    <rect x="390" y="2" width="190" height="20" rx="10" fill="#E7EEE7"/>
+    <rect x="390" y="2" width="128" height="20" rx="10" fill="#91A995"/>
+  </g>
+
+  <!-- deadline -->
+  <g transform="translate(32 160)">
+    <circle cx="12" cy="12" r="12" fill="#E7EEE7"/>
+    <path d="M7 12L11 16L18 8" stroke="#1D4C39" stroke-width="2.2"/>
+    <text x="38" y="16" fill="#17211C" font-size="15" font-weight="700">Deadline</text>
+    <text x="280" y="16" fill="#59645D" font-size="14">preserved</text>
+    <circle cx="530" cy="12" r="5" fill="#1D4C39"/>
+  </g>
+
+  <!-- skill -->
+  <g transform="translate(32 210)">
+    <circle cx="12" cy="12" r="12" fill="#E7EEE7"/>
+    <path d="M7 12L11 16L18 8" stroke="#1D4C39" stroke-width="2.2"/>
+    <text x="38" y="16" fill="#17211C" font-size="15" font-weight="700">Required skill</text>
+    <text x="280" y="16" fill="#59645D" font-size="14">available</text>
+    <circle cx="530" cy="12" r="5" fill="#1D4C39"/>
+  </g>
+
+  <!-- commitment -->
+  <g transform="translate(32 260)">
+    <circle cx="12" cy="12" r="12" fill="#F4ECE7"/>
+    <path d="M6.5 6.5L17.5 17.5M17.5 6.5L6.5 17.5" stroke="#A76658" stroke-width="2.2"/>
+    <text x="38" y="16" fill="#17211C" font-size="15" font-weight="700">Protected commitment</text>
+    <text x="280" y="16" fill="#A76658" font-size="14" font-weight="700">violated</text>
+    <circle cx="530" cy="12" r="5" fill="#A76658"/>
+  </g>
+</g>
+
+<!-- split decisions -->
+<path d="M910 230H1010" stroke="#C9D3CB" stroke-width="2.4"/>
+<path d="M1010 230C1080 230 1090 144 1160 144H1260" stroke="#A76658" stroke-width="3.2"/>
+<path d="M1010 230C1080 230 1090 316 1160 316H1260" stroke="#1D4C39" stroke-width="3.2"/>
+<circle cx="1010" cy="230" r="6" fill="#B89A64"/>
+
+<!-- rejected output -->
+<g transform="translate(1285 144)" font-family="Geist, Inter, sans-serif">
+  <circle r="34" fill="#FFFDF9" stroke="#A76658" stroke-width="2.4"/>
+  <path d="M-10 -10L10 10M10 -10L-10 10" stroke="#A76658" stroke-width="3"/>
+  <text x="52" y="-4" fill="#A76658" font-size="12.5" font-weight="800" letter-spacing="1.6">REJECT</text>
+  <text x="52" y="20" fill="#17211C" font-size="17" font-weight="700">unsafe future</text>
+</g>
+
+<!-- valid output -->
+<g transform="translate(1285 316)" font-family="Geist, Inter, sans-serif">
+  <circle r="34" fill="#1D4C39"/>
+  <path d="M-10 0L-3 7L11 -8" stroke="#FFFDF9" stroke-width="3"/>
+  <text x="52" y="-4" fill="#1D4C39" font-size="12.5" font-weight="800" letter-spacing="1.6">VALID</text>
+  <text x="52" y="20" fill="#17211C" font-size="17" font-weight="700">eligible future</text>
+</g>
+</svg>

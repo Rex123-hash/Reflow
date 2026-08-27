@@ -1,0 +1,75 @@
+<svg width="1600" height="360" viewBox="0 0 1600 360" fill="none"
+xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Blast radius propagation system</title>
+<desc id="desc">A layered dependency path showing disruption propagation, impact confidence, and terminal objective risk.</desc>
+<defs>
+  <filter id="shadow" x="-20%" y="-50%" width="140%" height="200%">
+    <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#17211C" flood-opacity="0.07"/>
+  </filter>
+  <filter id="softGlow" x="-120%" y="-120%" width="340%" height="340%">
+    <feGaussianBlur stdDeviation="9"/>
+  </filter>
+</defs>
+
+<!-- confidence envelope -->
+<path d="M165 178C330 86 520 86 690 178S1040 270 1220 178S1425 120 1470 132"
+      stroke="#E7EEE7" stroke-width="38" stroke-linecap="round" opacity="0.74"/>
+<path d="M165 178C330 86 520 86 690 178S1040 270 1220 178S1425 120 1470 132"
+      stroke="#91A995" stroke-width="2" stroke-dasharray="3 10" stroke-linecap="round" opacity="0.70"/>
+
+<!-- impact rail -->
+<path d="M165 178C330 86 520 86 690 178S1040 270 1220 178S1425 120 1470 132"
+      stroke="#1D4C39" stroke-width="4" stroke-linecap="round"/>
+
+<!-- risk overlay portion -->
+<path d="M165 178C330 86 520 86 690 178"
+      stroke="#A76658" stroke-width="5.4" stroke-linecap="round"/>
+<path d="M690 178C855 268 1040 270 1220 178"
+      stroke="#C49355" stroke-width="5" stroke-linecap="round"/>
+
+<!-- staged markers -->
+<g>
+  <g transform="translate(165 178)">
+    <circle r="28" fill="#FFFDF9" stroke="#A76658" stroke-width="2.2" filter="url(#shadow)"/>
+    <circle r="11" fill="#A76658"/>
+    <circle r="18" fill="#A76658" opacity="0.12" filter="url(#softGlow)"/>
+  </g>
+  <g transform="translate(430 110)">
+    <circle r="15" fill="#FFFDF9" stroke="#A76658" stroke-width="2"/>
+    <circle r="5" fill="#A76658"/>
+  </g>
+  <g transform="translate(690 178)">
+    <circle r="20" fill="#FFFDF9" stroke="#C49355" stroke-width="2.2"/>
+    <circle r="7" fill="#C49355"/>
+  </g>
+  <g transform="translate(954 246)">
+    <circle r="15" fill="#FFFDF9" stroke="#91A995" stroke-width="2"/>
+    <circle r="5" fill="#1D4C39"/>
+  </g>
+  <g transform="translate(1220 178)">
+    <circle r="20" fill="#FFFDF9" stroke="#C49355" stroke-width="2.2"/>
+    <circle r="7" fill="#C49355"/>
+  </g>
+  <g transform="translate(1470 132)">
+    <circle r="28" fill="#FFFDF9" stroke="#C49355" stroke-width="2.2" filter="url(#shadow)"/>
+    <circle r="11" fill="#1D4C39"/>
+    <circle cx="21" cy="-21" r="7" fill="#B89A64" stroke="#FFFDF9" stroke-width="2"/>
+  </g>
+</g>
+
+<!-- labels -->
+<g font-family="Geist, Inter, sans-serif">
+  <text x="125" y="244" fill="#A76658" font-size="14" font-weight="700" letter-spacing="2">SOURCE</text>
+  <text x="125" y="267" fill="#17211C" font-size="18" font-weight="600">Engineer unavailable</text>
+
+  <text x="653" y="130" fill="#C49355" font-size="14" font-weight="700" letter-spacing="2">DIRECT IMPACT</text>
+  <text x="653" y="153" fill="#17211C" font-size="18" font-weight="600">API migration blocked</text>
+
+  <text x="1186" y="235" fill="#59645D" font-size="14" font-weight="700" letter-spacing="2">DOWNSTREAM</text>
+  <text x="1186" y="258" fill="#17211C" font-size="18" font-weight="600">QA / release exposed</text>
+
+  <text x="1320" y="84" fill="#C49355" font-size="14" font-weight="700" letter-spacing="2">OBJECTIVE</text>
+  <text x="1320" y="108" fill="#17211C" font-size="20" font-weight="700">SHIP RELEASE V2</text>
+  <text x="1320" y="132" fill="#C49355" font-size="15" font-weight="600">AT RISK</text>
+</g>
+</svg>

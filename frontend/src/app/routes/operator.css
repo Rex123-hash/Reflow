@@ -1,0 +1,237 @@
+.operator {
+  max-width: 1080px;
+}
+
+.operator-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+
+.operator-head h1 {
+  margin: var(--space-2) 0 var(--space-2);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2.1rem;
+  letter-spacing: -0.03em;
+}
+
+.operator-lede {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--body);
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.operator-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-elevated);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+.operator-form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--elev-card);
+  margin-bottom: var(--space-4);
+}
+
+.operator-form svg {
+  color: var(--secondary);
+  flex: 0 0 auto;
+}
+
+.operator-form input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--ink);
+  padding: var(--space-2) 0;
+}
+
+.operator-form input:focus {
+  outline: none;
+}
+
+.operator-form input::placeholder {
+  color: var(--secondary);
+}
+
+.operator-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.operator-result {
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--motion-line);
+  border-radius: var(--radius-lg);
+  background: #fdfaf4;
+  margin-bottom: var(--space-5);
+}
+
+.operator-result.is-unmatched {
+  border-color: var(--line-strong);
+  border-style: dashed;
+  background: transparent;
+}
+
+.operator-result h2 {
+  margin: var(--space-2) 0 var(--space-3);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.operator-result p {
+  margin: 0;
+  font-size: 0.83rem;
+  color: var(--body);
+  line-height: 1.6;
+  max-width: 66ch;
+}
+
+.operator-focus {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.operator-focus b {
+  color: var(--ink);
+}
+
+.operator-context {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  align-items: start;
+}
+
+.operator-objective {
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.operator-objective h4 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.25rem;
+}
+
+.operator-incident {
+  font-size: 0.66rem;
+  color: var(--secondary);
+  word-break: break-all;
+}
+
+.operator-invariants,
+.operator-evidence {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.operator-invariants li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 0.7rem;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.operator-invariants li:last-child {
+  border-bottom: 0;
+}
+
+.operator-evidence li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.operator-evidence li:last-child {
+  border-bottom: 0;
+}
+
+.operator-evidence b {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.operator-evidence span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.63rem;
+  color: var(--secondary);
+}
+
+.operator-modes {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.operator-modes ul {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.operator-modes li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--secondary);
+}
+
+.operator-mode-id {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--body);
+  flex: 0 0 82px;
+}

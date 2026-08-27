@@ -1,0 +1,91 @@
+<svg width="1500" height="520" viewBox="0 0 1500 520" fill="none"
+xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Reflow candidate lifecycle states</title>
+<desc id="desc">Recovery candidate visual states from under consideration to validated, rejected, selected, and unavailable.</desc>
+<defs>
+  <filter id="cardShadow" x="-30%" y="-30%" width="160%" height="180%">
+    <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#17211C" flood-opacity="0.06"/>
+  </filter>
+</defs>
+
+<text x="70" y="54" fill="#17211C" font-family="Geist, Inter, sans-serif" font-size="25" font-weight="800">RECOVERY CANDIDATE STATES</text>
+<text x="70" y="84" fill="#59645D" font-family="Geist, Inter, sans-serif" font-size="15">One card grammar, several deterministic decision states.</text>
+
+<g filter="url(#cardShadow)" font-family="Geist, Inter, sans-serif">
+  <!-- considering -->
+  <g transform="translate(60 138)">
+    <rect width="260" height="290" rx="24" fill="#FFFDF9" stroke="#C9D3CB" stroke-width="1.8"/>
+    <circle cx="46" cy="44" r="18" fill="#E7EEE7"/>
+    <circle cx="46" cy="44" r="5" fill="#91A995"/>
+    <text x="78" y="49" fill="#838C85" font-size="12" font-weight="800" letter-spacing="1.6">CONSIDERING</text>
+    <text x="24" y="104" fill="#17211C" font-size="21" font-weight="700">Candidate path</text>
+    <text x="24" y="134" fill="#59645D" font-size="14">Awaiting critique and policy</text>
+    <path d="M24 162H236" stroke="#DDE4DD" stroke-width="1.4"/>
+    <path d="M24 190H188" stroke="#91A995" stroke-width="2.3" stroke-linecap="round"/>
+    <path d="M24 214H224" stroke="#E7EEE7" stroke-width="8" stroke-linecap="round"/>
+    <path d="M24 214H126" stroke="#91A995" stroke-width="2.3" stroke-linecap="round"/>
+    <text x="24" y="260" fill="#838C85" font-size="12.5">No hard decision yet</text>
+  </g>
+
+  <!-- valid -->
+  <g transform="translate(350 138)">
+    <rect width="260" height="290" rx="24" fill="#FFFDF9" stroke="#91A995" stroke-width="2"/>
+    <circle cx="46" cy="44" r="18" fill="#E7EEE7"/>
+    <path d="M39 44L44 49L53 39" stroke="#1D4C39" stroke-width="2.5"/>
+    <text x="78" y="49" fill="#1D4C39" font-size="12" font-weight="800" letter-spacing="1.6">VALID</text>
+    <text x="24" y="104" fill="#17211C" font-size="21" font-weight="700">Policy-valid path</text>
+    <text x="24" y="134" fill="#59645D" font-size="14">No hard constraints violated</text>
+    <path d="M24 162H236" stroke="#DDE4DD" stroke-width="1.4"/>
+    <circle cx="34" cy="194" r="5" fill="#1D4C39"/>
+    <text x="50" y="199" fill="#59645D" font-size="13.5">workload within limit</text>
+    <circle cx="34" cy="223" r="5" fill="#1D4C39"/>
+    <text x="50" y="228" fill="#59645D" font-size="13.5">deadline preserved</text>
+    <text x="24" y="260" fill="#1D4C39" font-size="12.5" font-weight="800">ELIGIBLE FOR SELECTION</text>
+  </g>
+
+  <!-- rejected -->
+  <g transform="translate(640 138)">
+    <rect width="260" height="290" rx="24" fill="#FFFDF9" stroke="#DFC7BD" stroke-width="2"/>
+    <circle cx="46" cy="44" r="18" fill="#F4ECE7"/>
+    <path d="M40 38L52 50M52 38L40 50" stroke="#A76658" stroke-width="2.5"/>
+    <text x="78" y="49" fill="#A76658" font-size="12" font-weight="800" letter-spacing="1.6">REJECTED</text>
+    <text x="24" y="104" fill="#17211C" font-size="21" font-weight="700">Unsafe candidate</text>
+    <text x="24" y="134" fill="#59645D" font-size="14">Hard policy violation</text>
+    <path d="M24 162H236" stroke="#DDE4DD" stroke-width="1.4"/>
+    <text x="24" y="193" fill="#A76658" font-size="13.5" font-weight="700">124% workload</text>
+    <text x="24" y="219" fill="#59645D" font-size="13">limit: 90%</text>
+    <text x="24" y="260" fill="#A76658" font-size="12.5" font-weight="800">POLICY BLOCKED</text>
+  </g>
+
+  <!-- selected -->
+  <g transform="translate(930 128)">
+    <rect width="260" height="310" rx="24" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2.6"/>
+    <circle cx="46" cy="44" r="18" fill="#1D4C39"/>
+    <path d="M39 44L44 49L53 39" stroke="#FFFDF9" stroke-width="2.5"/>
+    <text x="78" y="49" fill="#1D4C39" font-size="12" font-weight="800" letter-spacing="1.6">SELECTED</text>
+    <text x="24" y="104" fill="#17211C" font-size="21" font-weight="700">Chosen recovery</text>
+    <text x="24" y="134" fill="#59645D" font-size="14">Best valid path under evidence</text>
+    <path d="M24 162H236" stroke="#DDE4DD" stroke-width="1.4"/>
+    <circle cx="34" cy="194" r="5" fill="#B89A64"/>
+    <text x="50" y="199" fill="#59645D" font-size="13.5">selected by deterministic service</text>
+    <circle cx="34" cy="223" r="5" fill="#1D4C39"/>
+    <text x="50" y="228" fill="#59645D" font-size="13.5">ready for action routing</text>
+    <rect x="24" y="254" width="212" height="36" rx="11" fill="#1D4C39"/>
+    <text x="130" y="277" fill="#FFFDF9" font-size="12.5" font-weight="800" letter-spacing="1.5" text-anchor="middle">PLAN SELECTED</text>
+  </g>
+
+  <!-- unavailable / failed perspective -->
+  <g transform="translate(1220 138)">
+    <rect width="220" height="290" rx="24" fill="#FBF9F3" stroke="#DDE4DD" stroke-width="1.6"/>
+    <circle cx="42" cy="44" r="18" fill="#E7EEE7"/>
+    <path d="M35 44H49" stroke="#838C85" stroke-width="2.4"/>
+    <text x="72" y="49" fill="#838C85" font-size="12" font-weight="800" letter-spacing="1.6">UNAVAILABLE</text>
+    <text x="22" y="104" fill="#17211C" font-size="20" font-weight="700">No candidate</text>
+    <text x="22" y="134" fill="#59645D" font-size="14">Planner perspective failed</text>
+    <path d="M22 162H198" stroke="#DDE4DD" stroke-width="1.4"/>
+    <path d="M22 195H176" stroke="#DDE4DD" stroke-width="6" stroke-linecap="round"/>
+    <path d="M22 219H137" stroke="#DDE4DD" stroke-width="6" stroke-linecap="round"/>
+    <text x="22" y="260" fill="#838C85" font-size="12.5">Do not fabricate a substitute</text>
+  </g>
+</g>
+</svg>

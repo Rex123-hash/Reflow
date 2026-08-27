@@ -1,0 +1,32 @@
+/* Integration and Reflow-native authority marks. Monochrome by design. */
+
+.source-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  /* Ink at reduced weight: recognisable, palette-safe, and never a status colour. */
+  color: rgba(23, 33, 28, 0.82);
+}
+
+.source-mark.is-framed {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--line);
+  background: var(--surface-elevated);
+}
+
+.source-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  font-weight: 700;
+}
+
+.source-label .source-mark {
+  color: rgba(23, 33, 28, 0.7);
+}

@@ -1,0 +1,106 @@
+<svg width="1600" height="260" viewBox="0 0 1600 260" fill="none"
+xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Reflow operational dependency spine</title>
+<desc id="desc">A five-node dependency chain with a disruption propagating from Engineer through API Migration, Staging, QA, and Release V2.</desc>
+<defs>
+  <filter id="softShadow" x="-30%" y="-80%" width="160%" height="260%">
+    <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#17211C" flood-opacity="0.08"/>
+  </filter>
+  <filter id="pulseBlur" x="-200%" y="-200%" width="500%" height="500%">
+    <feGaussianBlur stdDeviation="5"/>
+  </filter>
+  <linearGradient id="softRail" x1="150" y1="0" x2="1450" y2="0" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#DDE4DD"/>
+    <stop offset="0.48" stop-color="#C9D3CB"/>
+    <stop offset="1" stop-color="#DDE4DD"/>
+  </linearGradient>
+</defs>
+
+<!-- base dependency rail -->
+<path d="M154 136H1446" stroke="url(#softRail)" stroke-width="2"/>
+<path d="M154 136H1446" stroke="#1D4C39" stroke-width="3.5" stroke-linecap="round"
+      stroke-dasharray="0 0" opacity="0.84"/>
+
+<!-- brass propagation micro-markers -->
+<g fill="#B89A64">
+  <circle cx="362" cy="136" r="4.5"/>
+  <circle cx="643" cy="136" r="4.5"/>
+  <circle cx="924" cy="136" r="4.5"/>
+  <circle cx="1205" cy="136" r="4.5"/>
+</g>
+
+<!-- subtle moving proof lane -->
+<path d="M154 146H1446" stroke="#E7EEE7" stroke-width="10" stroke-linecap="round" opacity="0.75"/>
+<path d="M154 146H1119" stroke="#91A995" stroke-width="2.4" stroke-linecap="round"
+      stroke-dasharray="4 10" opacity="0.78"/>
+
+<!-- nodes -->
+<g filter="url(#softShadow)">
+  <!-- engineer disrupted -->
+  <g transform="translate(154 136)">
+    <circle r="31" fill="#FFFDF9" stroke="#A76658" stroke-width="2.2"/>
+    <circle r="22" fill="#F6E7E2"/>
+    <circle r="8" fill="#A76658"/>
+    <path d="M-8 16C-4 8 4 8 8 16" stroke="#A76658" stroke-width="2.4"/>
+    <circle cy="-5" r="4.6" fill="none" stroke="#A76658" stroke-width="2.2"/>
+    <circle cx="24" cy="-22" r="6.2" fill="#B89A64" stroke="#FFFDF9" stroke-width="2"/>
+  </g>
+
+  <!-- api blocked -->
+  <g transform="translate(435 136)">
+    <circle r="31" fill="#FFFDF9" stroke="#C49355" stroke-width="2.2"/>
+    <circle r="22" fill="#F4ECE2"/>
+    <path d="M-10 -5L-16 0L-10 5M10 -5L16 0L10 5M4 -11L-4 11"
+          stroke="#C49355" stroke-width="2.5"/>
+    <circle cx="24" cy="-22" r="6.2" fill="#C49355" stroke="#FFFDF9" stroke-width="2"/>
+  </g>
+
+  <!-- staging affected -->
+  <g transform="translate(716 136)">
+    <circle r="31" fill="#FFFDF9" stroke="#91A995" stroke-width="2.2"/>
+    <circle r="22" fill="#E7EEE7"/>
+    <rect x="-10" y="-10" width="20" height="8" rx="2.5" stroke="#1D4C39" stroke-width="2.2"/>
+    <rect x="-10" y="3" width="20" height="8" rx="2.5" stroke="#1D4C39" stroke-width="2.2"/>
+    <circle cx="6" cy="-6" r="1.6" fill="#1D4C39"/>
+    <circle cx="6" cy="7" r="1.6" fill="#1D4C39"/>
+  </g>
+
+  <!-- QA affected -->
+  <g transform="translate(997 136)">
+    <circle r="31" fill="#FFFDF9" stroke="#91A995" stroke-width="2.2"/>
+    <circle r="22" fill="#E7EEE7"/>
+    <circle cx="-3" cy="-3" r="8" stroke="#1D4C39" stroke-width="2.4"/>
+    <path d="M3 3L10 10" stroke="#1D4C39" stroke-width="2.4"/>
+  </g>
+
+  <!-- release at risk -->
+  <g transform="translate(1278 136)">
+    <circle r="31" fill="#FFFDF9" stroke="#C49355" stroke-width="2.2"/>
+    <circle r="22" fill="#F4ECE2"/>
+    <path d="M-9 -7L0 -12L9 -7V6L0 12L-9 6V-7Z" stroke="#1D4C39" stroke-width="2.2"/>
+    <path d="M-9 -7L0 -2L9 -7M0 -2V12" stroke="#1D4C39" stroke-width="2.2"/>
+    <circle cx="23" cy="-22" r="6.2" fill="#C49355" stroke="#FFFDF9" stroke-width="2"/>
+  </g>
+</g>
+
+<!-- state captions -->
+<g font-family="Geist, Inter, sans-serif" text-anchor="middle">
+  <text x="154" y="210" fill="#17211C" font-size="18" font-weight="600">ENGINEER</text>
+  <text x="154" y="231" fill="#A76658" font-size="14" letter-spacing="1.5">UNAVAILABLE</text>
+
+  <text x="435" y="210" fill="#17211C" font-size="18" font-weight="600">API MIGRATION</text>
+  <text x="435" y="231" fill="#C49355" font-size="14" letter-spacing="1.5">BLOCKED</text>
+
+  <text x="716" y="210" fill="#17211C" font-size="18" font-weight="600">STAGING</text>
+  <text x="716" y="231" fill="#59645D" font-size="14" letter-spacing="1.5">AFFECTED</text>
+
+  <text x="997" y="210" fill="#17211C" font-size="18" font-weight="600">QA</text>
+  <text x="997" y="231" fill="#59645D" font-size="14" letter-spacing="1.5">AFFECTED</text>
+
+  <text x="1278" y="210" fill="#17211C" font-size="18" font-weight="600">RELEASE V2</text>
+  <text x="1278" y="231" fill="#C49355" font-size="14" letter-spacing="1.5">AT RISK</text>
+</g>
+
+<!-- propagation pulse reference -->
+<circle cx="435" cy="136" r="18" fill="#C49355" opacity="0.13" filter="url(#pulseBlur)"/>
+</svg>

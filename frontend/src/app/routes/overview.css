@@ -1,0 +1,169 @@
+.overview {
+  max-width: 1180px;
+}
+
+.verdict {
+  padding: var(--space-6) var(--space-6) var(--space-6) 0;
+  max-width: 860px;
+}
+
+.verdict-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.verdict-head h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 4vw, 3.1rem);
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.verdict-summary {
+  margin: 0 0 var(--space-5);
+  font-size: 1rem;
+  color: var(--body);
+  line-height: 1.6;
+  max-width: 58ch;
+}
+
+.verdict-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: 0 0 var(--space-5);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.verdict-facts dt {
+  font-size: 0.59rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.verdict-facts dd {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.verdict-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+.activity-item {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.activity-item:last-child {
+  border-bottom: 0;
+}
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sage);
+  margin: 6px 0 0 3px;
+}
+
+.activity-item.tone-verified .activity-dot {
+  background: var(--forest);
+}
+
+.activity-item.tone-failed .activity-dot {
+  background: var(--failure);
+}
+
+.activity-item.tone-motion .activity-dot {
+  background: var(--brass);
+}
+
+.activity-item p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.activity-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+  font-size: 0.63rem;
+  color: var(--secondary);
+}
+
+.activity-empty {
+  padding: var(--space-4);
+  font-size: 0.78rem;
+  color: var(--secondary);
+}
+
+.overview-counts dl {
+  margin: 0;
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+
+.overview-counts dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.overview-counts dl > div:last-child {
+  border-bottom: 0;
+}
+
+.overview-counts dt {
+  font-size: 0.75rem;
+  color: var(--body);
+}
+
+.overview-counts dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 980px) {
+  .overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

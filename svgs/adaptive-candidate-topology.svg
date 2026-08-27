@@ -1,0 +1,55 @@
+<svg width="1500" height="560" viewBox="0 0 1500 560" fill="none"
+xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<title id="title">Adaptive recovery candidate topology</title>
+<desc id="desc">Responsive branching layouts for one, two, or three recovery candidates using the same Reflow visual grammar.</desc>
+
+<text x="65" y="50" fill="#17211C" font-family="Geist, Inter, sans-serif" font-size="25" font-weight="800">ADAPTIVE CANDIDATE TOPOLOGY</text>
+<text x="65" y="80" fill="#59645D" font-family="Geist, Inter, sans-serif" font-size="15">The UI should support 1–3 real candidates without fabricating absent futures.</text>
+
+<!-- 1 -->
+<g transform="translate(140 180)" font-family="Geist, Inter, sans-serif">
+  <text x="160" y="-50" fill="#838C85" font-size="12.5" font-weight="800" letter-spacing="1.6" text-anchor="middle">ONE CANDIDATE</text>
+  <circle cx="160" cy="0" r="30" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2.2"/>
+  <circle cx="160" cy="0" r="10" fill="#1D4C39"/>
+  <path d="M160 31V180" stroke="#1D4C39" stroke-width="4"/>
+  <circle cx="160" cy="214" r="25" fill="#1D4C39"/>
+  <text x="160" y="220" fill="#FFFDF9" font-size="17" font-weight="800" text-anchor="middle">A</text>
+  <rect x="55" y="254" width="210" height="94" rx="20" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2"/>
+  <text x="160" y="292" fill="#17211C" font-size="16" font-weight="700" text-anchor="middle">single valid future</text>
+  <text x="160" y="319" fill="#59645D" font-size="13" text-anchor="middle">still requires policy validation</text>
+</g>
+
+<!-- 2 -->
+<g transform="translate(560 180)" font-family="Geist, Inter, sans-serif">
+  <text x="160" y="-50" fill="#838C85" font-size="12.5" font-weight="800" letter-spacing="1.6" text-anchor="middle">TWO CANDIDATES</text>
+  <circle cx="160" cy="0" r="30" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2.2"/>
+  <circle cx="160" cy="0" r="10" fill="#1D4C39"/>
+  <path d="M160 31C160 80 95 95 70 150V180" stroke="#91A995" stroke-width="3"/>
+  <path d="M160 31C160 80 225 95 250 150V180" stroke="#1D4C39" stroke-width="4"/>
+  <circle cx="70" cy="214" r="24" fill="#FFFDF9" stroke="#A76658" stroke-width="2"/>
+  <text x="70" y="220" fill="#A76658" font-size="17" font-weight="800" text-anchor="middle">A</text>
+  <circle cx="250" cy="214" r="25" fill="#1D4C39"/>
+  <text x="250" y="220" fill="#FFFDF9" font-size="17" font-weight="800" text-anchor="middle">B</text>
+  <text x="70" y="262" fill="#A76658" font-size="12" font-weight="800" text-anchor="middle">REJECTED</text>
+  <text x="250" y="262" fill="#1D4C39" font-size="12" font-weight="800" text-anchor="middle">SELECTED</text>
+</g>
+
+<!-- 3 -->
+<g transform="translate(980 180)" font-family="Geist, Inter, sans-serif">
+  <text x="200" y="-50" fill="#838C85" font-size="12.5" font-weight="800" letter-spacing="1.6" text-anchor="middle">THREE CANDIDATES</text>
+  <circle cx="200" cy="0" r="30" fill="#FFFDF9" stroke="#1D4C39" stroke-width="2.2"/>
+  <circle cx="200" cy="0" r="10" fill="#1D4C39"/>
+  <path d="M200 31C200 80 90 92 60 165V180" stroke="#91A995" stroke-width="3" stroke-dasharray="5 9"/>
+  <path d="M200 31V180" stroke="#1D4C39" stroke-width="4"/>
+  <path d="M200 31C200 80 310 92 340 165V180" stroke="#91A995" stroke-width="3" stroke-dasharray="5 9"/>
+  <circle cx="60" cy="214" r="24" fill="#FFFDF9" stroke="#A76658" stroke-width="2"/>
+  <text x="60" y="220" fill="#A76658" font-size="17" font-weight="800" text-anchor="middle">A</text>
+  <circle cx="200" cy="214" r="25" fill="#1D4C39"/>
+  <text x="200" y="220" fill="#FFFDF9" font-size="17" font-weight="800" text-anchor="middle">B</text>
+  <circle cx="340" cy="214" r="24" fill="#FFFDF9" stroke="#A76658" stroke-width="2"/>
+  <text x="340" y="220" fill="#A76658" font-size="17" font-weight="800" text-anchor="middle">C</text>
+  <text x="60" y="262" fill="#A76658" font-size="12" font-weight="800" text-anchor="middle">REJECTED</text>
+  <text x="200" y="262" fill="#1D4C39" font-size="12" font-weight="800" text-anchor="middle">SELECTED</text>
+  <text x="340" y="262" fill="#A76658" font-size="12" font-weight="800" text-anchor="middle">REJECTED</text>
+</g>
+</svg>
