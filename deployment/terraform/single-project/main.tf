@@ -191,6 +191,10 @@ resource "google_cloud_run_v2_service" "app" {
         value = var.github_p1c_workflow_path
       }
       env {
+        name  = "P1D_PUBSUB_TOPIC"
+        value = google_pubsub_topic.p1d.name
+      }
+      env {
         name = "GITHUB_P1C_TOKEN"
         value_source {
           secret_key_ref {
@@ -247,6 +251,20 @@ resource "google_pubsub_topic" "p1c" {
   name    = "${var.project_name}-p1c"
 
   depends_on = [google_project_service.required]
+}
+
+resource "google_pubsub_topic" "p1d" {
+  project = var.project_id
+  name    = "${var.project_name}-p1d"
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_pubsub_topic_iam_member" "p1d_runtime_publisher" {
+  project = var.project_id
+  topic   = google_pubsub_topic.p1d.name
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.app.email}"
 }
 
 resource "google_pubsub_topic_iam_member" "dead_letter_publisher" {
@@ -340,6 +358,50 @@ resource "google_pubsub_subscription" "p1c_push" {
 resource "google_pubsub_subscription_iam_member" "p1c_dead_letter_subscriber" {
   project      = var.project_id
   subscription = google_pubsub_subscription.p1c_push.name
+  role         = "roles/pubsub.subscriber"
+  member       = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_pubsub_subscription" "p1d_push" {
+  project = var.project_id
+  name    = "${var.project_name}-p1d-push"
+  topic   = google_pubsub_topic.p1d.id
+
+  ack_deadline_seconds = 600
+
+  push_config {
+    push_endpoint = "${google_cloud_run_v2_service.app.uri}/apps/objective_recovery_agent/trigger/p1d/pubsub"
+
+    oidc_token {
+      service_account_email = google_service_account.pubsub_invoker.email
+      audience              = google_cloud_run_v2_service.app.uri
+    }
+  }
+
+  retry_policy {
+    minimum_backoff = "10s"
+    maximum_backoff = "60s"
+  }
+
+  dead_letter_policy {
+    dead_letter_topic     = google_pubsub_topic.dead_letter.id
+    max_delivery_attempts = 20
+  }
+
+  expiration_policy {
+    ttl = ""
+  }
+
+  depends_on = [
+    google_cloud_run_v2_service_iam_member.pubsub_invoker,
+    google_pubsub_topic_iam_member.dead_letter_publisher,
+    google_service_account_iam_member.pubsub_token_creator,
+  ]
+}
+
+resource "google_pubsub_subscription_iam_member" "p1d_dead_letter_subscriber" {
+  project      = var.project_id
+  subscription = google_pubsub_subscription.p1d_push.name
   role         = "roles/pubsub.subscriber"
   member       = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }

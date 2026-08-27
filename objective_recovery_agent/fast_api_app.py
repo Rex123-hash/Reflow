@@ -14,15 +14,33 @@ from pydantic import ValidationError
 from objective_recovery_agent.action_ledger import FirestoreActionReceiptLedger
 from objective_recovery_agent.calendar_execution import CalendarExecutionService
 from objective_recovery_agent.calendar_gateway import GoogleCalendarGateway
-from objective_recovery_agent.github_execution import GitHubP1CService, P1CState
+from objective_recovery_agent.github_execution import (
+    GitHubP1CService,
+    GitHubP1DPromotionService,
+    P1CState,
+)
 from objective_recovery_agent.github_gateway import RequestsGitHubGateway
 from objective_recovery_agent.github_ledger import FirestoreGitHubActionLedger
 from objective_recovery_agent.ledger import FirestoreWorkflowLedger
+from objective_recovery_agent.objective_store import FirestoreObjectiveStore
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.orchestrator import RecoveryOrchestrator
 from objective_recovery_agent.p1c import P1CConfiguration, authorize_p1c_intent
+from objective_recovery_agent.p1d import (
+    REQUIRED_COMPATIBILITY_STEP,
+    P1DConfiguration,
+    P1DService,
+    P1DState,
+)
+from objective_recovery_agent.p1d_store import FirestoreP1DStore
 from objective_recovery_agent.planning import AdkPlanningService
-from objective_recovery_agent.schemas import DisruptionEvent, P1CContinuation, PubSubEnvelope
+from objective_recovery_agent.recovery_outbox import PubSubRecoveryPublisher
+from objective_recovery_agent.schemas import (
+    DisruptionEvent,
+    P1CContinuation,
+    P1DContinuation,
+    PubSubEnvelope,
+)
 
 if os.getenv("K_SERVICE"):
     from objective_recovery_agent.app_utils.telemetry import setup_telemetry
@@ -63,8 +81,8 @@ def get_orchestrator() -> RecoveryOrchestrator:
 def health() -> dict[str, str]:
     return {
         "status": "ready",
-        "scope": "P1C",
-        "terminal_state": "VERIFICATION_FAILED",
+        "scope": "P1D",
+        "terminal_state": "RESOLVED",
     }
 
 
@@ -90,8 +108,56 @@ def get_p1c_service() -> tuple[GitHubP1CService, FirestoreWorkflowLedger, P1CCon
         ledger=FirestoreGitHubActionLedger(project_id),
         workflow_ledger=workflow,
         gateway=RequestsGitHubGateway(token),
+        recovery_publisher=PubSubRecoveryPublisher(
+            project_id,
+            os.environ.get("P1D_PUBSUB_TOPIC", "objective-recovery-p1d"),
+        ),
     )
     return service, workflow, configuration
+
+
+@lru_cache(maxsize=1)
+def get_p1d_service() -> P1DService:
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    token = os.environ.get("GITHUB_P1C_TOKEN")
+    calendar_id = os.environ.get("GOOGLE_CALENDAR_ID")
+    service_account_email = os.environ.get("OBJECTIVE_RECOVERY_SERVICE_ACCOUNT")
+    if not project_id or not token or not calendar_id or not service_account_email:
+        raise RuntimeError("P1D runtime configuration is incomplete")
+    configuration = P1DConfiguration(
+        repository=os.environ.get("GITHUB_P1C_REPOSITORY", "Rex123-hash/EXperiments"),
+        workflow_id=int(os.environ.get("GITHUB_P1C_WORKFLOW_ID", "343576501")),
+        workflow_path=os.environ.get(
+            "GITHUB_P1C_WORKFLOW_PATH", ".github/workflows/release-validation.yml"
+        ),
+    )
+    workflow = FirestoreWorkflowLedger(project_id)
+    github_ledger = FirestoreGitHubActionLedger(project_id)
+    gateway = RequestsGitHubGateway(token)
+    return P1DService(
+        store=FirestoreP1DStore(project_id),
+        workflow=workflow,
+        objective_store=FirestoreObjectiveStore(project_id),
+        planner=AdkPlanningService(),
+        github_validation=GitHubP1CService(
+            ledger=github_ledger,
+            workflow_ledger=workflow,
+            gateway=gateway,
+            required_success_step=REQUIRED_COMPATIBILITY_STEP,
+            automatic_recovery_handoff=False,
+        ),
+        github_promotion=GitHubP1DPromotionService(
+            ledger=github_ledger,
+            gateway=gateway,
+        ),
+        github_ledger=github_ledger,
+        calendar=CalendarExecutionService(
+            calendar_id=calendar_id,
+            ledger=FirestoreActionReceiptLedger(project_id),
+            gateway=GoogleCalendarGateway(service_account_email=service_account_email),
+        ),
+        configuration=configuration,
+    )
 
 
 @app.post("/apps/objective_recovery_agent/trigger/pubsub")
@@ -189,6 +255,48 @@ async def receive_p1c_pubsub(envelope_data: dict[str, object]) -> Response:
                 "receipt_status": result.receipt_status.value,
                 "run_id": result.run_id,
                 "run_attempt": result.run_attempt,
+                "handoff_id": result.handoff_id,
+            }
+        ),
+        media_type="application/json",
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@app.post("/apps/objective_recovery_agent/trigger/p1d/pubsub")
+async def receive_p1d_pubsub(envelope_data: dict[str, object]) -> Response:
+    try:
+        envelope = PubSubEnvelope.model_validate(envelope_data)
+        decoded = base64.b64decode(envelope.message.data, validate=True)
+        continuation = P1DContinuation.model_validate_json(decoded)
+    except (ValidationError, ValueError, binascii.Error, json.JSONDecodeError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"invalid P1D continuation envelope: {type(error).__name__}",
+        ) from error
+    try:
+        result = await get_p1d_service().advance(continuation)
+    except Exception as error:
+        retryable = bool(getattr(error, "retryable", True))
+        raise HTTPException(
+            status_code=(
+                status.HTTP_503_SERVICE_UNAVAILABLE if retryable else status.HTTP_409_CONFLICT
+            ),
+            detail=f"P1D continuation failed: {type(error).__name__}",
+        ) from error
+    if result.state is P1DState.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="P1D continuation is waiting for authoritative external state",
+        )
+    return Response(
+        content=json.dumps(
+            {
+                "incident_id": result.incident_id,
+                "state": result.state.value,
+                "stage": result.stage,
+                "selected_plan_id": result.selected_plan_id,
+                "release_id": result.release_id,
             }
         ),
         media_type="application/json",

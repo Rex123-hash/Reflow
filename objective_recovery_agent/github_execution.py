@@ -26,9 +26,15 @@ from objective_recovery_agent.github_gateway import (
     GitHubAdapterError,
     GitHubErrorCategory,
     GitHubGateway,
+    GitHubPromotionGateway,
 )
 from objective_recovery_agent.github_ledger import GitHubActionLedger
 from objective_recovery_agent.ledger import WorkflowLedger
+from objective_recovery_agent.recovery_outbox import (
+    RecoveryPublisher,
+    failed_verification_fingerprint,
+    publish_handoff,
+)
 from objective_recovery_agent.schemas import IncidentStage, WorkflowEventType
 
 
@@ -53,6 +59,7 @@ class P1CResult:
     run_id: int | None = None
     run_attempt: int | None = None
     verification: VerificationResult | None = None
+    handoff_id: str | None = None
 
 
 class GitHubP1CService:
@@ -62,12 +69,49 @@ class GitHubP1CService:
         ledger: GitHubActionLedger,
         workflow_ledger: WorkflowLedger,
         gateway: GitHubGateway,
+        recovery_publisher: RecoveryPublisher | None = None,
+        required_success_step: str | None = None,
+        automatic_recovery_handoff: bool = True,
         evidence_max_age_seconds: int = 900,
     ) -> None:
         self._ledger = ledger
         self._workflow = workflow_ledger
         self._gateway = gateway
+        self._recovery_publisher = recovery_publisher
+        self._required_success_step = required_success_step
+        self._automatic_recovery_handoff = automatic_recovery_handoff
         self._max_age = evidence_max_age_seconds
+
+    def _ensure_recovery_handoff(
+        self, intent: GitHubReleaseIntent, progress: dict[str, object], receipt_id: str
+    ) -> str | None:
+        verification = progress.get("verification")
+        evidence = progress.get("evidence")
+        if not isinstance(verification, dict) or not isinstance(evidence, dict):
+            raise P1CExecutionError("terminal_failure_evidence_missing", retryable=False)
+        fingerprint = failed_verification_fingerprint(
+            {"verification": verification, "evidence": evidence}
+        )
+        fields = {
+            "github_action_receipt_id": receipt_id,
+            "github_action_receipt_status": ReceiptStatus.VERIFIED.value,
+            "github_verification": verification,
+            "github_evidence": evidence,
+            "failed_verification_fingerprint": fingerprint,
+            "objective_id": "release-v2",
+            "objective_version": 1,
+        }
+        if not self._automatic_recovery_handoff:
+            self._workflow.save_checkpoint(
+                intent.incident_id, IncidentStage.VERIFICATION_FAILED, fields
+            )
+            return None
+        handoff = self._workflow.persist_recovery_needed(intent.incident_id, fields, fingerprint)
+        if handoff is None:
+            return None
+        if self._recovery_publisher is not None:
+            handoff = publish_handoff(self._workflow, self._recovery_publisher, handoff)
+        return handoff.handoff_id
 
     @staticmethod
     def _validate_release(intent: GitHubReleaseIntent, release: GitHubRelease) -> None:
@@ -134,6 +178,15 @@ class GitHubP1CService:
             raise P1CExecutionError("pinned_run_attempt_mismatch", retryable=False)
         if not jobs or any(job.head_sha != intent.candidate_sha for job in jobs):
             raise P1CExecutionError("jobs_provenance_mismatch", retryable=False)
+        if self._required_success_step is not None:
+            matching_steps = [
+                step
+                for job in jobs
+                for step in job.steps
+                if step.name == self._required_success_step
+            ]
+            if len(matching_steps) != 1 or matching_steps[0].conclusion != "success":
+                raise P1CExecutionError("required_success_step_missing", retryable=False)
         if run.completed_at is None:
             raise P1CExecutionError("completed_run_missing_timestamp", retryable=False)
         age = (now - run.completed_at).total_seconds()
@@ -147,11 +200,15 @@ class GitHubP1CService:
         progress = dict(claim.progress)
         receipt = claim.receipt
         if receipt.status is ReceiptStatus.VERIFIED and progress.get("terminal_state"):
+            handoff_id = None
+            if progress.get("terminal_state") == P1CState.VERIFICATION_FAILED.value:
+                handoff_id = self._ensure_recovery_handoff(intent, progress, receipt.receipt_id)
             return P1CResult(
                 P1CState(str(progress["terminal_state"])),
                 receipt.status,
                 int(progress["run_id"]),
                 int(progress["run_attempt"]),
+                handoff_id=handoff_id,
             )
 
         if "release_id" not in progress:
@@ -304,17 +361,7 @@ class GitHubP1CService:
             ],
         }
         self._ledger.save_progress(intent, progress)
-        self._workflow.save_checkpoint(
-            intent.incident_id,
-            IncidentStage.VERIFICATION_FAILED,
-            {
-                "status": "recovery_incomplete",
-                "github_action_receipt_id": receipt.receipt_id,
-                "github_action_receipt_status": receipt.status.value,
-                "github_verification": progress["verification"],
-                "github_evidence": progress["evidence"],
-            },
-        )
+        handoff_id = self._ensure_recovery_handoff(intent, progress, receipt.receipt_id)
         self._workflow.record_event(
             intent.incident_id,
             WorkflowEventType.OBJECTIVE_VERIFICATION_FAILED,
@@ -327,4 +374,117 @@ class GitHubP1CService:
             run_id,
             run_attempt,
             verification,
+            handoff_id,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class PromotionResult:
+    receipt_status: ReceiptStatus
+    release_id: int
+    evidence: dict[str, object]
+
+
+class GitHubP1DPromotionService:
+    """Idempotently promote and independently verify the exact validated release."""
+
+    def __init__(self, *, ledger: GitHubActionLedger, gateway: GitHubPromotionGateway) -> None:
+        self._ledger = ledger
+        self._gateway = gateway
+
+    @staticmethod
+    def _validate_identity(
+        intent: GitHubReleaseIntent,
+        release: GitHubRelease,
+        release_id: int,
+        *,
+        require_full: bool,
+    ) -> None:
+        if (
+            release.release_id != release_id
+            or release.tag != intent.tag
+            or release.target_commitish != intent.candidate_sha
+            or release.draft
+        ):
+            raise P1CExecutionError("promotion_release_identity_mismatch", retryable=False)
+        if require_full and release.prerelease:
+            raise P1CExecutionError("promotion_not_full_release", retryable=False)
+
+    def advance(
+        self,
+        intent: GitHubReleaseIntent,
+        *,
+        release_id: int,
+        now: datetime | None = None,
+    ) -> PromotionResult:
+        observed_at = (now or datetime.now(UTC)).astimezone(UTC)
+        claim = self._ledger.claim(intent)
+        progress = dict(claim.progress)
+        receipt = claim.receipt
+        if receipt.status is ReceiptStatus.VERIFIED and progress.get("terminal_state"):
+            return PromotionResult(receipt.status, release_id, dict(progress["evidence"]))
+
+        try:
+            current = self._gateway.get_release_by_id(intent, release_id)
+            self._validate_identity(intent, current, release_id, require_full=False)
+            if current.prerelease:
+                current = self._gateway.promote_release(intent, release_id)
+                self._validate_identity(intent, current, release_id, require_full=True)
+            progress.update(
+                {
+                    "release_id": release_id,
+                    "release_tag": intent.tag,
+                    "promotion_acknowledged_at": observed_at.isoformat(),
+                }
+            )
+            self._ledger.save_progress(intent, progress)
+            if receipt.status is ReceiptStatus.PENDING:
+                receipt = replace(
+                    receipt,
+                    status=ReceiptStatus.WRITE_ACKNOWLEDGED,
+                    evidence_kind=EvidenceKind.EXTERNAL,
+                    external_reference=current.url,
+                    write_acknowledged_at=observed_at,
+                    observed_at=observed_at,
+                )
+                self._ledger.record_receipt(receipt)
+
+            by_id = self._gateway.get_release_by_id(intent, release_id)
+            by_tag = self._gateway.get_release(intent)
+            latest = self._gateway.get_latest_release(intent)
+            tag_sha = self._gateway.get_tag_sha(intent)
+        except GitHubAdapterError as error:
+            raise P1CExecutionError(error.category.value, retryable=error.retryable) from error
+        self._validate_identity(intent, by_id, release_id, require_full=True)
+        if by_tag is None:
+            raise P1CExecutionError("promoted_release_tag_missing", retryable=True)
+        self._validate_identity(intent, by_tag, release_id, require_full=True)
+        self._validate_identity(intent, latest, release_id, require_full=True)
+        if tag_sha != intent.candidate_sha:
+            raise P1CExecutionError("promoted_tag_sha_mismatch", retryable=False)
+        evidence: dict[str, object] = {
+            "repository": intent.repository,
+            "release_id": release_id,
+            "release_tag": intent.tag,
+            "release_url": by_id.url,
+            "draft": by_id.draft,
+            "prerelease": by_id.prerelease,
+            "tag_sha": tag_sha,
+            "latest_release_id": latest.release_id,
+            "promotion_acknowledged_at": progress["promotion_acknowledged_at"],
+            "read_back_at": observed_at.isoformat(),
+            "shipping_completed_at": observed_at.isoformat(),
+        }
+        progress.update({"evidence": evidence, "terminal_state": "promotion_verified"})
+        self._ledger.save_progress(intent, progress)
+        if receipt.status is ReceiptStatus.WRITE_ACKNOWLEDGED:
+            receipt = replace(
+                receipt,
+                status=ReceiptStatus.VERIFIED,
+                evidence_kind=EvidenceKind.EXTERNAL,
+                external_reference=by_id.url,
+                read_back_at=observed_at,
+                observed_at=observed_at,
+            )
+            self._ledger.record_receipt(receipt)
+        return PromotionResult(receipt.status, release_id, evidence)

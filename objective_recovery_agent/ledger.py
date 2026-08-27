@@ -12,6 +12,7 @@ from typing import Any, Protocol, cast
 from google.cloud import firestore
 
 from objective_recovery_agent.observability import emit_operational_event
+from objective_recovery_agent.recovery_outbox import RecoveryHandoff, handoff_id_for
 from objective_recovery_agent.schemas import (
     DisruptionEvent,
     IncidentStage,
@@ -52,6 +53,15 @@ class WorkflowLedger(Protocol):
 
     def release_claim(self, event_id: str, error: str) -> None: ...
 
+    def persist_recovery_needed(
+        self,
+        incident_id: str,
+        fields: dict[str, Any],
+        failed_verification_fingerprint: str,
+    ) -> RecoveryHandoff | None: ...
+
+    def mark_recovery_handoff_published(self, handoff_id: str, message_id: str) -> None: ...
+
 
 def incident_id_for(event_id: str) -> str:
     digest = hashlib.sha256(event_id.encode()).hexdigest()[:20]
@@ -60,6 +70,17 @@ def incident_id_for(event_id: str) -> str:
 
 def _json_safe(value: Any) -> Any:
     return json.loads(json.dumps(value, default=str))
+
+
+def _recovery_handoff(expected: dict[str, Any], state: str = "PENDING") -> RecoveryHandoff:
+    return RecoveryHandoff(
+        handoff_id=str(expected["handoff_id"]),
+        incident_id=str(expected["incident_id"]),
+        failed_verification_fingerprint=str(expected["failed_verification_fingerprint"]),
+        source_revision=int(expected["source_revision"]),
+        event_type=str(expected["event_type"]),
+        state=state,
+    )
 
 
 class FirestoreWorkflowLedger:
@@ -207,6 +228,94 @@ class FirestoreWorkflowLedger:
             merge=True,
         )
 
+    def persist_recovery_needed(
+        self,
+        incident_id: str,
+        fields: dict[str, Any],
+        failed_verification_fingerprint: str,
+    ) -> RecoveryHandoff | None:
+        incident_ref = self._client.collection("incidents").document(incident_id)
+        handoff_id = handoff_id_for(incident_id, failed_verification_fingerprint)
+        outbox_ref = self._client.collection("recovery_outbox").document(handoff_id)
+        transaction = self._client.transaction()
+        now = datetime.now(UTC)
+
+        @firestore.transactional
+        def persist(transaction: Any) -> RecoveryHandoff | None:
+            incident_snapshot = incident_ref.get(transaction=transaction)
+            if not incident_snapshot.exists:
+                raise KeyError(incident_id)
+            incident = incident_snapshot.to_dict() or {}
+            if (
+                incident.get("stage") == IncidentStage.RESOLVED.value
+                and incident.get("status") == "objective_restored"
+            ):
+                return None
+            already_terminal = (
+                incident.get("stage") == IncidentStage.VERIFICATION_FAILED.value
+                and incident.get("status") == "recovery_incomplete"
+            )
+            if incident.get("stage") not in {
+                IncidentStage.VERIFYING.value,
+                IncidentStage.VERIFICATION_FAILED.value,
+            }:
+                raise ValueError("incident is not eligible for a recovery handoff")
+            source_revision = int(incident.get("revision", 0)) + (0 if already_terminal else 1)
+            outbox_snapshot = outbox_ref.get(transaction=transaction)
+            expected = {
+                "handoff_id": handoff_id,
+                "incident_id": incident_id,
+                "failed_verification_fingerprint": failed_verification_fingerprint,
+                "source_revision": source_revision,
+                "event_type": "OBJECTIVE_RECOVERY_NEEDED",
+            }
+            if outbox_snapshot.exists:
+                outbox = outbox_snapshot.to_dict() or {}
+                if any(outbox.get(key) != value for key, value in expected.items()):
+                    raise ValueError("recovery handoff identity collision")
+                return _recovery_handoff(expected, str(outbox.get("state", "PENDING")))
+            if not already_terminal:
+                transaction.set(
+                    incident_ref,
+                    {
+                        **_json_safe(fields),
+                        "stage": IncidentStage.VERIFICATION_FAILED.value,
+                        "status": "recovery_incomplete",
+                        "updated_at": now,
+                        "revision": firestore.Increment(1),
+                    },
+                    merge=True,
+                )
+            transaction.create(outbox_ref, {**expected, "state": "PENDING", "created_at": now})
+            return _recovery_handoff(expected)
+
+        return cast(RecoveryHandoff | None, persist(transaction))
+
+    def mark_recovery_handoff_published(self, handoff_id: str, message_id: str) -> None:
+        ref = self._client.collection("recovery_outbox").document(handoff_id)
+        transaction = self._client.transaction()
+
+        @firestore.transactional
+        def mark(transaction: Any) -> None:
+            snapshot = ref.get(transaction=transaction)
+            if not snapshot.exists:
+                raise KeyError(handoff_id)
+            data = snapshot.to_dict() or {}
+            if data.get("state") == "PUBLISHED":
+                return
+            if data.get("state") != "PENDING":
+                raise ValueError("recovery handoff has an unsupported state")
+            transaction.update(
+                ref,
+                {
+                    "state": "PUBLISHED",
+                    "pubsub_message_id": message_id,
+                    "published_at": datetime.now(UTC),
+                },
+            )
+
+        mark(transaction)
+
 
 class InMemoryWorkflowLedger:
     """Deterministic ledger test double; it never claims to be external proof."""
@@ -215,6 +324,7 @@ class InMemoryWorkflowLedger:
         self.incidents: dict[str, dict[str, Any]] = {}
         self.claims: dict[str, dict[str, Any]] = {}
         self.events: dict[str, dict[str, dict[str, Any]]] = {}
+        self.recovery_outbox: dict[str, dict[str, Any]] = {}
 
     def claim_event(self, event: DisruptionEvent, message_id: str) -> ClaimResult:
         incident_id = incident_id_for(event.event_id)
@@ -276,3 +386,52 @@ class InMemoryWorkflowLedger:
 
     def release_claim(self, event_id: str, error: str) -> None:
         self.claims[event_id].update({"state": "retryable", "last_error": error})
+
+    def persist_recovery_needed(
+        self,
+        incident_id: str,
+        fields: dict[str, Any],
+        failed_verification_fingerprint: str,
+    ) -> RecoveryHandoff | None:
+        incident = self.incidents[incident_id]
+        if incident.get("stage") == "RESOLVED" and incident.get("status") == "objective_restored":
+            return None
+        already_terminal = (
+            incident.get("stage") == "VERIFICATION_FAILED"
+            and incident.get("status") == "recovery_incomplete"
+        )
+        if incident.get("stage") not in {"VERIFYING", "VERIFICATION_FAILED"}:
+            raise ValueError("incident is not eligible for a recovery handoff")
+        source_revision = int(incident.get("revision", 0)) + (0 if already_terminal else 1)
+        handoff_id = handoff_id_for(incident_id, failed_verification_fingerprint)
+        expected = {
+            "handoff_id": handoff_id,
+            "incident_id": incident_id,
+            "failed_verification_fingerprint": failed_verification_fingerprint,
+            "source_revision": source_revision,
+            "event_type": "OBJECTIVE_RECOVERY_NEEDED",
+        }
+        existing = self.recovery_outbox.get(handoff_id)
+        if existing is not None:
+            if any(existing.get(key) != value for key, value in expected.items()):
+                raise ValueError("recovery handoff identity collision")
+            return _recovery_handoff(expected, str(existing.get("state", "PENDING")))
+        if not already_terminal:
+            incident.update(deepcopy(_json_safe(fields)))
+            incident.update(
+                {
+                    "stage": "VERIFICATION_FAILED",
+                    "status": "recovery_incomplete",
+                    "revision": source_revision,
+                }
+            )
+        self.recovery_outbox[handoff_id] = {**expected, "state": "PENDING"}
+        return _recovery_handoff(expected)
+
+    def mark_recovery_handoff_published(self, handoff_id: str, message_id: str) -> None:
+        outbox = self.recovery_outbox[handoff_id]
+        if outbox.get("state") == "PUBLISHED":
+            return
+        if outbox.get("state") != "PENDING":
+            raise ValueError("recovery handoff has an unsupported state")
+        outbox.update({"state": "PUBLISHED", "pubsub_message_id": message_id})

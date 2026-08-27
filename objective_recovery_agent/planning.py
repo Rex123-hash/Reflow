@@ -26,6 +26,8 @@ from objective_recovery_agent.schemas import (
     PlanningInput,
     PlanningRun,
     RecoveryPlanCandidate,
+    ReplanCriticInput,
+    ReplanningInput,
     StrategySeedSet,
     StrategyType,
 )
@@ -192,7 +194,67 @@ execute a plan. Give concise evidence-based summaries and never hidden reasoning
     )
 
 
-async def run_workflow(workflow: Workflow, payload: PlanningInput | CandidateSet) -> WorkflowResult:
+def create_replan_workflow() -> Workflow:
+    planner = Agent(
+        name="recovery_replanner",
+        model=_model(),
+        mode="single_turn",
+        input_schema=ReplanningInput,
+        output_schema=CandidateSet,
+        instruction=(
+            f"{_COMMON_PLANNER_INSTRUCTION}\n\n"
+            "This is a revision after a verified external recovery failure. Generate one to "
+            "three materially revised executable futures from the supplied durable context. "
+            "Use only immutable artifacts whose state is AVAILABLE. A GitHub validation action "
+            "must have action_type github_release_validation, target the supplied repository, "
+            "and include candidate_sha, workflow_id, workflow_path, and invariant_id parameters. "
+            "Do not repeat a historically failed objective effect. Do not assume an artifact is "
+            "selected merely because it is available. If no executable future exists, return "
+            "plans that truthfully expose their blocking unknown or policy conflict; never invent "
+            "an artifact, SHA, external result, or success."
+        ),
+        generate_content_config=_generation_config(8192),
+        timeout=PLANNER_TIMEOUT_SECONDS,
+    )
+    return Workflow(
+        name="recovery_replan_workflow",
+        input_schema=ReplanningInput,
+        output_schema=CandidateSet,
+        edges=[("START", planner)],
+        timeout=PLANNER_TIMEOUT_SECONDS,
+    )
+
+
+def create_replan_critic_workflow() -> Workflow:
+    critic = Agent(
+        name="recovery_risk_critic",
+        model=_model(),
+        mode="single_turn",
+        input_schema=ReplanCriticInput,
+        output_schema=CritiqueBundle,
+        instruction=(
+            "Attack every candidate using both the complete failed-recovery context and the new "
+            "candidates. Identify exact-repeat recovery, unsupported artifacts, SHA/workflow "
+            "mismatch, contradictions, missing external evidence, deadline risk, overload, and "
+            "blocking unknowns. Return exactly one critique per unchanged plan_id. Adjust risk "
+            "scores but never select, execute, or mark the objective healthy."
+        ),
+        generate_content_config=_generation_config(4096),
+        timeout=PLANNER_TIMEOUT_SECONDS,
+    )
+    return Workflow(
+        name="recovery_replan_critic_workflow",
+        input_schema=ReplanCriticInput,
+        output_schema=CritiqueBundle,
+        edges=[("START", critic)],
+        timeout=PLANNER_TIMEOUT_SECONDS,
+    )
+
+
+async def run_workflow(
+    workflow: Workflow,
+    payload: PlanningInput | CandidateSet | ReplanningInput | ReplanCriticInput,
+) -> WorkflowResult:
     session_service = InMemorySessionService()
     user_id = "objective-recovery"
     session_id = str(uuid.uuid4())
@@ -456,6 +518,105 @@ class AdkPlanningService:
             input_tokens=candidate_generation.input_tokens + critique_generation.input_tokens,
             output_tokens=candidate_generation.output_tokens + critique_generation.output_tokens,
             failed_perspectives=[],
+        )
+
+    async def generate_replan_candidates(
+        self, replanning_input: ReplanningInput
+    ) -> CandidateGeneration:
+        planning_run_id = str(uuid.uuid4())
+        correlation = {
+            "incident_id": replanning_input.incident_id,
+            "planning_run_id": planning_run_id,
+            "model": MODEL_ID,
+            "plan_revision": replanning_input.plan_revision,
+        }
+        emit_operational_event(OperationalEvent.PLANNER_STARTED, **correlation)
+        try:
+            result = await asyncio.wait_for(
+                run_workflow(create_replan_workflow(), replanning_input),
+                timeout=PLANNER_TIMEOUT_SECONDS + 5,
+            )
+            candidates = CandidateSet.model_validate(result.output)
+        except TimeoutError as error:
+            emit_operational_event(OperationalEvent.PLANNER_TIMEOUT, **correlation)
+            raise PlanningPhaseError(OperationalEvent.PLANNER_TIMEOUT, error) from error
+        except (json.JSONDecodeError, ValidationError) as error:
+            emit_operational_event(OperationalEvent.PLANNER_SCHEMA_INVALID, **correlation)
+            raise PlanningPhaseError(OperationalEvent.PLANNER_SCHEMA_INVALID, error) from error
+        except Exception as error:
+            emit_operational_event(
+                OperationalEvent.PLANNER_FAILED, error_type=type(error).__name__, **correlation
+            )
+            raise PlanningPhaseError(OperationalEvent.PLANNER_FAILED, error) from error
+        emit_operational_event(
+            OperationalEvent.PLANNER_COMPLETED,
+            latency_ms=result.latency_ms,
+            candidate_count=len(candidates.plans),
+            total_tokens=result.total_tokens,
+            **correlation,
+        )
+        return CandidateGeneration(
+            planning_run_id=planning_run_id,
+            candidates=candidates,
+            planner_latency_ms=result.latency_ms,
+            total_tokens=result.total_tokens,
+            input_tokens=result.input_tokens,
+            output_tokens=result.output_tokens,
+        )
+
+    async def critique_replan(
+        self,
+        replanning_input: ReplanningInput,
+        candidates: CandidateSet,
+        *,
+        planning_run_id: str,
+    ) -> CritiqueGeneration:
+        correlation = {
+            "incident_id": replanning_input.incident_id,
+            "planning_run_id": planning_run_id,
+            "model": MODEL_ID,
+            "plan_revision": replanning_input.plan_revision,
+        }
+        emit_operational_event(
+            OperationalEvent.CRITIC_STARTED, candidate_count=len(candidates.plans), **correlation
+        )
+        try:
+            result = await asyncio.wait_for(
+                run_workflow(
+                    create_replan_critic_workflow(),
+                    ReplanCriticInput(
+                        replanning_context=replanning_input,
+                        candidates=candidates,
+                    ),
+                ),
+                timeout=PLANNER_TIMEOUT_SECONDS + 5,
+            )
+            critiques = CritiqueBundle.model_validate(result.output)
+            _validate_critique_ids(candidates, critiques)
+        except TimeoutError as error:
+            emit_operational_event(OperationalEvent.CRITIC_TIMEOUT, **correlation)
+            raise PlanningPhaseError(OperationalEvent.CRITIC_TIMEOUT, error) from error
+        except (json.JSONDecodeError, ValidationError, ValueError) as error:
+            emit_operational_event(OperationalEvent.CRITIC_SCHEMA_INVALID, **correlation)
+            raise PlanningPhaseError(OperationalEvent.CRITIC_SCHEMA_INVALID, error) from error
+        except Exception as error:
+            emit_operational_event(
+                OperationalEvent.CRITIC_FAILED, error_type=type(error).__name__, **correlation
+            )
+            raise PlanningPhaseError(OperationalEvent.CRITIC_FAILED, error) from error
+        emit_operational_event(
+            OperationalEvent.CRITIC_COMPLETED,
+            latency_ms=result.latency_ms,
+            critique_count=len(critiques.critiques),
+            total_tokens=result.total_tokens,
+            **correlation,
+        )
+        return CritiqueGeneration(
+            critiques=critiques,
+            critic_latency_ms=result.latency_ms,
+            total_tokens=result.total_tokens,
+            input_tokens=result.input_tokens,
+            output_tokens=result.output_tokens,
         )
 
 

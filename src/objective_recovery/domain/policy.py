@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Iterable, Mapping
 from datetime import datetime
 from decimal import Decimal
@@ -67,6 +69,53 @@ class ProtectedDeadlinePolicy:
                 yield PolicyViolation(
                     self.rule_id,
                     f"{change.commitment_id} would move beyond its protected deadline",
+                )
+
+
+def recovery_effect_fingerprint(
+    *,
+    action_type: str,
+    repository: str,
+    candidate_sha: str,
+    workflow_id: str,
+    workflow_path: str,
+) -> str:
+    payload = {
+        "action_type": action_type,
+        "repository": repository,
+        "candidate_sha": candidate_sha,
+        "workflow_id": workflow_id,
+        "workflow_path": workflow_path,
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+class FailedRecoveryRepeatPolicy:
+    """Reject the exact objective-effect action that already failed an invariant."""
+
+    rule_id = "failed_recovery_exact_repeat"
+
+    def __init__(self, failed_fingerprints: Mapping[str, str]) -> None:
+        self._failed = dict(failed_fingerprints)
+
+    def evaluate(self, plan: RecoveryPlan) -> Iterable[PolicyViolation]:
+        for action in plan.actions:
+            if action.action_type != "github_release_validation":
+                continue
+            parameters = dict(action.parameters)
+            fingerprint = recovery_effect_fingerprint(
+                action_type=action.action_type,
+                repository=action.target,
+                candidate_sha=parameters.get("candidate_sha", ""),
+                workflow_id=parameters.get("workflow_id", ""),
+                workflow_path=parameters.get("workflow_path", ""),
+            )
+            invariant_id = self._failed.get(fingerprint)
+            if invariant_id is not None:
+                yield PolicyViolation(
+                    self.rule_id,
+                    f"failed_recovery_exact_repeat:{invariant_id}",
                 )
 
 

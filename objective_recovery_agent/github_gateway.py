@@ -15,6 +15,7 @@ from objective_recovery_agent.github_contract import (
     GitHubRelease,
     GitHubReleaseIntent,
     GitHubRun,
+    GitHubStep,
 )
 
 
@@ -56,6 +57,12 @@ class GitHubGateway(Protocol):
     def get_jobs(
         self, intent: GitHubReleaseIntent, run_id: int, attempt: int
     ) -> tuple[GitHubJob, ...]: ...
+
+
+class GitHubPromotionGateway(GitHubGateway, Protocol):
+    def get_release_by_id(self, intent: GitHubReleaseIntent, release_id: int) -> GitHubRelease: ...
+    def get_latest_release(self, intent: GitHubReleaseIntent) -> GitHubRelease: ...
+    def promote_release(self, intent: GitHubReleaseIntent, release_id: int) -> GitHubRelease: ...
 
 
 def _timestamp(value: Any) -> datetime:
@@ -214,6 +221,25 @@ class RequestsGitHubGateway:
         self._raise(response)
         return self._release(self._json(response))
 
+    def get_release_by_id(self, intent: GitHubReleaseIntent, release_id: int) -> GitHubRelease:
+        response = self._request("GET", f"{self._base(intent)}/releases/{release_id}")
+        self._raise(response)
+        return self._release(self._json(response))
+
+    def get_latest_release(self, intent: GitHubReleaseIntent) -> GitHubRelease:
+        response = self._request("GET", f"{self._base(intent)}/releases/latest")
+        self._raise(response)
+        return self._release(self._json(response))
+
+    def promote_release(self, intent: GitHubReleaseIntent, release_id: int) -> GitHubRelease:
+        response = self._request(
+            "PATCH",
+            f"{self._base(intent)}/releases/{release_id}",
+            json={"draft": False, "prerelease": False, "make_latest": "true"},
+        )
+        self._raise(response)
+        return self._release(self._json(response))
+
     def get_tag_sha(self, intent: GitHubReleaseIntent) -> str:
         response = self._request("GET", f"{self._base(intent)}/git/ref/tags/{intent.tag}")
         self._raise(response)
@@ -274,6 +300,18 @@ class RequestsGitHubGateway:
                         str(step["name"])
                         for step in steps
                         if isinstance(step, dict) and step.get("conclusion") == "failure"
+                    ),
+                    steps=tuple(
+                        GitHubStep(
+                            name=str(step.get("name", "")),
+                            status=str(step.get("status", "")),
+                            conclusion=(
+                                None if step.get("conclusion") is None else str(step["conclusion"])
+                            ),
+                            number=int(step.get("number", 0)),
+                        )
+                        for step in steps
+                        if isinstance(step, dict)
                     ),
                 )
             )

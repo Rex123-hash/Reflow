@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -50,6 +50,18 @@ class WorkflowEventType(StrEnum):
     GITHUB_RELEASE_ACKNOWLEDGED = "GITHUB_RELEASE_ACKNOWLEDGED"
     GITHUB_RUN_PINNED = "GITHUB_RUN_PINNED"
     OBJECTIVE_VERIFICATION_FAILED = "OBJECTIVE_VERIFICATION_FAILED"
+    INCIDENT_REOPENED = "INCIDENT_REOPENED"
+    REPLAN_STARTED = "REPLAN_STARTED"
+    PLANNER_CHECKPOINTED = "PLANNER_CHECKPOINTED"
+    CRITIC_CHECKPOINTED = "CRITIC_CHECKPOINTED"
+    POLICY_EVALUATED = "POLICY_EVALUATED"
+    RECOVERY_SELECTED = "RECOVERY_SELECTED"
+    RELEASE_VALIDATION_STARTED = "RELEASE_VALIDATION_STARTED"
+    RELEASE_VALIDATION_SUCCEEDED = "RELEASE_VALIDATION_SUCCEEDED"
+    FULL_RELEASE_PROMOTION_STARTED = "FULL_RELEASE_PROMOTION_STARTED"
+    FULL_RELEASE_PROMOTION_VERIFIED = "FULL_RELEASE_PROMOTION_VERIFIED"
+    OBJECTIVE_VERIFICATION_STARTED = "OBJECTIVE_VERIFICATION_STARTED"
+    OBJECTIVE_RESTORED = "OBJECTIVE_RESTORED"
 
 
 class IncidentStage(StrEnum):
@@ -63,6 +75,9 @@ class IncidentStage(StrEnum):
     EXECUTING = "EXECUTING"
     VERIFYING = "VERIFYING"
     VERIFICATION_FAILED = "VERIFICATION_FAILED"
+    REPLANNING = "REPLANNING"
+    VALIDATING = "VALIDATING"
+    RESOLVED = "RESOLVED"
     PARTIAL_FAILURE = "PARTIAL_FAILURE"
     NO_VALID_PLAN = "NO_VALID_PLAN"
     PLANNING_FAILED = "PLANNING_FAILED"
@@ -286,6 +301,85 @@ class PubSubEnvelope(StrictModel):
 
 class P1CContinuation(StrictModel):
     incident_id: Annotated[str, Field(min_length=10, max_length=160)]
+
+
+class ObjectiveRecord(StrictModel):
+    objective_id: str
+    label: str
+    deadline_local: str
+    deadline_timezone: str
+    deadline_at_utc: str
+    objective_version: int
+    protected_commitment: bool
+
+    @field_validator("deadline_at_utc", mode="before")
+    @classmethod
+    def normalize_deadline(cls, value: object) -> str:
+        return _iso_timestamp(value)
+
+
+class RecoveryArtifact(StrictModel):
+    artifact_id: str
+    artifact_type: str
+    repository: str
+    candidate_sha: str
+    parent_sha: str
+    state: str
+    production_diff: str
+    unchanged_proof: dict[str, str]
+
+
+class FailedRecoveryEffect(StrictModel):
+    action_type: str
+    repository: str
+    candidate_sha: str
+    workflow_id: int
+    workflow_path: str
+    failed_invariant_id: str
+    fingerprint: str
+
+
+class ReplanningInput(StrictModel):
+    incident_id: str
+    plan_revision: int
+    objective: ObjectiveRecord
+    objective_invariants: list[str]
+    objective_graph: dict[str, Any]
+    previous_selected_plan: dict[str, Any]
+    previous_plan_assumptions: list[dict[str, Any]]
+    previous_plan_unknowns: list[dict[str, Any]]
+    previous_critic_findings: list[dict[str, Any]]
+    previous_policy_result: list[dict[str, Any]]
+    calendar_action_claim: dict[str, Any]
+    calendar_receipt: dict[str, Any]
+    github_action_claim: dict[str, Any]
+    github_receipt: dict[str, Any]
+    failed_candidate_sha: str
+    failed_release: dict[str, Any]
+    failed_run: dict[str, Any]
+    failed_jobs: list[dict[str, Any]]
+    failed_invariant_id: str
+    verification_timestamps: list[str]
+    exact_external_evidence: dict[str, Any]
+    failed_recovery_effects: list[FailedRecoveryEffect]
+    available_recovery_artifacts: list[RecoveryArtifact]
+    recovery_one_accomplished: list[str]
+    remaining_broken: list[str]
+    unhealthy_reason: str
+    policy_summary: list[str]
+
+
+class ReplanCriticInput(StrictModel):
+    replanning_context: ReplanningInput
+    candidates: CandidateSet
+
+
+class P1DContinuation(StrictModel):
+    handoff_id: Annotated[str, Field(min_length=64, max_length=64)]
+    incident_id: Annotated[str, Field(min_length=10, max_length=160)]
+    failed_verification_fingerprint: Annotated[str, Field(min_length=64, max_length=64)]
+    source_revision: int
+    event_type: str
 
 
 def _iso_timestamp(value: object) -> str:

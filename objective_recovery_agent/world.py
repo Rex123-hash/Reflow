@@ -69,6 +69,23 @@ def build_graph() -> OperationalGraph:
     return graph
 
 
+def objective_graph_snapshot() -> dict[str, object]:
+    return {
+        "nodes": [
+            {"node_id": node.node_id, "kind": node.kind.value, "label": node.label}
+            for node in _NODES
+        ],
+        "edges": [
+            {
+                "source_id": edge.source_id,
+                "target_id": edge.target_id,
+                "relation": edge.relation,
+            }
+            for edge in _EDGES
+        ],
+    }
+
+
 def build_policy_engine() -> PolicyEngine:
     return PolicyEngine(
         (

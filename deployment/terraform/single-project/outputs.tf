@@ -26,6 +26,14 @@ output "p1c_pubsub_topic" {
   value = google_pubsub_topic.p1c.id
 }
 
+output "p1d_pubsub_topic" {
+  value = google_pubsub_topic.p1d.id
+}
+
+output "p1d_pubsub_subscription" {
+  value = google_pubsub_subscription.p1d_push.id
+}
+
 output "github_p1c_secret" {
   value = google_secret_manager_secret.github_p1c_token.id
 }

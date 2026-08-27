@@ -25,6 +25,8 @@ class GitHubReleaseIntent:
     workflow_id: int
     workflow_path: str
     invariant_id: str = "release-validation-green"
+    tag_prefix: str = "reflow-p1c"
+    tag_override: str | None = None
 
     @property
     def receipt_id(self) -> str:
@@ -32,8 +34,10 @@ class GitHubReleaseIntent:
 
     @property
     def tag(self) -> str:
+        if self.tag_override is not None:
+            return self.tag_override
         stem = _TAG_SAFE.sub("-", self.action.idempotency_key.lower()).strip("-._")
-        return f"reflow-p1c-{stem[:28]}-{self.candidate_sha[:12]}"
+        return f"{self.tag_prefix}-{stem[:28]}-{self.candidate_sha[:12]}"
 
     @property
     def display_title(self) -> str:
@@ -55,6 +59,8 @@ def intent_fingerprint(intent: GitHubReleaseIntent) -> str:
         "plan_id": intent.plan_id,
         "plan_revision": intent.plan_revision,
         "repository": intent.repository,
+        "tag_prefix": intent.tag_prefix,
+        "tag_override": intent.tag_override,
         "workflow_id": intent.workflow_id,
         "workflow_path": intent.workflow_path,
     }
@@ -103,6 +109,15 @@ class GitHubJob:
     completed_at: datetime | None
     url: str
     failing_steps: tuple[str, ...]
+    steps: tuple[GitHubStep, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubStep:
+    name: str
+    status: str
+    conclusion: str | None
+    number: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -146,6 +161,15 @@ class GitHubEvidence:
                     "completed_at": job.completed_at.isoformat() if job.completed_at else None,
                     "url": job.url,
                     "failing_steps": list(job.failing_steps),
+                    "steps": [
+                        {
+                            "name": step.name,
+                            "status": step.status,
+                            "conclusion": step.conclusion,
+                            "number": step.number,
+                        }
+                        for step in job.steps
+                    ],
                 }
                 for job in self.jobs
             ],

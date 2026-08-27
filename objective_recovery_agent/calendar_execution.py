@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Protocol, TypeVar
 
@@ -38,6 +38,15 @@ class CalendarExecutionFailure(RuntimeError):
         super().__init__(category)
         self.category = category
         self.retryable = retryable
+
+
+@dataclass(frozen=True, slots=True)
+class CalendarClosureEvidence:
+    passed: bool
+    observed_at: datetime
+    source_reference: str
+    observed_state: tuple[tuple[str, str], ...]
+    differences: tuple[str, ...]
 
 
 _T = TypeVar("_T")
@@ -93,6 +102,28 @@ class CalendarExecutionService:
 
     def _get_with_retry(self, intent: CalendarActionIntent) -> dict[str, object] | None:
         return self._retry(lambda: self._gateway.get_event(intent.calendar_id, intent.event_id))
+
+    def verify_fresh(self, intent: CalendarActionIntent) -> CalendarClosureEvidence:
+        """Read Calendar again for closure without mutating the historical P1B receipt."""
+
+        try:
+            payload = self._get_with_retry(intent)
+        except CalendarAdapterError as error:
+            raise CalendarExecutionFailure(
+                error.category.value, retryable=error.retryable
+            ) from error
+        if payload is None:
+            raise CalendarExecutionFailure("calendar_readback_not_found", retryable=True)
+        observed_at = datetime.now(UTC)
+        observed = normalize_calendar_event(calendar_id=intent.calendar_id, payload=payload)
+        differences = verification_differences(intent, observed)
+        return CalendarClosureEvidence(
+            passed=not differences,
+            observed_at=observed_at,
+            source_reference=f"google_calendar:{intent.event_id}",
+            observed_state=safe_observed_state(observed),
+            differences=differences,
+        )
 
     def execute(self, intent: CalendarActionIntent) -> ActionReceipt:
         authorize_calendar_action(intent, self._calendar_id)

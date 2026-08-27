@@ -38,7 +38,11 @@ def _pending(intent: GitHubReleaseIntent, now: datetime) -> ActionReceipt:
         action_id=intent.action.action_id,
         idempotency_key=intent.action.idempotency_key,
         tool="github",
-        operation="releases.create_or_adopt",
+        operation=(
+            "releases.promote_and_readback"
+            if intent.action.action_type == "github_release_promotion"
+            else "releases.create_or_adopt"
+        ),
         desired_state_fingerprint=intent_fingerprint(intent),
         status=ReceiptStatus.PENDING,
         evidence_kind=EvidenceKind.MISSING,
@@ -57,6 +61,8 @@ def _intent_dict(intent: GitHubReleaseIntent) -> dict[str, Any]:
         "workflow_path": intent.workflow_path,
         "invariant_id": intent.invariant_id,
         "tag": intent.tag,
+        "tag_prefix": intent.tag_prefix,
+        "tag_override": intent.tag_override,
         "action": {
             "action_id": intent.action.action_id,
             "action_type": intent.action.action_type,
