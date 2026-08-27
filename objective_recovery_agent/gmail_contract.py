@@ -132,6 +132,32 @@ class ObjectiveNodeContext(GmailModel):
     label: str
 
 
+class DisruptionFactsInput(GmailModel):
+    mailbox: str
+    gmail_message_id: str
+    sender: str
+    subject: str
+    internal_date: str
+    normalized_text: Annotated[str, Field(max_length=MAX_INTERPRETER_TEXT_CHARS)]
+
+
+class DisruptionFacts(GmailModel):
+    classification: GmailClassification
+    event_type: Annotated[str, Field(min_length=3, max_length=80)] = "unsupported-email"
+    summary: Annotated[str, Field(min_length=3, max_length=1000)]
+    mentioned_entities: Annotated[list[str], Field(max_length=20)] = Field(default_factory=list)
+    grounded_excerpts: Annotated[list[str], Field(max_length=10)] = Field(default_factory=list)
+    unknowns: Annotated[list[str], Field(max_length=10)] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def require_grounded_real_disruption(self) -> DisruptionFacts:
+        if self.classification is GmailClassification.REAL_DISRUPTION and (
+            not self.mentioned_entities or not self.grounded_excerpts
+        ):
+            raise ValueError("a real disruption requires mentioned entities and evidence")
+        return self
+
+
 class GmailInterpretationInput(GmailModel):
     mailbox: str
     gmail_message_id: str
@@ -139,6 +165,11 @@ class GmailInterpretationInput(GmailModel):
     subject: str
     internal_date: str
     normalized_text: Annotated[str, Field(max_length=MAX_INTERPRETER_TEXT_CHARS)]
+    known_nodes: list[ObjectiveNodeContext]
+
+
+class ImpactAnalysisInput(GmailModel):
+    disruption: DisruptionFacts
     known_nodes: list[ObjectiveNodeContext]
 
 

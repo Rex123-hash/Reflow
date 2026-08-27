@@ -339,6 +339,43 @@ class FailedRecoveryEffect(StrictModel):
     fingerprint: str
 
 
+class RecoveryAnalysisInput(StrictModel):
+    incident_id: str
+    plan_revision: int
+    objective_id: str
+    failed_invariant_id: str
+    evidence_references: list[str]
+    previous_plan_assumptions: list[dict[str, Any]]
+    previous_plan_unknowns: list[dict[str, Any]]
+    previous_critic_findings: list[dict[str, Any]]
+    failed_candidate_sha: str
+    failed_run: dict[str, Any]
+    failed_jobs: list[dict[str, Any]]
+    failed_recovery_effects: list[FailedRecoveryEffect]
+    available_recovery_artifacts: list[RecoveryArtifact]
+    recovery_one_accomplished: list[str]
+    remaining_broken: list[str]
+    unhealthy_reason: str
+    policy_summary: list[str]
+
+
+class RecoveryAnalysis(StrictModel):
+    failed_assumption_summary: list[str]
+    failed_invariant_references: list[str]
+    evidence_references: list[str]
+    next_plan_constraints: list[str]
+    exact_repeat_fingerprints: list[str]
+    material_changes: list[str]
+
+
+class RecoveryAnalysisGeneration(StrictModel):
+    analysis: RecoveryAnalysis
+    analyst_latency_ms: int
+    total_tokens: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+
 class ReplanningInput(StrictModel):
     incident_id: str
     plan_revision: int
@@ -370,6 +407,11 @@ class ReplanningInput(StrictModel):
     remaining_broken: list[str]
     unhealthy_reason: str
     policy_summary: list[str]
+
+
+class RecoveryPlanningInput(StrictModel):
+    authoritative_context: ReplanningInput
+    recovery_analysis: RecoveryAnalysis
 
 
 class ReplanCriticInput(StrictModel):

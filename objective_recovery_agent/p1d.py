@@ -61,6 +61,8 @@ from objective_recovery_agent.schemas import (
     FailedRecoveryEffect,
     IncidentStage,
     P1DContinuation,
+    RecoveryAnalysis,
+    RecoveryAnalysisGeneration,
     RecoveryPlanCandidate,
     ReplanningInput,
     WorkflowEventType,
@@ -96,8 +98,14 @@ class P1DConfiguration:
 
 
 class P1DPlanningService(Protocol):
-    async def generate_replan_candidates(
+    async def analyze_recovery(
         self, replanning_input: ReplanningInput
+    ) -> RecoveryAnalysisGeneration: ...
+
+    async def generate_replan_candidates(
+        self,
+        replanning_input: ReplanningInput,
+        recovery_analysis: RecoveryAnalysis,
     ) -> CandidateGeneration: ...
 
     async def critique_replan(
@@ -691,12 +699,35 @@ class P1DService:
         replanning_input = ReplanningInput.model_validate(revision["replanning_input"]["context"])
 
         if "planner_checkpoint" not in revision:
+            if "recovery_analysis" not in revision:
+                claim = self._store.claim_phase(handoff.incident_id, "recovery_analysis")
+                if claim == "busy":
+                    return P1DResult(handoff.incident_id, P1DState.PENDING, "REPLANNING")
+                if claim == "acquired":
+                    try:
+                        analyzed = await self._planner.analyze_recovery(replanning_input)
+                        self._store.checkpoint(
+                            handoff.incident_id,
+                            "recovery_analysis",
+                            analyzed.model_dump(mode="json"),
+                        )
+                    except Exception as error:
+                        self._store.release_phase(
+                            handoff.incident_id, "recovery_analysis", type(error).__name__
+                        )
+                        raise
+                revision = self._store.load_revision(handoff.incident_id)
+            recovery_analysis = RecoveryAnalysisGeneration.model_validate(
+                revision["recovery_analysis"]
+            ).analysis
             claim = self._store.claim_phase(handoff.incident_id, "planner_checkpoint")
             if claim == "busy":
                 return P1DResult(handoff.incident_id, P1DState.PENDING, "REPLANNING")
             if claim == "acquired":
                 try:
-                    generated = await self._planner.generate_replan_candidates(replanning_input)
+                    generated = await self._planner.generate_replan_candidates(
+                        replanning_input, recovery_analysis
+                    )
                     self._store.checkpoint(
                         handoff.incident_id,
                         "planner_checkpoint",

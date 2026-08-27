@@ -17,6 +17,12 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from pydantic import BaseModel, ValidationError
 
+from objective_recovery_agent.agent_runtime import (
+    AgentId,
+    AgentTraceContext,
+    content_fingerprint,
+    emit_agent_event,
+)
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.schemas import (
     CandidateGeneration,
@@ -25,7 +31,11 @@ from objective_recovery_agent.schemas import (
     CritiqueGeneration,
     PlanningInput,
     PlanningRun,
+    RecoveryAnalysis,
+    RecoveryAnalysisGeneration,
+    RecoveryAnalysisInput,
     RecoveryPlanCandidate,
+    RecoveryPlanningInput,
     ReplanCriticInput,
     ReplanningInput,
     StrategySeedSet,
@@ -111,7 +121,7 @@ def create_perspective_workflow(perspective: StrategyType) -> Workflow:
 
 def create_bundle_workflow() -> Workflow:
     planner = Agent(
-        name="diverse_bundle_planner",
+        name=AgentId.RECOVERY_PLANNER.value,
         model=_model(),
         mode="single_turn",
         input_schema=PlanningInput,
@@ -171,7 +181,7 @@ def create_hybrid_workflow() -> Workflow:
 
 def create_critic_workflow() -> Workflow:
     critic = Agent(
-        name="risk_critic",
+        name=AgentId.RISK_CRITIC.value,
         model=_model(),
         mode="single_turn",
         input_schema=CandidateSet,
@@ -194,16 +204,46 @@ execute a plan. Give concise evidence-based summaries and never hidden reasoning
     )
 
 
-def create_replan_workflow() -> Workflow:
-    planner = Agent(
-        name="recovery_replanner",
+def create_recovery_analyst_workflow() -> Workflow:
+    analyst = Agent(
+        name=AgentId.RECOVERY_ANALYST.value,
         model=_model(),
         mode="single_turn",
-        input_schema=ReplanningInput,
+        input_schema=RecoveryAnalysisInput,
+        output_schema=RecoveryAnalysis,
+        instruction=(
+            "Analyze why the verified prior recovery failed and state what must materially change "
+            "before another plan is proposed. Carry forward the exact supplied failed invariant, "
+            "evidence references, and failed-effect fingerprints. Identify failed or unsupported "
+            "assumptions, next-plan constraints, and changes supported by AVAILABLE artifacts. "
+            "Never invent evidence or artifacts, propose a final plan, select or execute actions, "
+            "change policy, or declare the objective restored. Return only typed concise analysis "
+            "and no hidden reasoning."
+        ),
+        generate_content_config=_generation_config(4096),
+        timeout=PLANNER_TIMEOUT_SECONDS,
+    )
+    return Workflow(
+        name="recovery_analyst_workflow",
+        input_schema=RecoveryAnalysisInput,
+        output_schema=RecoveryAnalysis,
+        edges=[("START", analyst)],
+        timeout=PLANNER_TIMEOUT_SECONDS,
+    )
+
+
+def create_replan_workflow() -> Workflow:
+    planner = Agent(
+        name=AgentId.RECOVERY_PLANNER.value,
+        model=_model(),
+        mode="single_turn",
+        input_schema=RecoveryPlanningInput,
         output_schema=CandidateSet,
         instruction=(
             f"{_COMMON_PLANNER_INSTRUCTION}\n\n"
-            "This is a revision after a verified external recovery failure. Generate one to "
+            "This is a revision after a verified external recovery failure. Consume the typed "
+            "recovery analysis, while treating authoritative_context as final whenever they "
+            "conflict. Generate one to "
             "three materially revised executable futures from the supplied durable context. "
             "Use only immutable artifacts whose state is AVAILABLE. A GitHub validation action "
             "must have action_type github_release_validation, target the supplied repository, "
@@ -220,7 +260,7 @@ def create_replan_workflow() -> Workflow:
     )
     return Workflow(
         name="recovery_replan_workflow",
-        input_schema=ReplanningInput,
+        input_schema=RecoveryPlanningInput,
         output_schema=CandidateSet,
         edges=[("START", planner)],
         timeout=PLANNER_TIMEOUT_SECONDS,
@@ -229,7 +269,7 @@ def create_replan_workflow() -> Workflow:
 
 def create_replan_critic_workflow() -> Workflow:
     critic = Agent(
-        name="recovery_risk_critic",
+        name=AgentId.RISK_CRITIC.value,
         model=_model(),
         mode="single_turn",
         input_schema=ReplanCriticInput,
@@ -256,6 +296,8 @@ def create_replan_critic_workflow() -> Workflow:
 async def run_workflow(
     workflow: Workflow,
     payload: BaseModel,
+    *,
+    trace: AgentTraceContext | None = None,
 ) -> WorkflowResult:
     session_service = InMemorySessionService()
     user_id = "objective-recovery"
@@ -268,37 +310,61 @@ async def run_workflow(
         role="user", parts=[types.Part.from_text(text=payload.model_dump_json())]
     )
     started = time.perf_counter()
+    input_fingerprint = content_fingerprint(payload)
+    if trace is not None:
+        emit_agent_event(
+            "started",
+            trace,
+            model=MODEL_ID,
+            input_fingerprint=input_fingerprint,
+        )
     output: Any = None
     output_text: str | None = None
     total_tokens = 0
     input_tokens = 0
     output_tokens = 0
-    async for event in runner.run_async(
-        user_id=user_id, session_id=session_id, new_message=message
-    ):
-        if event.output is not None:
-            output = event.output
-        if event.content and event.content.parts:
-            text_parts = [part.text for part in event.content.parts if part.text]
-            if text_parts:
-                output_text = "".join(text_parts)
-        if event.usage_metadata and event.usage_metadata.total_token_count:
-            total_tokens += event.usage_metadata.total_token_count
-            input_tokens += event.usage_metadata.prompt_token_count or 0
-            output_tokens += (event.usage_metadata.candidates_token_count or 0) + (
-                event.usage_metadata.thoughts_token_count or 0
+    try:
+        async for event in runner.run_async(
+            user_id=user_id, session_id=session_id, new_message=message
+        ):
+            if event.output is not None:
+                output = event.output
+            if event.content and event.content.parts:
+                text_parts = [part.text for part in event.content.parts if part.text]
+                if text_parts:
+                    output_text = "".join(text_parts)
+            if event.usage_metadata and event.usage_metadata.total_token_count:
+                total_tokens += event.usage_metadata.total_token_count
+                input_tokens += event.usage_metadata.prompt_token_count or 0
+                output_tokens += (event.usage_metadata.candidates_token_count or 0) + (
+                    event.usage_metadata.thoughts_token_count or 0
+                )
+        if output is None and output_text is not None:
+            output = json.loads(output_text)
+        if output is None:
+            raise ValueError(f"ADK workflow {workflow.name} produced no typed output")
+    except BaseException as error:
+        if trace is not None:
+            emit_agent_event(
+                "failed",
+                trace,
+                model=MODEL_ID,
+                input_fingerprint=input_fingerprint,
+                latency_ms=int((time.perf_counter() - started) * 1000),
+                error_type=type(error).__name__,
             )
-    if output is None and output_text is not None:
-        output = json.loads(output_text)
-    if output is None:
-        raise ValueError(f"ADK workflow {workflow.name} produced no typed output")
-    return WorkflowResult(
-        output,
-        int((time.perf_counter() - started) * 1000),
-        total_tokens,
-        input_tokens,
-        output_tokens,
-    )
+        raise
+    latency_ms = int((time.perf_counter() - started) * 1000)
+    if trace is not None:
+        emit_agent_event(
+            "completed",
+            trace,
+            model=MODEL_ID,
+            input_fingerprint=input_fingerprint,
+            output_fingerprint=content_fingerprint(output),
+            latency_ms=latency_ms,
+        )
+    return WorkflowResult(output, latency_ms, total_tokens, input_tokens, output_tokens)
 
 
 def _validate_perspective(output: Any, expected: StrategyType) -> RecoveryPlanCandidate:
@@ -313,6 +379,75 @@ def _validate_critique_ids(candidates: CandidateSet, critiques: CritiqueBundle) 
     critique_ids = {critique.plan_id for critique in critiques.critiques}
     if candidate_ids != critique_ids or len(critique_ids) != len(critiques.critiques):
         raise ValueError("risk critic must return exactly one critique for every candidate")
+
+
+def build_recovery_analysis_input(value: ReplanningInput) -> RecoveryAnalysisInput:
+    evidence_references = [f"invariant:{value.failed_invariant_id}"]
+    for effect in value.failed_recovery_effects:
+        evidence_references.append(f"failed-effect:{effect.fingerprint}")
+    run_id = value.failed_run.get("run_id")
+    if run_id is not None:
+        evidence_references.append(f"github-run:{run_id}")
+    for prefix, receipt in (
+        ("calendar-receipt", value.calendar_receipt),
+        ("github-receipt", value.github_receipt),
+    ):
+        reference = next(
+            (
+                receipt.get(key)
+                for key in ("receipt_id", "action_receipt_id", "idempotency_key")
+                if receipt.get(key)
+            ),
+            None,
+        )
+        if reference is not None:
+            evidence_references.append(f"{prefix}:{reference}")
+    return RecoveryAnalysisInput(
+        incident_id=value.incident_id,
+        plan_revision=value.plan_revision,
+        objective_id=value.objective.objective_id,
+        failed_invariant_id=value.failed_invariant_id,
+        evidence_references=evidence_references,
+        previous_plan_assumptions=value.previous_plan_assumptions,
+        previous_plan_unknowns=value.previous_plan_unknowns,
+        previous_critic_findings=value.previous_critic_findings,
+        failed_candidate_sha=value.failed_candidate_sha,
+        failed_run=value.failed_run,
+        failed_jobs=value.failed_jobs,
+        failed_recovery_effects=value.failed_recovery_effects,
+        available_recovery_artifacts=value.available_recovery_artifacts,
+        recovery_one_accomplished=value.recovery_one_accomplished,
+        remaining_broken=value.remaining_broken,
+        unhealthy_reason=value.unhealthy_reason,
+        policy_summary=value.policy_summary,
+    )
+
+
+def validate_recovery_analysis(
+    analysis_input: RecoveryAnalysisInput, analysis: RecoveryAnalysis
+) -> RecoveryAnalysis:
+    if set(analysis.failed_invariant_references) != {analysis_input.failed_invariant_id}:
+        raise ValueError("recovery analyst changed the authoritative failed invariant")
+    allowed_evidence = set(analysis_input.evidence_references)
+    if (
+        not analysis.evidence_references
+        or not set(analysis.evidence_references) <= allowed_evidence
+    ):
+        raise ValueError("recovery analyst returned an ungrounded evidence reference")
+    failed_fingerprints = {item.fingerprint for item in analysis_input.failed_recovery_effects}
+    required_evidence = {
+        f"invariant:{analysis_input.failed_invariant_id}",
+        *(f"failed-effect:{fingerprint}" for fingerprint in failed_fingerprints),
+    }
+    if not required_evidence <= set(analysis.evidence_references):
+        raise ValueError("recovery analyst omitted required failure evidence")
+    if set(analysis.exact_repeat_fingerprints) != failed_fingerprints:
+        raise ValueError("recovery analyst changed exact-repeat avoidance fingerprints")
+    if not analysis.next_plan_constraints:
+        raise ValueError("recovery analyst returned no next-plan constraints")
+    if not analysis.material_changes:
+        raise ValueError("recovery analyst returned no material change")
+    return analysis
 
 
 class ParallelAdkPlanningService:
@@ -394,7 +529,17 @@ class AdkPlanningService:
         emit_operational_event(OperationalEvent.PLANNER_STARTED, **correlation)
         try:
             planner_result = await asyncio.wait_for(
-                run_workflow(create_bundle_workflow(), planning_input),
+                run_workflow(
+                    create_bundle_workflow(),
+                    planning_input,
+                    trace=AgentTraceContext(
+                        AgentId.RECOVERY_PLANNER,
+                        "initial_recovery_planning",
+                        incident_id=planning_input.incident_id,
+                        recovery_attempt=1,
+                        source_event_id=planning_input.disruption.event_id,
+                    ),
+                ),
                 timeout=PLANNER_TIMEOUT_SECONDS + 5,
             )
         except TimeoutError as error:
@@ -463,7 +608,17 @@ class AdkPlanningService:
         )
         try:
             critic_result = await asyncio.wait_for(
-                run_workflow(create_critic_workflow(), candidates),
+                run_workflow(
+                    create_critic_workflow(),
+                    candidates,
+                    trace=AgentTraceContext(
+                        AgentId.RISK_CRITIC,
+                        "initial_plan_critique",
+                        incident_id=incident_id,
+                        recovery_attempt=1,
+                        source_event_id=event_id,
+                    ),
+                ),
                 timeout=PLANNER_TIMEOUT_SECONDS + 5,
             )
         except TimeoutError as error:
@@ -522,8 +677,60 @@ class AdkPlanningService:
             failed_perspectives=[],
         )
 
-    async def generate_replan_candidates(
+    async def analyze_recovery(
         self, replanning_input: ReplanningInput
+    ) -> RecoveryAnalysisGeneration:
+        analysis_input = build_recovery_analysis_input(replanning_input)
+        correlation = {
+            "incident_id": replanning_input.incident_id,
+            "model": MODEL_ID,
+            "plan_revision": replanning_input.plan_revision,
+            "agent_id": AgentId.RECOVERY_ANALYST.value,
+        }
+        try:
+            result = await asyncio.wait_for(
+                run_workflow(
+                    create_recovery_analyst_workflow(),
+                    analysis_input,
+                    trace=AgentTraceContext(
+                        AgentId.RECOVERY_ANALYST,
+                        "failed_recovery_analysis",
+                        incident_id=replanning_input.incident_id,
+                        recovery_attempt=replanning_input.plan_revision,
+                    ),
+                ),
+                timeout=PLANNER_TIMEOUT_SECONDS + 5,
+            )
+            analysis = validate_recovery_analysis(
+                analysis_input, RecoveryAnalysis.model_validate(result.output)
+            )
+        except TimeoutError as error:
+            emit_operational_event(OperationalEvent.RECOVERY_ANALYST_TIMEOUT, **correlation)
+            raise PlanningPhaseError(OperationalEvent.RECOVERY_ANALYST_TIMEOUT, error) from error
+        except (json.JSONDecodeError, ValidationError, ValueError) as error:
+            emit_operational_event(OperationalEvent.RECOVERY_ANALYST_SCHEMA_INVALID, **correlation)
+            raise PlanningPhaseError(
+                OperationalEvent.RECOVERY_ANALYST_SCHEMA_INVALID, error
+            ) from error
+        except Exception as error:
+            emit_operational_event(
+                OperationalEvent.RECOVERY_ANALYST_FAILED,
+                error_type=type(error).__name__,
+                **correlation,
+            )
+            raise PlanningPhaseError(OperationalEvent.RECOVERY_ANALYST_FAILED, error) from error
+        return RecoveryAnalysisGeneration(
+            analysis=analysis,
+            analyst_latency_ms=result.latency_ms,
+            total_tokens=result.total_tokens,
+            input_tokens=result.input_tokens,
+            output_tokens=result.output_tokens,
+        )
+
+    async def generate_replan_candidates(
+        self,
+        replanning_input: ReplanningInput,
+        recovery_analysis: RecoveryAnalysis,
     ) -> CandidateGeneration:
         planning_run_id = str(uuid.uuid4())
         correlation = {
@@ -535,7 +742,19 @@ class AdkPlanningService:
         emit_operational_event(OperationalEvent.PLANNER_STARTED, **correlation)
         try:
             result = await asyncio.wait_for(
-                run_workflow(create_replan_workflow(), replanning_input),
+                run_workflow(
+                    create_replan_workflow(),
+                    RecoveryPlanningInput(
+                        authoritative_context=replanning_input,
+                        recovery_analysis=recovery_analysis,
+                    ),
+                    trace=AgentTraceContext(
+                        AgentId.RECOVERY_PLANNER,
+                        "recovery_replanning",
+                        incident_id=replanning_input.incident_id,
+                        recovery_attempt=replanning_input.plan_revision,
+                    ),
+                ),
                 timeout=PLANNER_TIMEOUT_SECONDS + 5,
             )
             candidates = CandidateSet.model_validate(result.output)
@@ -589,6 +808,12 @@ class AdkPlanningService:
                     ReplanCriticInput(
                         replanning_context=replanning_input,
                         candidates=candidates,
+                    ),
+                    trace=AgentTraceContext(
+                        AgentId.RISK_CRITIC,
+                        "recovery_plan_critique",
+                        incident_id=replanning_input.incident_id,
+                        recovery_attempt=replanning_input.plan_revision,
                     ),
                 ),
                 timeout=PLANNER_TIMEOUT_SECONDS + 5,

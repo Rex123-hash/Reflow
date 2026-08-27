@@ -3,9 +3,8 @@
 ## Architectural stance
 
 The domain core is framework-independent. Google ADK orchestrates bounded reasoning, while
-Firestore and deterministic services remain authoritative. P1B adds one narrowly scoped Google
-Calendar adapter; Gmail, GitHub, product authentication, objective-level failure/replanning, and
-UI remain outside this phase.
+Firestore and deterministic services remain authoritative. Gmail, Calendar, and GitHub are
+narrow external adapters; model reasoning cannot call them directly or establish objective truth.
 
 ## System context
 
@@ -16,8 +15,8 @@ flowchart LR
     Ingress --> Ledger[(Firestore workflow ledger)]
     Ingress --> Orchestrator[Recovery orchestrator]
 
-    Orchestrator --> Graph[Operational graph service]
-    Orchestrator --> Agents[ADK diverse-bundle planner + risk critic]
+    Orchestrator --> Graph[Deterministic graph authority]
+    Orchestrator --> Agents[Five bounded ADK reasoning identities]
     Agents -->|structured calls| Gemini[Vertex AI\nGemini 3.7 Flash]
     Orchestrator --> Policy[Deterministic policy engine]
     Orchestrator --> Selector[Deterministic plan selector]
@@ -42,11 +41,14 @@ flowchart LR
 
 ## Agent roles
 
-1. **Event Interpreter** — maps unstructured evidence to a typed disruption with evidence references and unknowns.
-2. **Recovery Planner** — one diverse-bundle workflow returns exactly three schema-valid, materially different deadline/risk/resource futures.
-3. **Risk Critic** — identifies contradictions, assumptions, missing evidence, and failure modes. It cannot approve a plan.
+1. **Disruption Interpreter** — extracts typed, grounded facts from untrusted event evidence.
+2. **Impact Analyst** — proposes candidate threatened nodes; deterministic graph code remains final.
+3. **Recovery Planner** — proposes typed counterfactual recovery futures for initial or revised context.
+4. **Risk Critic** — attacks candidate assumptions, evidence, and operational risks without approval authority.
+5. **Recovery Analyst** — synthesizes typed failed-verification context before the planner runs again.
 
-More agents require evaluation evidence or a distinct context/tool/security boundary.
+See [P2C agent boundaries](p2c-agent-boundaries.md) for exact schemas, identities, calls, denied
+authority, and the complete pre-refactor invocation audit.
 
 ## Deterministic services
 
@@ -69,7 +71,7 @@ Writes that claim a new action intention or consume an event use a Firestore tra
 2. Parse the transport envelope and derive a source event identity.
 3. Transactionally claim/deduplicate the event before acknowledgement.
 4. Persist the typed disruption and traverse the accepted graph deterministically.
-5. Generate exactly three typed candidates and critique each with a separate ADK workflow.
+5. Generate typed candidates and critique each with separate ADK reasoning boundaries.
 6. Validate hard policy and blocking unknowns, then select stably in deterministic code.
 7. Persist the selected plan at `PLAN_SELECTED`.
 8. Derive and authorize one reversible coordination block only when the selected plan coordinates
