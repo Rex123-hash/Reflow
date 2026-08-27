@@ -18,7 +18,7 @@ variable "region" {
 variable "image_uri" {
   type        = string
   description = "Immutable or controlled Cloud Run image URI."
-  default     = "us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/app@sha256:5c972a51d1b1fa08f0c58abc684f3b58090cc4209a8537fa9422085827b95cb8"
+  default     = "us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/app@sha256:68f25d34c90ee71361209f73c90f7d48bf4b7c528297f41dcd4c06ab6590c4e7"
 }
 
 variable "calendar_id" {

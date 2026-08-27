@@ -90,3 +90,24 @@ Frontend generated types must be regenerated before removing its bounded Contrac
 Known limitations remain: Operator is read-only; there is no browser BFF/auth milestone here; no
 assignment adapter exists; no objective percentage or invented progress metric is exposed; and
 active historical fixtures are explicit exported checkpoints, not writable incident versions.
+
+## Deployment and live read-only proof
+
+Cloud Build `b769642c-d28d-4d2f-9202-a1cf314c602d` built source commit `e5ffcfe` from a bounded
+1.7 MiB backend-only context. The immutable image is
+`us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/app@sha256:68f25d34c90ee71361209f73c90f7d48bf4b7c528297f41dcd4c06ab6590c4e7`.
+Terraform showed `0 add, 1 in-place Cloud Run image change, 0 destroy` and deployed private
+revision `objective-recovery-00019-8vh` at 100% traffic. Cloud Run reported the revision ready and
+container healthy.
+
+Authenticated live GET proof against revision 00019 returned HTTP 200 for health, Overview,
+Objectives, canonical Recovery, Evidence, Events, and read-only Operator context. Recovery ETag
+`W/"16"` returned HTTP 304 on replay. All 22 public evidence references resolved exactly against
+seven evidence cards; ten assignment/reassignment actions remained `PROPOSAL_ONLY`; one selected
+GitHub validation action was `EXECUTED` with exact run evidence; the deadline margin was 78,665
+seconds; 28 durable events remained chronological across seven semantic phases; Gmail source was
+`gmail`; final verification was `PASSED` with six observations; and the live presentation payload
+had zero forbidden-boundary scan hits.
+
+Authenticated OpenAPI retained all UI routes plus Gmail push/maintenance, P1B-to-P1C continuation,
+and P1C-to-P1D continuation routes. No external Calendar or GitHub recovery action was replayed.
