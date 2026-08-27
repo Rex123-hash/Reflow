@@ -5,10 +5,10 @@ been claimed because no dedicated mailbox or valid Desktop OAuth client has been
 
 ## Deployed base infrastructure
 
-- Deployed 27 August 2026 to private Cloud Run revision `objective-recovery-00014-dxx` at 100%
+- Deployed 27 August 2026 to private Cloud Run revision `objective-recovery-00015-q9s` at 100%
   traffic.
 - Immutable image:
-  `us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/app@sha256:74f831aa830be8146c8c0c57dfca5b2f5b07e4a1a3a713192e9e962982d2f117`.
+  `us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/app@sha256:f1e127bd8bdc4a9c5a3fcfdf39602636194eb8ac2ac0a6c6524c6010f36ce1e1`.
 - Terraform apply: 16 additions, one in-place service update, zero destroys.
 - Anonymous Cloud Run request: HTTP 403; authenticated health request: HTTP 200.
 - The Gmail OAuth secret container exists with zero versions. `GMAIL_MAILBOX` is empty and the
