@@ -7,8 +7,11 @@ import binascii
 import json
 import os
 from functools import lru_cache
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Response, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
+from fastapi.responses import JSONResponse
+from google.api_core.exceptions import GoogleAPIError
 from pydantic import ValidationError
 
 from objective_recovery_agent.action_ledger import FirestoreActionReceiptLedger
@@ -34,6 +37,7 @@ from objective_recovery_agent.p1d import (
 )
 from objective_recovery_agent.p1d_store import FirestoreP1DStore
 from objective_recovery_agent.planning import AdkPlanningService
+from objective_recovery_agent.presentation import PresentationService
 from objective_recovery_agent.recovery_outbox import PubSubRecoveryPublisher
 from objective_recovery_agent.schemas import (
     DisruptionEvent,
@@ -41,6 +45,16 @@ from objective_recovery_agent.schemas import (
     P1DContinuation,
     PubSubEnvelope,
 )
+from objective_recovery_agent.ui_schemas import (
+    EvidencePageView,
+    ExecutionEventsView,
+    ObjectiveFilter,
+    ObjectivesView,
+    OperatorContextView,
+    OverviewView,
+    RecoveryCaseView,
+)
+from objective_recovery_agent.ui_store import FirestorePresentationStore
 
 if os.getenv("K_SERVICE"):
     from objective_recovery_agent.app_utils.telemetry import setup_telemetry
@@ -48,11 +62,11 @@ if os.getenv("K_SERVICE"):
     setup_telemetry()
 
 app = FastAPI(
-    title="Objective Recovery P1C",
-    description="Verified Calendar action plus independent GitHub objective evidence.",
+    title="Reflow Objective Recovery API",
+    description="Recovery execution plus stable read-only presentation resources.",
     docs_url=None,
     redoc_url=None,
-    openapi_url=None,
+    openapi_url="/openapi.json",
 )
 
 
@@ -84,6 +98,137 @@ def health() -> dict[str, str]:
         "scope": "P1D",
         "terminal_state": "RESOLVED",
     }
+
+
+@lru_cache(maxsize=1)
+def get_presentation_service() -> PresentationService:
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    if not project_id:
+        raise RuntimeError("GOOGLE_CLOUD_PROJECT is required")
+    return PresentationService(FirestorePresentationStore(project_id))
+
+
+type PresentationValue = (
+    OverviewView
+    | ObjectivesView
+    | RecoveryCaseView
+    | EvidencePageView
+    | ExecutionEventsView
+    | OperatorContextView
+)
+
+
+def _presentation_response(
+    value: PresentationValue,
+    if_none_match: str | None,
+) -> Response:
+    revision = value.revision
+    etag = f'W/"{revision}"'
+    if if_none_match == etag:
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers={"ETag": etag})
+    return JSONResponse(
+        content=value.model_dump(mode="json"),
+        headers={"ETag": etag, "Cache-Control": "private, no-cache"},
+    )
+
+
+def _presentation_failure(error: Exception) -> HTTPException:
+    if isinstance(error, KeyError):
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "resource_not_found", "message": str(error.args[0])},
+        )
+    if isinstance(error, ValueError):
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "malformed_request", "message": str(error)},
+        )
+    if isinstance(error, GoogleAPIError):
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "code": "backend_infrastructure_unavailable",
+                "message": "Presentation data is temporarily unavailable.",
+            },
+        )
+    raise error
+
+
+@app.get("/api/v1/ui/overview", response_model=OverviewView)
+def ui_overview(
+    service: Annotated[PresentationService, Depends(get_presentation_service)],
+    if_none_match: Annotated[str | None, Header()] = None,
+) -> Response:
+    try:
+        return _presentation_response(service.overview(), if_none_match)
+    except Exception as error:
+        raise _presentation_failure(error) from error
+
+
+@app.get("/api/v1/ui/objectives", response_model=ObjectivesView)
+def ui_objectives(
+    service: Annotated[PresentationService, Depends(get_presentation_service)],
+    selected_filter: Annotated[ObjectiveFilter, Query(alias="status")] = ObjectiveFilter.ALL,
+    if_none_match: Annotated[str | None, Header()] = None,
+) -> Response:
+    try:
+        return _presentation_response(service.objectives(selected_filter), if_none_match)
+    except Exception as error:
+        raise _presentation_failure(error) from error
+
+
+@app.get("/api/v1/ui/recoveries/{incident_id}", response_model=RecoveryCaseView)
+def ui_recovery(
+    incident_id: str,
+    service: Annotated[PresentationService, Depends(get_presentation_service)],
+    if_none_match: Annotated[str | None, Header()] = None,
+) -> Response:
+    try:
+        return _presentation_response(service.recovery_case(incident_id), if_none_match)
+    except Exception as error:
+        raise _presentation_failure(error) from error
+
+
+@app.get("/api/v1/ui/evidence/{incident_id}", response_model=EvidencePageView)
+def ui_evidence(
+    incident_id: str,
+    service: Annotated[PresentationService, Depends(get_presentation_service)],
+    if_none_match: Annotated[str | None, Header()] = None,
+) -> Response:
+    try:
+        return _presentation_response(service.evidence_page(incident_id), if_none_match)
+    except Exception as error:
+        raise _presentation_failure(error) from error
+
+
+@app.get(
+    "/api/v1/ui/recoveries/{incident_id}/events",
+    response_model=ExecutionEventsView,
+)
+def ui_events(
+    incident_id: str,
+    service: Annotated[PresentationService, Depends(get_presentation_service)],
+    after: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 100,
+    if_none_match: Annotated[str | None, Header()] = None,
+) -> Response:
+    try:
+        return _presentation_response(service.events(incident_id, after, limit), if_none_match)
+    except Exception as error:
+        raise _presentation_failure(error) from error
+
+
+@app.get("/api/v1/ui/operator/context", response_model=OperatorContextView)
+def ui_operator_context(
+    incident_id: str,
+    service: Annotated[PresentationService, Depends(get_presentation_service)],
+    if_none_match: Annotated[str | None, Header()] = None,
+) -> Response:
+    try:
+        value = service.operator_context(incident_id)
+        return _presentation_response(value, if_none_match)
+    except Exception as error:
+        raise _presentation_failure(error) from error
 
 
 @lru_cache(maxsize=1)

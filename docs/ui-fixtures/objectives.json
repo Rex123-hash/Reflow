@@ -1,0 +1,19 @@
+{
+  "filter": "all",
+  "items": [
+    {
+      "active_incident_id": "incident-938b303718a6abe41244",
+      "active_recovery_number": 2,
+      "deadline_timezone": "Etc/UTC",
+      "health": "RESTORED",
+      "latest_observed_state": "objective_restored",
+      "objective_id": "release-v2",
+      "objective_version": 1,
+      "protected_deadline": "2026-08-28T17:00:00+00:00",
+      "title": "SHIP RELEASE V2",
+      "updated_at": "2026-08-27T13:02:27.241001+00:00",
+      "workflow_stage": "RESTORED"
+    }
+  ],
+  "revision": 51
+}

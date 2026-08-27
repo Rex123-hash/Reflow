@@ -1,0 +1,435 @@
+{
+  "events": [
+    {
+      "cursor": "1",
+      "event_id": "EVENT_RECEIVED-6694ea8075001f66",
+      "human_message": "Disruption received.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "transport"
+      ],
+      "semantic_type": "EVENT_RECEIVED",
+      "sequence": 1,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable EVENT_RECEIVED event; key=transport.",
+      "timestamp": "2026-08-27T12:59:49.423854+00:00"
+    },
+    {
+      "cursor": "2",
+      "event_id": "EVENT_INTERPRETED-938b303718a6abe4",
+      "human_message": "Disruption interpreted against the objective.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "p1d-fresh-autonomous-20260827-01"
+      ],
+      "semantic_type": "EVENT_INTERPRETED",
+      "sequence": 2,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable EVENT_INTERPRETED event; key=p1d-fresh-autonomous-20260827-01.",
+      "timestamp": "2026-08-27T12:59:49.617269+00:00"
+    },
+    {
+      "cursor": "3",
+      "event_id": "IMPACT_MAPPED-7b072f7206e3a867",
+      "human_message": "Affected objective path mapped.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "release-v2"
+      ],
+      "semantic_type": "IMPACT_MAPPED",
+      "sequence": 3,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable IMPACT_MAPPED event; key=release-v2.",
+      "timestamp": "2026-08-27T12:59:49.799585+00:00"
+    },
+    {
+      "cursor": "4",
+      "event_id": "PLAN_GENERATION_STARTED-4eb842a775745898",
+      "human_message": "Recovery planning started.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "revision-0"
+      ],
+      "semantic_type": "PLAN_GENERATION_STARTED",
+      "sequence": 4,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable PLAN_GENERATION_STARTED event; key=revision-0.",
+      "timestamp": "2026-08-27T12:59:49.897382+00:00"
+    },
+    {
+      "cursor": "5",
+      "event_id": "PLANNING_FAILED-3dafcfaa62183432",
+      "human_message": "Planning attempt failed safely and remained retryable.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "attempt-1"
+      ],
+      "semantic_type": "PLANNING_FAILED",
+      "sequence": 5,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable PLANNING_FAILED event; key=attempt-1.",
+      "timestamp": "2026-08-27T13:00:01.498671+00:00"
+    },
+    {
+      "cursor": "6",
+      "event_id": "WORKFLOW_RESUMED-66708974e5efa736",
+      "human_message": "Recovery workflow resumed from durable state.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "attempt-2"
+      ],
+      "semantic_type": "WORKFLOW_RESUMED",
+      "sequence": 6,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable WORKFLOW_RESUMED event; key=attempt-2.",
+      "timestamp": "2026-08-27T13:00:16.398802+00:00"
+    },
+    {
+      "cursor": "7",
+      "event_id": "PLAN_CREATED-50a7c8c091bebc77",
+      "human_message": "A recovery future was persisted.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "plan-deadline-first"
+      ],
+      "semantic_type": "PLAN_CREATED",
+      "sequence": 7,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable PLAN_CREATED event; key=plan-deadline-first.",
+      "timestamp": "2026-08-27T13:00:31.282406+00:00"
+    },
+    {
+      "cursor": "8",
+      "event_id": "PLAN_CREATED-1e9551ebbb99f474",
+      "human_message": "A recovery future was persisted.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "plan-risk-minimization-first"
+      ],
+      "semantic_type": "PLAN_CREATED",
+      "sequence": 8,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable PLAN_CREATED event; key=plan-risk-minimization-first.",
+      "timestamp": "2026-08-27T13:00:31.373914+00:00"
+    },
+    {
+      "cursor": "9",
+      "event_id": "PLAN_CREATED-0d68bf7e6ff84277",
+      "human_message": "A recovery future was persisted.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "plan-resource-balance-first"
+      ],
+      "semantic_type": "PLAN_CREATED",
+      "sequence": 9,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable PLAN_CREATED event; key=plan-resource-balance-first.",
+      "timestamp": "2026-08-27T13:00:31.422128+00:00"
+    },
+    {
+      "cursor": "10",
+      "event_id": "RISK_CRITIQUE_COMPLETED-50a7c8c091bebc77",
+      "human_message": "Risk critique was persisted.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "plan-deadline-first"
+      ],
+      "semantic_type": "RISK_CRITIQUE_COMPLETED",
+      "sequence": 10,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable RISK_CRITIQUE_COMPLETED event; key=plan-deadline-first.",
+      "timestamp": "2026-08-27T13:00:36.796976+00:00"
+    },
+    {
+      "cursor": "11",
+      "event_id": "RISK_CRITIQUE_COMPLETED-1e9551ebbb99f474",
+      "human_message": "Risk critique was persisted.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "plan-risk-minimization-first"
+      ],
+      "semantic_type": "RISK_CRITIQUE_COMPLETED",
+      "sequence": 11,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable RISK_CRITIQUE_COMPLETED event; key=plan-risk-minimization-first.",
+      "timestamp": "2026-08-27T13:00:36.880992+00:00"
+    },
+    {
+      "cursor": "12",
+      "event_id": "RISK_CRITIQUE_COMPLETED-0d68bf7e6ff84277",
+      "human_message": "Risk critique was persisted.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "plan-resource-balance-first"
+      ],
+      "semantic_type": "RISK_CRITIQUE_COMPLETED",
+      "sequence": 12,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable RISK_CRITIQUE_COMPLETED event; key=plan-resource-balance-first.",
+      "timestamp": "2026-08-27T13:00:36.918175+00:00"
+    },
+    {
+      "cursor": "13",
+      "event_id": "PLAN_SELECTED-1e9551ebbb99f474",
+      "human_message": "A recovery plan was selected deterministically.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "plan-risk-minimization-first"
+      ],
+      "semantic_type": "PLAN_SELECTED",
+      "sequence": 13,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable PLAN_SELECTED event; key=plan-risk-minimization-first.",
+      "timestamp": "2026-08-27T13:00:37.011758+00:00"
+    },
+    {
+      "cursor": "14",
+      "event_id": "ACTION_RECEIPT_VERIFIED-5a539ef411ca8cb2",
+      "human_message": "External action receipt was independently verified.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6"
+      ],
+      "semantic_type": "ACTION_RECEIPT_VERIFIED",
+      "sequence": 14,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable ACTION_RECEIPT_VERIFIED event; key=receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6.",
+      "timestamp": "2026-08-27T13:00:38.605919+00:00"
+    },
+    {
+      "cursor": "15",
+      "event_id": "GITHUB_RELEASE_ACKNOWLEDGED-83429b0a1c6d4b36",
+      "human_message": "GitHub acknowledged the exact release.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "reflow-p1c-cd0a32978a645e079242e5af068b-5353cf7c664f",
+        "377826344"
+      ],
+      "semantic_type": "GITHUB_RELEASE_ACKNOWLEDGED",
+      "sequence": 15,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable GITHUB_RELEASE_ACKNOWLEDGED event; key=reflow-p1c-cd0a32978a645e079242e5af068b-5353cf7c664f.",
+      "timestamp": "2026-08-27T13:01:05.002756+00:00"
+    },
+    {
+      "cursor": "16",
+      "event_id": "GITHUB_RUN_PINNED-dffebe9957ff44ba",
+      "human_message": "The exact GitHub Actions run and attempt were pinned.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "33074677098:1",
+        "33074677098"
+      ],
+      "semantic_type": "GITHUB_RUN_PINNED",
+      "sequence": 16,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable GITHUB_RUN_PINNED event; key=33074677098:1.",
+      "timestamp": "2026-08-27T13:01:19.776043+00:00"
+    },
+    {
+      "cursor": "17",
+      "event_id": "OBJECTIVE_VERIFICATION_FAILED-3750a34936a7b9d7",
+      "human_message": "The action was verified, but the objective remained unhealthy.",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "release-validation-green"
+      ],
+      "semantic_type": "OBJECTIVE_VERIFICATION_FAILED",
+      "sequence": 17,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable OBJECTIVE_VERIFICATION_FAILED event; key=release-validation-green.",
+      "timestamp": "2026-08-27T13:01:21.475671+00:00"
+    },
+    {
+      "cursor": "18",
+      "event_id": "REPLAN_STARTED-454d377459df3a19",
+      "human_message": "Recovery 02 replanning started from failed evidence.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "revision-2"
+      ],
+      "semantic_type": "REPLAN_STARTED",
+      "sequence": 18,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable REPLAN_STARTED event; key=revision-2.",
+      "timestamp": "2026-08-27T13:01:25.564529+00:00"
+    },
+    {
+      "cursor": "19",
+      "event_id": "PLANNER_CHECKPOINTED-558517953abdfd39",
+      "human_message": "Revised recovery futures were checkpointed.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "12f8c8e2-ac51-4b13-bae7-14ccce5d6e69"
+      ],
+      "semantic_type": "PLANNER_CHECKPOINTED",
+      "sequence": 19,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable PLANNER_CHECKPOINTED event; key=12f8c8e2-ac51-4b13-bae7-14ccce5d6e69.",
+      "timestamp": "2026-08-27T13:01:46.135705+00:00"
+    },
+    {
+      "cursor": "20",
+      "event_id": "CRITIC_CHECKPOINTED-558517953abdfd39",
+      "human_message": "The context-aware risk critique was checkpointed.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "12f8c8e2-ac51-4b13-bae7-14ccce5d6e69"
+      ],
+      "semantic_type": "CRITIC_CHECKPOINTED",
+      "sequence": 20,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable CRITIC_CHECKPOINTED event; key=12f8c8e2-ac51-4b13-bae7-14ccce5d6e69.",
+      "timestamp": "2026-08-27T13:01:53.393943+00:00"
+    },
+    {
+      "cursor": "21",
+      "event_id": "POLICY_EVALUATED-558517953abdfd39",
+      "human_message": "Deterministic recovery policy was evaluated.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "12f8c8e2-ac51-4b13-bae7-14ccce5d6e69"
+      ],
+      "semantic_type": "POLICY_EVALUATED",
+      "sequence": 21,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable POLICY_EVALUATED event; key=12f8c8e2-ac51-4b13-bae7-14ccce5d6e69.",
+      "timestamp": "2026-08-27T13:01:53.468903+00:00"
+    },
+    {
+      "cursor": "22",
+      "event_id": "RECOVERY_SELECTED-0d68bf7e6ff84277",
+      "human_message": "Recovery 02 was selected deterministically.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "plan-resource-balance-first"
+      ],
+      "semantic_type": "RECOVERY_SELECTED",
+      "sequence": 22,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable RECOVERY_SELECTED event; key=plan-resource-balance-first.",
+      "timestamp": "2026-08-27T13:01:53.754770+00:00"
+    },
+    {
+      "cursor": "23",
+      "event_id": "GITHUB_RELEASE_ACKNOWLEDGED-15ef66a4873c98c9",
+      "human_message": "GitHub acknowledged the exact release.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
+        "377826902"
+      ],
+      "semantic_type": "GITHUB_RELEASE_ACKNOWLEDGED",
+      "sequence": 23,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable GITHUB_RELEASE_ACKNOWLEDGED event; key=reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785.",
+      "timestamp": "2026-08-27T13:01:55.371242+00:00"
+    },
+    {
+      "cursor": "24",
+      "event_id": "GITHUB_RUN_PINNED-e156a7621d55229d",
+      "human_message": "The exact GitHub Actions run and attempt were pinned.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "33074746109:1",
+        "33074746109"
+      ],
+      "semantic_type": "GITHUB_RUN_PINNED",
+      "sequence": 24,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable GITHUB_RUN_PINNED event; key=33074746109:1.",
+      "timestamp": "2026-08-27T13:02:10.105622+00:00"
+    },
+    {
+      "cursor": "25",
+      "event_id": "INCIDENT_REOPENED-121850742f8f45d8",
+      "human_message": "The failed objective reopened for another recovery.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "b865dc601a0c56227b869890a3722251f116c97b9da31d8a91e922ce350cbfd0"
+      ],
+      "semantic_type": "INCIDENT_REOPENED",
+      "sequence": 25,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable INCIDENT_REOPENED event; key=b865dc601a0c56227b869890a3722251f116c97b9da31d8a91e922ce350cbfd0.",
+      "timestamp": "2026-08-27T13:02:23.170724+00:00"
+    },
+    {
+      "cursor": "26",
+      "event_id": "RELEASE_VALIDATION_SUCCEEDED-e156a7621d55229d",
+      "human_message": "Candidate validation succeeded.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "33074746109:1",
+        "33074746109"
+      ],
+      "semantic_type": "RELEASE_VALIDATION_SUCCEEDED",
+      "sequence": 26,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable RELEASE_VALIDATION_SUCCEEDED event; key=33074746109:1.",
+      "timestamp": "2026-08-27T13:02:24.962605+00:00"
+    },
+    {
+      "cursor": "27",
+      "event_id": "FULL_RELEASE_PROMOTION_STARTED-c382e65f4087bdc0",
+      "human_message": "Promotion of the validated release started.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
+        "377826902"
+      ],
+      "semantic_type": "FULL_RELEASE_PROMOTION_STARTED",
+      "sequence": 27,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable FULL_RELEASE_PROMOTION_STARTED event; key=608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66.",
+      "timestamp": "2026-08-27T13:02:25.135258+00:00"
+    },
+    {
+      "cursor": "28",
+      "event_id": "FULL_RELEASE_PROMOTION_VERIFIED-5ac2ce69f4ea4d0b",
+      "human_message": "The full latest release was independently verified.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
+        "377826902"
+      ],
+      "semantic_type": "FULL_RELEASE_PROMOTION_VERIFIED",
+      "sequence": 28,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable FULL_RELEASE_PROMOTION_VERIFIED event; key=github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66.",
+      "timestamp": "2026-08-27T13:02:26.808893+00:00"
+    },
+    {
+      "cursor": "29",
+      "event_id": "OBJECTIVE_VERIFICATION_STARTED-454d377459df3a19",
+      "human_message": "Deterministic objective verification started.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "revision-2"
+      ],
+      "semantic_type": "OBJECTIVE_VERIFICATION_STARTED",
+      "sequence": 29,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable OBJECTIVE_VERIFICATION_STARTED event; key=revision-2.",
+      "timestamp": "2026-08-27T13:02:27.213518+00:00"
+    },
+    {
+      "cursor": "30",
+      "event_id": "OBJECTIVE_RESTORED-454d377459df3a19",
+      "human_message": "All required objective invariants passed.",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "revision-2"
+      ],
+      "semantic_type": "OBJECTIVE_RESTORED",
+      "sequence": 30,
+      "source_authority": "reflow_workflow_ledger",
+      "technical_summary": "Durable OBJECTIVE_RESTORED event; key=revision-2.",
+      "timestamp": "2026-08-27T13:02:27.403179+00:00"
+    }
+  ],
+  "incident_id": "incident-938b303718a6abe41244",
+  "next_cursor": "30",
+  "revision": 17,
+  "terminal": true
+}

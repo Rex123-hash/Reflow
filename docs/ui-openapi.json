@@ -1,0 +1,2025 @@
+{
+  "components": {
+    "schemas": {
+      "ActionReceiptView": {
+        "additionalProperties": false,
+        "properties": {
+          "action_id": {
+            "title": "Action Id",
+            "type": "string"
+          },
+          "desired_state_summary": {
+            "title": "Desired State Summary",
+            "type": "string"
+          },
+          "evidence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Id"
+          },
+          "external_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Reference"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "read_back_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read Back At"
+          },
+          "read_back_completed": {
+            "title": "Read Back Completed",
+            "type": "boolean"
+          },
+          "receipt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt Id"
+          },
+          "receipt_status": {
+            "$ref": "#/components/schemas/ReceiptStatusView"
+          },
+          "recovery_attempt": {
+            "title": "Recovery Attempt",
+            "type": "integer"
+          },
+          "system": {
+            "title": "System",
+            "type": "string"
+          },
+          "verification_state": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          },
+          "write_acknowledged": {
+            "title": "Write Acknowledged",
+            "type": "boolean"
+          },
+          "write_acknowledged_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Write Acknowledged At"
+          }
+        },
+        "required": [
+          "action_id",
+          "recovery_attempt",
+          "kind",
+          "system",
+          "desired_state_summary",
+          "receipt_status",
+          "write_acknowledged",
+          "read_back_completed",
+          "verification_state"
+        ],
+        "title": "ActionReceiptView",
+        "type": "object"
+      },
+      "AttemptComparisonItem": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "recovery_1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery 1"
+          },
+          "recovery_2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery 2"
+          }
+        },
+        "required": [
+          "field"
+        ],
+        "title": "AttemptComparisonItem",
+        "type": "object"
+      },
+      "CurrentPriority": {
+        "additionalProperties": false,
+        "properties": {
+          "active_recovery_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Recovery Number"
+          },
+          "active_workflow_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deadline_timezone": {
+            "title": "Deadline Timezone",
+            "type": "string"
+          },
+          "incident_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incident Id"
+          },
+          "objective_health": {
+            "$ref": "#/components/schemas/ObjectiveHealth"
+          },
+          "objective_id": {
+            "title": "Objective Id",
+            "type": "string"
+          },
+          "objective_title": {
+            "title": "Objective Title",
+            "type": "string"
+          },
+          "protected_deadline": {
+            "title": "Protected Deadline",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "time_remaining_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Remaining Seconds"
+          }
+        },
+        "required": [
+          "objective_id",
+          "objective_title",
+          "objective_health",
+          "protected_deadline",
+          "deadline_timezone",
+          "summary"
+        ],
+        "title": "CurrentPriority",
+        "type": "object"
+      },
+      "EvidencePageView": {
+        "additionalProperties": false,
+        "properties": {
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/RecoveryPlanView"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceView"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "receipts": {
+            "items": {
+              "$ref": "#/components/schemas/ActionReceiptView"
+            },
+            "title": "Receipts",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionEventView"
+            },
+            "title": "Timeline",
+            "type": "array"
+          },
+          "verification": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationView"
+            },
+            "title": "Verification",
+            "type": "array"
+          }
+        },
+        "required": [
+          "incident_id",
+          "revision",
+          "timeline",
+          "receipts",
+          "verification",
+          "decisions",
+          "evidence"
+        ],
+        "title": "EvidencePageView",
+        "type": "object"
+      },
+      "EvidenceSemanticStatus": {
+        "enum": [
+          "PENDING",
+          "WRITE_ACKNOWLEDGED",
+          "VERIFIED_HEALTHY",
+          "VERIFIED_UNHEALTHY",
+          "UNAVAILABLE"
+        ],
+        "title": "EvidenceSemanticStatus",
+        "type": "string"
+      },
+      "EvidenceView": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "evidence_kind": {
+            "title": "Evidence Kind",
+            "type": "string"
+          },
+          "external_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Reference"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "proof_fields": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Proof Fields",
+            "type": "object"
+          },
+          "recovery_attempt": {
+            "title": "Recovery Attempt",
+            "type": "integer"
+          },
+          "semantic_status": {
+            "$ref": "#/components/schemas/EvidenceSemanticStatus"
+          },
+          "source_system": {
+            "title": "Source System",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "recovery_attempt",
+          "source_system",
+          "evidence_kind",
+          "title",
+          "semantic_status",
+          "summary"
+        ],
+        "title": "EvidenceView",
+        "type": "object"
+      },
+      "ExecutionEventView": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "title": "Cursor",
+            "type": "string"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "human_message": {
+            "title": "Human Message",
+            "type": "string"
+          },
+          "recovery_attempt": {
+            "title": "Recovery Attempt",
+            "type": "integer"
+          },
+          "related_resource_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Related Resource Ids",
+            "type": "array"
+          },
+          "semantic_type": {
+            "title": "Semantic Type",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "source_authority": {
+            "title": "Source Authority",
+            "type": "string"
+          },
+          "technical_summary": {
+            "title": "Technical Summary",
+            "type": "string"
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "sequence",
+          "cursor",
+          "timestamp",
+          "recovery_attempt",
+          "semantic_type",
+          "human_message",
+          "technical_summary",
+          "source_authority"
+        ],
+        "title": "ExecutionEventView",
+        "type": "object"
+      },
+      "ExecutionEventsView": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionEventView"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "next_cursor": {
+            "title": "Next Cursor",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "terminal": {
+            "title": "Terminal",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "incident_id",
+          "revision",
+          "events",
+          "next_cursor",
+          "terminal"
+        ],
+        "title": "ExecutionEventsView",
+        "type": "object"
+      },
+      "GraphEdgeView": {
+        "additionalProperties": false,
+        "properties": {
+          "relation": {
+            "title": "Relation",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "relation"
+        ],
+        "title": "GraphEdgeView",
+        "type": "object"
+      },
+      "GraphNodeView": {
+        "additionalProperties": false,
+        "properties": {
+          "affected": {
+            "title": "Affected",
+            "type": "boolean"
+          },
+          "critical_path": {
+            "title": "Critical Path",
+            "type": "boolean"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id",
+          "label",
+          "kind",
+          "state",
+          "affected",
+          "critical_path"
+        ],
+        "title": "GraphNodeView",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ObjectiveContext": {
+        "additionalProperties": false,
+        "properties": {
+          "current_recovery_number": {
+            "title": "Current Recovery Number",
+            "type": "integer"
+          },
+          "deadline_timezone": {
+            "title": "Deadline Timezone",
+            "type": "string"
+          },
+          "health": {
+            "$ref": "#/components/schemas/ObjectiveHealth"
+          },
+          "incident_stage": {
+            "title": "Incident Stage",
+            "type": "string"
+          },
+          "incident_status": {
+            "title": "Incident Status",
+            "type": "string"
+          },
+          "is_live": {
+            "title": "Is Live",
+            "type": "boolean"
+          },
+          "objective_id": {
+            "title": "Objective Id",
+            "type": "string"
+          },
+          "objective_version": {
+            "title": "Objective Version",
+            "type": "integer"
+          },
+          "protected_deadline": {
+            "title": "Protected Deadline",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "workflow_stage": {
+            "$ref": "#/components/schemas/WorkflowStage"
+          }
+        },
+        "required": [
+          "objective_id",
+          "objective_version",
+          "title",
+          "health",
+          "protected_deadline",
+          "deadline_timezone",
+          "current_recovery_number",
+          "workflow_stage",
+          "incident_stage",
+          "incident_status",
+          "revision",
+          "is_live"
+        ],
+        "title": "ObjectiveContext",
+        "type": "object"
+      },
+      "ObjectiveCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "integer"
+          },
+          "healthy": {
+            "title": "Healthy",
+            "type": "integer"
+          },
+          "recovering": {
+            "title": "Recovering",
+            "type": "integer"
+          },
+          "restored": {
+            "title": "Restored",
+            "type": "integer"
+          },
+          "watching_or_needs_attention": {
+            "title": "Watching Or Needs Attention",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active",
+          "recovering",
+          "healthy",
+          "watching_or_needs_attention",
+          "restored"
+        ],
+        "title": "ObjectiveCounts",
+        "type": "object"
+      },
+      "ObjectiveFilter": {
+        "enum": [
+          "all",
+          "active",
+          "restored"
+        ],
+        "title": "ObjectiveFilter",
+        "type": "string"
+      },
+      "ObjectiveHealth": {
+        "enum": [
+          "HEALTHY",
+          "WATCHING",
+          "RECOVERING",
+          "NEEDS_ATTENTION",
+          "RESTORED"
+        ],
+        "title": "ObjectiveHealth",
+        "type": "string"
+      },
+      "ObjectiveSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "active_incident_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Incident Id"
+          },
+          "active_recovery_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Recovery Number"
+          },
+          "deadline_timezone": {
+            "title": "Deadline Timezone",
+            "type": "string"
+          },
+          "health": {
+            "$ref": "#/components/schemas/ObjectiveHealth"
+          },
+          "latest_observed_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Observed State"
+          },
+          "objective_id": {
+            "title": "Objective Id",
+            "type": "string"
+          },
+          "objective_version": {
+            "title": "Objective Version",
+            "type": "integer"
+          },
+          "protected_deadline": {
+            "title": "Protected Deadline",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "workflow_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "objective_id",
+          "objective_version",
+          "title",
+          "health",
+          "protected_deadline",
+          "deadline_timezone"
+        ],
+        "title": "ObjectiveSummary",
+        "type": "object"
+      },
+      "ObjectivesView": {
+        "additionalProperties": false,
+        "properties": {
+          "filter": {
+            "$ref": "#/components/schemas/ObjectiveFilter"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ObjectiveSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "filter",
+          "items"
+        ],
+        "title": "ObjectivesView",
+        "type": "object"
+      },
+      "OperationalGraphView": {
+        "additionalProperties": false,
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/GraphEdgeView"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/GraphNodeView"
+            },
+            "title": "Nodes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "nodes",
+          "edges"
+        ],
+        "title": "OperationalGraphView",
+        "type": "object"
+      },
+      "OperatorContextView": {
+        "additionalProperties": false,
+        "properties": {
+          "current_recovery": {
+            "$ref": "#/components/schemas/RecoveryAttemptView"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionEventView"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceView"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "objective": {
+            "$ref": "#/components/schemas/ObjectiveContext"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/RecoveryPlanView"
+            },
+            "title": "Plans",
+            "type": "array"
+          },
+          "read_only": {
+            "default": true,
+            "title": "Read Only",
+            "type": "boolean"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "verification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerificationView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "revision",
+          "objective",
+          "current_recovery",
+          "plans",
+          "evidence",
+          "events"
+        ],
+        "title": "OperatorContextView",
+        "type": "object"
+      },
+      "OverviewView": {
+        "additionalProperties": false,
+        "properties": {
+          "active_objectives": {
+            "items": {
+              "$ref": "#/components/schemas/ObjectiveSummary"
+            },
+            "title": "Active Objectives",
+            "type": "array"
+          },
+          "current_priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CurrentPriority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "objective_summary": {
+            "$ref": "#/components/schemas/ObjectiveCounts"
+          },
+          "recent_activity": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionEventView"
+            },
+            "title": "Recent Activity",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "current_priority",
+          "objective_summary",
+          "active_objectives",
+          "recent_activity"
+        ],
+        "title": "OverviewView",
+        "type": "object"
+      },
+      "PolicyDecisionView": {
+        "additionalProperties": false,
+        "properties": {
+          "blocking_unknowns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocking Unknowns",
+            "type": "array"
+          },
+          "plan_id": {
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/PolicyViolationView"
+            },
+            "title": "Violations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "plan_id",
+          "valid"
+        ],
+        "title": "PolicyDecisionView",
+        "type": "object"
+      },
+      "PolicyViolationView": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "message"
+        ],
+        "title": "PolicyViolationView",
+        "type": "object"
+      },
+      "ReceiptStatusView": {
+        "enum": [
+          "PENDING",
+          "WRITE_ACKNOWLEDGED",
+          "VERIFIED"
+        ],
+        "title": "ReceiptStatusView",
+        "type": "string"
+      },
+      "RecoveryAttemptView": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_number": {
+            "title": "Attempt Number",
+            "type": "integer"
+          },
+          "branch_from_attempt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch From Attempt"
+          },
+          "branch_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Reason"
+          },
+          "candidate_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Sha"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "selected_plan_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Plan Id"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/RecoveryStageView"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SemanticStatus"
+          }
+        },
+        "required": [
+          "attempt_number",
+          "label",
+          "status",
+          "stages"
+        ],
+        "title": "RecoveryAttemptView",
+        "type": "object"
+      },
+      "RecoveryCaseView": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionReceiptView"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/RecoveryAttemptView"
+            },
+            "title": "Attempts",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceView"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "objective": {
+            "$ref": "#/components/schemas/ObjectiveContext"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/RecoveryPlanView"
+            },
+            "title": "Plans",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/RecoverySummary"
+          },
+          "verifications": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationView"
+            },
+            "title": "Verifications",
+            "type": "array"
+          },
+          "what_changed": {
+            "items": {
+              "$ref": "#/components/schemas/AttemptComparisonItem"
+            },
+            "title": "What Changed",
+            "type": "array"
+          },
+          "world": {
+            "$ref": "#/components/schemas/OperationalGraphView"
+          }
+        },
+        "required": [
+          "revision",
+          "objective",
+          "attempts",
+          "summary",
+          "world",
+          "plans",
+          "actions",
+          "verifications",
+          "what_changed",
+          "evidence"
+        ],
+        "title": "RecoveryCaseView",
+        "type": "object"
+      },
+      "RecoveryPlanView": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions_summary": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions Summary",
+            "type": "array"
+          },
+          "candidate_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Sha"
+          },
+          "critic_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Critic Summary"
+          },
+          "deterministic_rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deterministic Rejection Reason"
+          },
+          "plan_id": {
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolicyDecisionView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proposed_action_summary": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Proposed Action Summary",
+            "type": "array"
+          },
+          "recovery_attempt": {
+            "title": "Recovery Attempt",
+            "type": "integer"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "risk_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Score"
+          },
+          "selected": {
+            "title": "Selected",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "valid": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid"
+          }
+        },
+        "required": [
+          "plan_id",
+          "title",
+          "revision",
+          "recovery_attempt",
+          "selected"
+        ],
+        "title": "RecoveryPlanView",
+        "type": "object"
+      },
+      "RecoveryStageView": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          },
+          "related_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Related Evidence Ids",
+            "type": "array"
+          },
+          "semantic_kind": {
+            "$ref": "#/components/schemas/WorkflowStage"
+          },
+          "stage_id": {
+            "title": "Stage Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SemanticStatus"
+          },
+          "subtitle": {
+            "title": "Subtitle",
+            "type": "string"
+          },
+          "timestamp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timestamp"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage_id",
+          "semantic_kind",
+          "title",
+          "subtitle",
+          "status"
+        ],
+        "title": "RecoveryStageView",
+        "type": "object"
+      },
+      "RecoverySummary": {
+        "additionalProperties": false,
+        "properties": {
+          "what_changed": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "What Changed"
+          },
+          "what_happened": {
+            "title": "What Happened",
+            "type": "string"
+          },
+          "why_current_recovery_exists": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Why Current Recovery Exists"
+          }
+        },
+        "required": [
+          "what_happened"
+        ],
+        "title": "RecoverySummary",
+        "type": "object"
+      },
+      "SemanticStatus": {
+        "enum": [
+          "PENDING",
+          "CURRENT",
+          "COMPLETED",
+          "FAILED",
+          "UNAVAILABLE"
+        ],
+        "title": "SemanticStatus",
+        "type": "string"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerificationInvariantView": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Id"
+          },
+          "evidence_provenance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Provenance"
+          },
+          "expected": {
+            "title": "Expected",
+            "type": "string"
+          },
+          "invariant_id": {
+            "title": "Invariant Id",
+            "type": "string"
+          },
+          "observed": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          }
+        },
+        "required": [
+          "invariant_id",
+          "expected",
+          "status"
+        ],
+        "title": "VerificationInvariantView",
+        "type": "object"
+      },
+      "VerificationStatus": {
+        "enum": [
+          "PASSED",
+          "FAILED",
+          "PENDING",
+          "UNAVAILABLE"
+        ],
+        "title": "VerificationStatus",
+        "type": "string"
+      },
+      "VerificationView": {
+        "additionalProperties": false,
+        "properties": {
+          "invariants": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationInvariantView"
+            },
+            "title": "Invariants",
+            "type": "array"
+          },
+          "objective_id": {
+            "title": "Objective Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "recovery_attempt": {
+            "title": "Recovery Attempt",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VerificationStatus"
+          },
+          "verification_id": {
+            "title": "Verification Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verification_id",
+          "recovery_attempt",
+          "objective_id",
+          "status",
+          "invariants"
+        ],
+        "title": "VerificationView",
+        "type": "object"
+      },
+      "WorkflowStage": {
+        "enum": [
+          "DETECT",
+          "IMPACT",
+          "PLAN",
+          "ACT",
+          "VERIFY",
+          "REPLAN",
+          "RESTORED"
+        ],
+        "title": "WorkflowStage",
+        "type": "string"
+      }
+    }
+  },
+  "info": {
+    "description": "Recovery execution plus stable read-only presentation resources.",
+    "title": "Reflow Objective Recovery API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "health__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/v1/ui/evidence/{incident_id}": {
+      "get": {
+        "operationId": "ui_evidence_api_v1_ui_evidence__incident_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-none-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidencePageView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ui Evidence"
+      }
+    },
+    "/api/v1/ui/objectives": {
+      "get": {
+        "operationId": "ui_objectives_api_v1_ui_objectives_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ObjectiveFilter",
+              "default": "all"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-none-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectivesView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ui Objectives"
+      }
+    },
+    "/api/v1/ui/operator/context": {
+      "get": {
+        "operationId": "ui_operator_context_api_v1_ui_operator_context_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-none-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatorContextView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ui Operator Context"
+      }
+    },
+    "/api/v1/ui/overview": {
+      "get": {
+        "operationId": "ui_overview_api_v1_ui_overview_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "if-none-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ui Overview"
+      }
+    },
+    "/api/v1/ui/recoveries/{incident_id}": {
+      "get": {
+        "operationId": "ui_recovery_api_v1_ui_recoveries__incident_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-none-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCaseView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ui Recovery"
+      }
+    },
+    "/api/v1/ui/recoveries/{incident_id}/events": {
+      "get": {
+        "operationId": "ui_events_api_v1_ui_recoveries__incident_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-none-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionEventsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ui Events"
+      }
+    },
+    "/apps/objective_recovery_agent/trigger/p1c/pubsub": {
+      "post": {
+        "operationId": "receive_p1c_pubsub_apps_objective_recovery_agent_trigger_p1c_pubsub_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Envelope Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Receive P1C Pubsub"
+      }
+    },
+    "/apps/objective_recovery_agent/trigger/p1d/pubsub": {
+      "post": {
+        "operationId": "receive_p1d_pubsub_apps_objective_recovery_agent_trigger_p1d_pubsub_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Envelope Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Receive P1D Pubsub"
+      }
+    },
+    "/apps/objective_recovery_agent/trigger/pubsub": {
+      "post": {
+        "operationId": "receive_pubsub_apps_objective_recovery_agent_trigger_pubsub_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Envelope Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Receive Pubsub"
+      }
+    }
+  }
+}
