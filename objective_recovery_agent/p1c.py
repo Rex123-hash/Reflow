@@ -29,8 +29,11 @@ def authorize_p1c_intent(
     selected_plan_id = str(incident.get("selected_plan_id", ""))
     if not incident_id or not selected_plan_id:
         raise P1CAuthorizationError("persisted selected plan is required")
-    if incident.get("stage") != "VERIFYING":
-        raise P1CAuthorizationError("incident must be in VERIFYING")
+    stage = incident.get("stage")
+    if stage not in {"VERIFYING", "VERIFICATION_FAILED"}:
+        raise P1CAuthorizationError("incident must be in VERIFYING or completed P1C failure")
+    if stage == "VERIFICATION_FAILED" and incident.get("status") != "recovery_incomplete":
+        raise P1CAuthorizationError("completed P1C replay requires recovery_incomplete")
     if incident.get("action_receipt_status") != "verified":
         raise P1CAuthorizationError("P1B Calendar receipt must already be VERIFIED")
     action_id = "validate-release-v2"

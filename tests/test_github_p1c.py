@@ -348,10 +348,21 @@ def test_authorization_requires_verified_p1b_checkpoint() -> None:
         "action_receipt_status": "verified",
     }
     assert authorize_p1c_intent(valid, config).repository == config.repository
+    completed = {
+        **valid,
+        "stage": "VERIFICATION_FAILED",
+        "status": "recovery_incomplete",
+    }
+    assert authorize_p1c_intent(completed, config).repository == config.repository
     with pytest.raises(P1CAuthorizationError):
         authorize_p1c_intent({**valid, "stage": "PLAN_SELECTED"}, config)
     with pytest.raises(P1CAuthorizationError):
         authorize_p1c_intent({**valid, "action_receipt_status": "failed"}, config)
+    with pytest.raises(P1CAuthorizationError):
+        authorize_p1c_intent(
+            {**completed, "status": "resolved"},
+            config,
+        )
 
 
 class FakeResponse:
