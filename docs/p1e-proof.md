@@ -1,6 +1,22 @@
 # P1E Gmail Ingestion Proof Record
 
-Status: implementation verification in progress; no real Gmail proof has been claimed.
+Status: deterministic implementation and base infrastructure deployed; no real Gmail proof has
+been claimed because no dedicated mailbox or valid Desktop OAuth client has been designated.
+
+## Deployed base infrastructure
+
+- Deployed 27 August 2026 to private Cloud Run revision `objective-recovery-00014-dxx` at 100%
+  traffic.
+- Immutable image:
+  `us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/app@sha256:74f831aa830be8146c8c0c57dfca5b2f5b07e4a1a3a713192e9e962982d2f117`.
+- Terraform apply: 16 additions, one in-place service update, zero destroys.
+- Anonymous Cloud Run request: HTTP 403; authenticated health request: HTTP 200.
+- The Gmail OAuth secret container exists with zero versions. `GMAIL_MAILBOX` is empty and the
+  mailbox-conditioned renewal/reconciliation jobs do not exist. This is a deliberately disabled,
+  fail-closed state, not an active Gmail integration.
+- A local OAuth file discovered during readiness checking was not used: its non-secret metadata
+  identified a Web client from another Cloud project, while P1E requires a Desktop client for this
+  project. Its credential values were neither printed nor copied.
 
 ## Authority boundaries
 
