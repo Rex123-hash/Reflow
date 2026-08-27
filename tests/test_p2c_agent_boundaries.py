@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -31,6 +32,7 @@ from objective_recovery_agent.planning import (
     create_recovery_analyst_workflow,
     create_replan_critic_workflow,
     create_replan_workflow,
+    run_workflow,
     validate_recovery_analysis,
 )
 from objective_recovery_agent.schemas import (
@@ -375,3 +377,58 @@ def test_agent_output_contracts_have_no_chain_of_thought_surface() -> None:
     forbidden = {"prompt", "raw_prompt", "reasoning", "chain_of_thought"}
     for schema in schemas:
         assert not (forbidden & set(schema.model_json_schema()["properties"]))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("workflow", "payload", "agent_id"),
+    [
+        (
+            create_impact_analyst_workflow(),
+            ImpactAnalysisInput(disruption=real_facts(), known_nodes=[]),
+            AgentId.IMPACT_ANALYST,
+        ),
+        (
+            create_recovery_analyst_workflow(),
+            RecoveryAnalysisInput.model_validate(
+                build_recovery_analysis_input(replanning_context()).model_dump()
+            ),
+            AgentId.RECOVERY_ANALYST,
+        ),
+    ],
+)
+async def test_invalid_agent_schema_is_traced_as_failure(
+    monkeypatch: Any,
+    capsys: pytest.CaptureFixture[str],
+    workflow: Any,
+    payload: Any,
+    agent_id: AgentId,
+) -> None:
+    class InvalidOutputRunner:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+        async def run_async(self, **kwargs: object) -> Any:
+            yield SimpleNamespace(output={"invalid": True}, content=None, usage_metadata=None)
+
+    monkeypatch.setattr("objective_recovery_agent.planning.Runner", InvalidOutputRunner)
+    with pytest.raises(ValueError):
+        await run_workflow(
+            workflow,
+            payload,
+            trace=AgentTraceContext(agent_id, "invalid_schema_qualification"),
+        )
+    events = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert [item["status"] for item in events] == ["started", "failed"]
+    assert events[-1]["agent_id"] == agent_id.value
+    assert events[-1]["error_type"] == "ValidationError"
+    assert "output_fingerprint" not in events[-1]
+
+
+def test_model_retry_policy_is_bounded_to_two_attempts() -> None:
+    for workflow in (
+        create_impact_analyst_workflow(),
+        create_recovery_analyst_workflow(),
+    ):
+        agent = cast(Any, workflow.edges[0])[1]
+        assert agent.model.retry_options.attempts == 2

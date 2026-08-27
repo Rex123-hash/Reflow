@@ -343,6 +343,9 @@ async def run_workflow(
             output = json.loads(output_text)
         if output is None:
             raise ValueError(f"ADK workflow {workflow.name} produced no typed output")
+        output_schema = workflow.output_schema
+        if isinstance(output_schema, type) and issubclass(output_schema, BaseModel):
+            output = output_schema.model_validate(output)
     except BaseException as error:
         if trace is not None:
             emit_agent_event(
