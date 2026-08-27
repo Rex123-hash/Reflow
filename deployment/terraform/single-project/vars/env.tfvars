@@ -9,3 +9,6 @@ region = "us-central1"
 
 # Dedicated P1B demo calendar; never the owner's primary calendar.
 calendar_id = "57d10b3bec7fb1eda42a6f76ce0913a8cb35bda3406dcf8579e6ca75195bfb1d@group.calendar.google.com"
+
+# Dedicated P1E Gmail mailbox explicitly designated by the product owner.
+gmail_mailbox = "aamaank2405@gmail.com"

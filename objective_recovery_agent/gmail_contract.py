@@ -61,12 +61,15 @@ class GmailNotification(GmailModel):
             raise ValueError("invalid Gmail mailbox identity")
         return normalized
 
-    @field_validator("history_id")
+    @field_validator("history_id", mode="before")
     @classmethod
-    def validate_history_id(cls, value: str) -> str:
-        if not value.isdecimal() or int(value) < 0:
+    def validate_history_id(cls, value: object) -> str:
+        if isinstance(value, bool) or not isinstance(value, (str, int)):
             raise ValueError("Gmail history ID must be a non-negative decimal string")
-        return value
+        normalized = str(value)
+        if not normalized.isdecimal() or int(normalized) < 0:
+            raise ValueError("Gmail history ID must be a non-negative decimal string")
+        return normalized
 
 
 class GmailWatchResult(GmailModel):
@@ -92,6 +95,7 @@ class GmailProfile(GmailModel):
     email_address: str = Field(alias="emailAddress")
     history_id: str = Field(alias="historyId")
     messages_total: int = Field(default=0, alias="messagesTotal")
+    threads_total: int = Field(default=0, alias="threadsTotal")
 
 
 class GmailHistoryPage(GmailModel):

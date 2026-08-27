@@ -426,6 +426,19 @@ async def receive_gmail_pubsub(envelope_data: dict[str, object]) -> Response:
             raise ValueError("unexpected Gmail Pub/Sub subscription")
         await get_gmail_service().handle_notification(envelope)
     except (ValidationError, ValueError, binascii.Error, json.JSONDecodeError) as error:
+        safe_reasons = {
+            "invalid Gmail Pub/Sub notification": "notification_payload",
+            "unexpected Gmail Pub/Sub subscription": "subscription_identity",
+            "Gmail notification mailbox does not match configuration": "mailbox_identity",
+        }
+        emit_operational_event(
+            "GMAIL_PUSH_REJECTED",
+            rejection_reason=(
+                "envelope_contract"
+                if isinstance(error, ValidationError)
+                else safe_reasons.get(str(error), type(error).__name__)
+            ),
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"invalid Gmail Pub/Sub envelope: {type(error).__name__}",

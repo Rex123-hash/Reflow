@@ -237,6 +237,14 @@ def test_real_notification_decoding_and_validation() -> None:
     notification = decode_gmail_notification(envelope("12345678901234567890"))
     assert notification.email_address == MAILBOX
     assert notification.history_id == "12345678901234567890"
+    numeric_data = encoded(json.dumps({"emailAddress": MAILBOX, "historyId": 1234567890}))
+    numeric_envelope = PubSubEnvelope.model_validate(
+        {
+            "message": {"data": numeric_data, "messageId": "numeric-push"},
+            "subscription": SUBSCRIPTION,
+        }
+    )
+    assert decode_gmail_notification(numeric_envelope).history_id == "1234567890"
     bad = envelope("2").model_copy(
         update={"message": envelope("2").message.model_copy(update={"data": "%%%"})}
     )
@@ -661,7 +669,12 @@ def test_gateway_retries_429_and_5xx_but_fails_closed_on_credential_error() -> N
             Response(503, {}),
             Response(
                 200,
-                {"emailAddress": MAILBOX, "historyId": "100", "messagesTotal": 0},
+                {
+                    "emailAddress": MAILBOX,
+                    "historyId": "100",
+                    "messagesTotal": 0,
+                    "threadsTotal": 0,
+                },
             ),
         ]
     )
@@ -671,7 +684,9 @@ def test_gateway_retries_429_and_5xx_but_fails_closed_on_credential_error() -> N
         sleep=sleeps.append,
         jitter=lambda: 0,
     )
-    assert gateway.get_profile().email_address == MAILBOX
+    profile = gateway.get_profile()
+    assert profile.email_address == MAILBOX
+    assert profile.threads_total == 0
     assert retry_session.calls == 3
     assert sleeps == [1, 2]
 
