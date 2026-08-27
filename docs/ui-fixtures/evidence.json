@@ -1,12 +1,28 @@
 {
   "decisions": [
     {
+      "actions": [
+        {
+          "action_id": "act-reassign-api-migration",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "reassign_work_item",
+          "target": "work-api-migration"
+        },
+        {
+          "action_id": "act-assign-release-notes",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "assign_work_item",
+          "target": "work-release-notes"
+        }
+      ],
       "assumptions_summary": [
-        "person-backup has immediate repository context for work-api-migration",
-        "Unknown: Exact hours remaining on work-api-migration"
+        "person-backup can absorb API migration context immediately from existing codebase",
+        "Unknown: Exact percentage of API migration completed before disruption"
       ],
       "candidate_sha": null,
-      "critic_summary": "The plan relies on unknown remaining workload while operating assignees near total capacity, creating a severe deadline and overload risk without buffer.",
+      "critic_summary": "The plan introduces high overload and single-point-of-failure risk on person-backup while assuming seamless context handoff despite unquantified prior progress.",
       "deterministic_rejection_reason": null,
       "plan_id": "plan-deadline-first",
       "policy": {
@@ -16,23 +32,39 @@
         "violations": []
       },
       "proposed_action_summary": [
-        "reassign_task \u2192 work-api-migration",
-        "assign_task \u2192 work-release-notes"
+        "reassign_work_item \u2192 work-api-migration",
+        "assign_work_item \u2192 work-release-notes"
       ],
       "recovery_attempt": 1,
       "revision": 1,
-      "risk_score": 7,
+      "risk_score": 80,
       "selected": false,
       "title": "Deadline First",
       "valid": true
     },
     {
+      "actions": [
+        {
+          "action_id": "act-reassign-api-migration",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "reassign_work_item",
+          "target": "work-api-migration"
+        },
+        {
+          "action_id": "act-assign-api-tests",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "assign_work_item",
+          "target": "work-api-tests"
+        }
+      ],
       "assumptions_summary": [
-        "Test specifications for work-api-tests are up to date",
-        "Unknown: Scope of edge cases required in work-api-tests"
+        "Dedicated QA test authoring catches regressions before staging handoff",
+        "Unknown: Time required for person-qa to configure test harness for migrated endpoints"
       ],
       "candidate_sha": null,
-      "critic_summary": "Critical regression testing scope remains unquantified while QA bandwidth is constrained near capacity, threatening release gating.",
+      "critic_summary": "The plan relies on ungrounded assumptions regarding QA test harness setup and omitted release notes management within the target timeline.",
       "deterministic_rejection_reason": null,
       "plan_id": "plan-risk-minimization-first",
       "policy": {
@@ -42,23 +74,46 @@
         "violations": []
       },
       "proposed_action_summary": [
-        "reassign_task \u2192 work-api-migration",
-        "assign_task \u2192 work-api-tests"
+        "reassign_work_item \u2192 work-api-migration",
+        "assign_work_item \u2192 work-api-tests"
       ],
       "recovery_attempt": 1,
       "revision": 1,
-      "risk_score": 6,
-      "selected": true,
+      "risk_score": 60,
+      "selected": false,
       "title": "Risk Minimization First",
       "valid": true
     },
     {
+      "actions": [
+        {
+          "action_id": "act-reassign-api-migration",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "reassign_work_item",
+          "target": "work-api-migration"
+        },
+        {
+          "action_id": "act-assign-api-tests",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "assign_work_item",
+          "target": "work-api-tests"
+        },
+        {
+          "action_id": "act-assign-release-notes",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "assign_work_item",
+          "target": "work-release-notes"
+        }
+      ],
       "assumptions_summary": [
-        "Documentation and test tasks can proceed concurrently with API migration completion",
-        "Unknown: Additional sync time needed across three distributed streams"
+        "All three assignees can execute work streams concurrently without dependency bottlenecks",
+        "Unknown: Coordination overhead across the three parallel streams"
       ],
       "candidate_sha": null,
-      "critic_summary": "Assumes complete independence of concurrent tasks despite downstream dependencies between API changes, testing, and documentation.",
+      "critic_summary": "Assumes zero inter-stream dependency friction despite parallel execution of development, QA, and documentation across distinct individuals.",
       "deterministic_rejection_reason": null,
       "plan_id": "plan-resource-balance-first",
       "policy": {
@@ -68,52 +123,54 @@
         "violations": []
       },
       "proposed_action_summary": [
-        "reassign_task \u2192 work-api-migration",
-        "assign_task \u2192 work-api-tests",
-        "assign_task \u2192 work-release-notes"
+        "reassign_work_item \u2192 work-api-migration",
+        "assign_work_item \u2192 work-api-tests",
+        "assign_work_item \u2192 work-release-notes"
       ],
       "recovery_attempt": 1,
       "revision": 1,
-      "risk_score": 6,
-      "selected": false,
+      "risk_score": 55,
+      "selected": true,
       "title": "Resource Balance First",
       "valid": true
     },
     {
+      "actions": [
+        {
+          "action_id": "validate-release-v2-candidate-b",
+          "disposition": "EXECUTED",
+          "execution_evidence_id": "github-run:33106995963",
+          "kind": "github_release_validation",
+          "target": "Rex123-hash/EXperiments"
+        },
+        {
+          "action_id": "act-reassign-api-migration",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "reassign_work_item",
+          "target": "work-api-migration"
+        },
+        {
+          "action_id": "act-assign-api-tests",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "assign_work_item",
+          "target": "work-api-tests"
+        },
+        {
+          "action_id": "act-assign-release-notes",
+          "disposition": "PROPOSAL_ONLY",
+          "execution_evidence_id": null,
+          "kind": "assign_work_item",
+          "target": "work-release-notes"
+        }
+      ],
       "assumptions_summary": [
-        "Candidate B SHA 7b7881ed1785cc37e038c44193ff2373badf54e7 resolves the compatibility validation failure observed in Candidate A",
-        "Unknown: Exact execution time required for GitHub workflow run on candidate SHA 7b7881ed1785cc37e038c44193ff2373badf54e7"
+        "Candidate B SHA 7b7881ed1785cc37e038c44193ff2373badf54e7 resolves compatibility validation failure encountered in SHA 5353cf7c664f384d6642b5348c7f190187b06b4c",
+        "Unknown: Validation result of candidate SHA 7b7881ed1785cc37e038c44193ff2373badf54e7 on release-validation.yml"
       ],
       "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
-      "critic_summary": "Targets valid Candidate B and resolves release notes omission, but relies on high individual utilization (90% load across all assignees) without runtime validation evidence.",
-      "deterministic_rejection_reason": null,
-      "plan_id": "plan-deadline-first",
-      "policy": {
-        "blocking_unknowns": [],
-        "plan_id": "plan-deadline-first",
-        "valid": true,
-        "violations": []
-      },
-      "proposed_action_summary": [
-        "github_release_validation \u2192 Rex123-hash/EXperiments",
-        "reassign_task \u2192 work-api-migration",
-        "assign_task \u2192 work-api-tests",
-        "assign_task \u2192 work-release-notes"
-      ],
-      "recovery_attempt": 2,
-      "revision": 2,
-      "risk_score": 4,
-      "selected": false,
-      "title": "Deadline First",
-      "valid": true
-    },
-    {
-      "assumptions_summary": [
-        "Release documentation work can proceed in parallel with automated validation",
-        "Unknown: Scope of edge cases required in work-api-tests"
-      ],
-      "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
-      "critic_summary": "Correctly shifts to Candidate B and includes documentation deliverable, but carries over unquantified regression depth unknown (unk-qa-regression-depth) under tight 90% QA workload.",
+      "critic_summary": "Plan addresses the failure of candidate SHA 5353cf7c664f384d6642b5348c7f190187b06b4c by switching to available artifact Candidate B (SHA 7b7881ed1785cc37e038c44193ff2373badf54e7), but prematurely confirms assumption of validation resolution prior to execution and increases resource load across assignees.",
       "deterministic_rejection_reason": null,
       "plan_id": "plan-risk-minimization-first",
       "policy": {
@@ -124,117 +181,111 @@
       },
       "proposed_action_summary": [
         "github_release_validation \u2192 Rex123-hash/EXperiments",
-        "reassign_task \u2192 work-api-migration",
-        "assign_task \u2192 work-api-tests",
-        "assign_task \u2192 work-release-notes"
+        "reassign_work_item \u2192 work-api-migration",
+        "assign_work_item \u2192 work-api-tests",
+        "assign_work_item \u2192 work-release-notes"
       ],
       "recovery_attempt": 2,
       "revision": 2,
-      "risk_score": 5,
-      "selected": false,
-      "title": "Risk Minimization First",
-      "valid": true
-    },
-    {
-      "assumptions_summary": [
-        "Reduced allocations provide sufficient buffer across team members while satisfying work item needs",
-        "Unknown: Overhead of validation runner when executing candidate SHA 7b7881ed1785cc37e038c44193ff2373badf54e7"
-      ],
-      "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
-      "critic_summary": "Maintains safer team utilization buffers at 85% and adopts Candidate B, but reducing allocation percentages risks deliverable completion pace ahead of the protected deadline.",
-      "deterministic_rejection_reason": null,
-      "plan_id": "plan-resource-balance-first",
-      "policy": {
-        "blocking_unknowns": [],
-        "plan_id": "plan-resource-balance-first",
-        "valid": true,
-        "violations": []
-      },
-      "proposed_action_summary": [
-        "github_release_validation \u2192 Rex123-hash/EXperiments",
-        "reassign_task \u2192 work-api-migration",
-        "assign_task \u2192 work-api-tests",
-        "assign_task \u2192 work-release-notes"
-      ],
-      "recovery_attempt": 2,
-      "revision": 2,
-      "risk_score": 3,
+      "risk_score": 45,
       "selected": true,
-      "title": "Resource Balance First",
+      "title": "Risk Minimization First",
       "valid": true
     }
   ],
   "evidence": [
     {
-      "evidence_id": "calendar:receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
-      "evidence_kind": "external_read_back",
-      "external_reference": "google_calendar:p1b9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
-      "observed_at": "2026-08-27T13:00:38.502261+00:00",
+      "evidence_id": "gmail-message:1a0449e8567caa43",
+      "evidence_kind": "disruption_source",
+      "external_reference": null,
+      "observed_at": "2026-08-27T19:07:03+00:00",
       "proof_fields": {
-        "event_id": "p1b9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+        "affected_resource_count": 3,
+        "content_sha256": "4b8f4e932f682feb43171d14024bd88d61759b97a1d620340758d9c967065825",
+        "disruption_type": "personnel_unavailability",
+        "message_id": "1a0449e8567caa43"
+      },
+      "recovery_attempt": 1,
+      "semantic_status": "VERIFIED_HEALTHY",
+      "source_label": "Gmail",
+      "source_system": "gmail",
+      "summary": "The lead backend engineer is unavailable through August 28, 2026, blocking the API Migration work and handoff to staging/QA for Release V2.",
+      "title": "Gmail disruption source"
+    },
+    {
+      "evidence_id": "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+      "evidence_kind": "external_read_back",
+      "external_reference": "google_calendar:p1b9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+      "observed_at": "2026-08-27T19:07:45.772017+00:00",
+      "proof_fields": {
+        "event_id": "p1b9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
         "status": "confirmed"
       },
       "recovery_attempt": 1,
       "semantic_status": "VERIFIED_HEALTHY",
-      "source_system": "Google Calendar",
+      "source_label": "Google Calendar",
+      "source_system": "google_calendar",
       "summary": "The private coordination event was independently read back.",
       "title": "Recovery coordination preserved"
     },
     {
-      "evidence_id": "github-run:33074677098",
+      "evidence_id": "github-run:33106938744",
       "evidence_kind": "workflow_run_read_back",
-      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074677098",
-      "observed_at": "2026-08-27T13:01:19.348531+00:00",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33106938744",
+      "observed_at": "2026-08-27T19:08:04.820939+00:00",
       "proof_fields": {
         "candidate_sha": "5353cf7c664f384d6642b5348c7f190187b06b4c",
         "conclusion": "failure",
-        "release_id": 377826344,
+        "release_id": 378059416,
         "run_attempt": 1,
-        "run_id": 33074677098,
+        "run_id": 33106938744,
         "workflow_id": 343576501,
         "workflow_path": ".github/workflows/release-validation.yml"
       },
       "recovery_attempt": 1,
       "semantic_status": "VERIFIED_UNHEALTHY",
-      "source_system": "GitHub Actions",
+      "source_label": "GitHub Actions",
+      "source_system": "github_actions",
       "summary": "Exact pinned run completed with conclusion failure.",
-      "title": "Candidate validation run 33074677098"
+      "title": "Candidate validation run 33106938744"
     },
     {
-      "evidence_id": "github-run:33074746109",
+      "evidence_id": "github-run:33106995963",
       "evidence_kind": "workflow_run_read_back",
-      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074746109",
-      "observed_at": "2026-08-27T13:02:23.314259+00:00",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33106995963",
+      "observed_at": "2026-08-27T19:08:50.023382+00:00",
       "proof_fields": {
         "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
         "conclusion": "success",
-        "release_id": 377826902,
+        "release_id": 378060699,
         "run_attempt": 1,
-        "run_id": 33074746109,
+        "run_id": 33106995963,
         "workflow_id": 343576501,
         "workflow_path": ".github/workflows/release-validation.yml"
       },
       "recovery_attempt": 2,
       "semantic_status": "VERIFIED_HEALTHY",
-      "source_system": "GitHub Actions",
+      "source_label": "GitHub Actions",
+      "source_system": "github_actions",
       "summary": "Exact pinned run completed with conclusion success.",
-      "title": "Candidate validation run 33074746109"
+      "title": "Candidate validation run 33106995963"
     },
     {
-      "evidence_id": "github-promotion:377826902",
+      "evidence_id": "github-promotion:378060699",
       "evidence_kind": "full_release_read_back",
-      "external_reference": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
-      "observed_at": "2026-08-27T13:02:25.204043+00:00",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785",
+      "observed_at": "2026-08-27T19:08:52.074028+00:00",
       "proof_fields": {
         "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
         "draft": false,
-        "latest_release_id": 377826902,
+        "latest_release_id": 378060699,
         "prerelease": false,
-        "release_id": 377826902
+        "release_id": 378060699
       },
       "recovery_attempt": 2,
       "semantic_status": "VERIFIED_HEALTHY",
-      "source_system": "GitHub",
+      "source_label": "GitHub",
+      "source_system": "github",
       "summary": "The exact validated release was read back after promotion.",
       "title": "Validated release promoted to full latest release"
     },
@@ -242,14 +293,15 @@
       "evidence_id": "objective-verification:1",
       "evidence_kind": "objective_verification",
       "external_reference": null,
-      "observed_at": "2026-08-27T13:01:19.348531+00:00",
+      "observed_at": "2026-08-27T19:08:04.820939+00:00",
       "proof_fields": {
         "invariant_count": 1,
         "status": "FAILED"
       },
       "recovery_attempt": 1,
       "semantic_status": "VERIFIED_UNHEALTHY",
-      "source_system": "Reflow deterministic verifier",
+      "source_label": "Reflow deterministic verifier",
+      "source_system": "reflow_verifier",
       "summary": "At least one required objective invariant failed.",
       "title": "Recovery 01 objective verification"
     },
@@ -257,521 +309,554 @@
       "evidence_id": "objective-verification:2",
       "evidence_kind": "objective_verification",
       "external_reference": null,
-      "observed_at": "2026-08-27T13:02:27.241001+00:00",
+      "observed_at": "2026-08-27T19:08:54.504926+00:00",
       "proof_fields": {
         "invariant_count": 6,
         "status": "PASSED"
       },
       "recovery_attempt": 2,
       "semantic_status": "VERIFIED_HEALTHY",
-      "source_system": "Reflow deterministic verifier",
+      "source_label": "Reflow deterministic verifier",
+      "source_system": "reflow_verifier",
       "summary": "All required objective invariants passed.",
       "title": "Recovery 02 objective verification"
     }
   ],
-  "incident_id": "incident-938b303718a6abe41244",
+  "incident_id": "incident-0fc3af5b0bd1ad847aea",
   "receipts": [
     {
-      "action_id": "calendar-9bb0de0227d16b3713af",
+      "action_id": "calendar-9899dba7a849a328a49d",
       "desired_state_summary": "Create a private recovery coordination block.",
-      "evidence_id": "calendar:receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
-      "external_reference": "google_calendar:p1b9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+      "evidence_id": "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+      "external_reference": "google_calendar:p1b9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
       "kind": "calendar_coordination",
-      "read_back_at": "2026-08-27T13:00:38.502261+00:00",
+      "read_back_at": "2026-08-27T19:07:45.772017+00:00",
       "read_back_completed": true,
-      "receipt_id": "receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+      "receipt_id": "receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
       "receipt_status": "VERIFIED",
       "recovery_attempt": 1,
       "system": "google_calendar",
+      "system_label": "Google Calendar",
       "verification_state": "PASSED",
       "write_acknowledged": true,
-      "write_acknowledged_at": "2026-08-27T13:00:37.612179+00:00"
+      "write_acknowledged_at": "2026-08-27T19:07:44.825660+00:00"
     },
     {
       "action_id": "validate-release-v2",
       "desired_state_summary": "Create/adopt Candidate A prerelease and validate its exact workflow run.",
-      "evidence_id": "github-validation:github-cd0a32978a645e079242e5af068b547409f426ec25fadd4b437751902f63b671",
-      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074677098",
+      "evidence_id": "github-run:33106938744",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33106938744",
       "kind": "candidate_validation",
-      "read_back_at": "2026-08-27T13:01:19.348531+00:00",
+      "read_back_at": "2026-08-27T19:08:04.820939+00:00",
       "read_back_completed": true,
-      "receipt_id": "github-cd0a32978a645e079242e5af068b547409f426ec25fadd4b437751902f63b671",
+      "receipt_id": "github-95c383af3ed956f2d851544c245736a33979d528e74b2e267e2b31b28e1d9632",
       "receipt_status": "VERIFIED",
       "recovery_attempt": 1,
       "system": "github",
+      "system_label": "GitHub",
       "verification_state": "FAILED",
       "write_acknowledged": true,
-      "write_acknowledged_at": "2026-08-27T13:01:03.124204+00:00"
+      "write_acknowledged_at": "2026-08-27T19:07:50.137267+00:00"
     },
     {
-      "action_id": "p1d-github_release_validation-9c613523dd025de0",
+      "action_id": "p1d-github_release_validation-56a4daae83fa8f95",
       "desired_state_summary": "Create/adopt Candidate B prerelease and validate its exact workflow run.",
-      "evidence_id": "github-validation:github-9c613523dd025de0cb3370cba8c58917ea534156f537cfc58ddf40ddd1cd91c1",
-      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074746109",
+      "evidence_id": "github-run:33106995963",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/actions/runs/33106995963",
       "kind": "candidate_validation",
-      "read_back_at": "2026-08-27T13:02:23.314259+00:00",
+      "read_back_at": "2026-08-27T19:08:50.023382+00:00",
       "read_back_completed": true,
-      "receipt_id": "github-9c613523dd025de0cb3370cba8c58917ea534156f537cfc58ddf40ddd1cd91c1",
+      "receipt_id": "github-56a4daae83fa8f95bafc916bb01760675ebd9e8c814a73fab9a0cb85d6bfb5ff",
       "receipt_status": "VERIFIED",
       "recovery_attempt": 2,
       "system": "github",
+      "system_label": "GitHub",
       "verification_state": "PASSED",
       "write_acknowledged": true,
-      "write_acknowledged_at": "2026-08-27T13:01:54.009922+00:00"
+      "write_acknowledged_at": "2026-08-27T19:08:33.008705+00:00"
     },
     {
-      "action_id": "p1d-promote-608c9646e22ca5e8",
+      "action_id": "p1d-promote-64f1b1432d794060",
       "desired_state_summary": "Promote the exact validated Candidate B release to latest full release.",
-      "evidence_id": "github-promotion:github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
-      "external_reference": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
+      "evidence_id": "github-promotion:378060699",
+      "external_reference": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785",
       "kind": "full_release_promotion",
-      "read_back_at": "2026-08-27T13:02:25.204043+00:00",
+      "read_back_at": "2026-08-27T19:08:52.074028+00:00",
       "read_back_completed": true,
-      "receipt_id": "github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
+      "receipt_id": "github-64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0",
       "receipt_status": "VERIFIED",
       "recovery_attempt": 2,
       "system": "github",
+      "system_label": "GitHub",
       "verification_state": "PASSED",
       "write_acknowledged": true,
-      "write_acknowledged_at": "2026-08-27T13:02:25.204043+00:00"
+      "write_acknowledged_at": "2026-08-27T19:08:52.074028+00:00"
     }
   ],
-  "revision": 17,
+  "revision": 16,
   "timeline": [
     {
       "cursor": "1",
       "event_id": "EVENT_RECEIVED-6694ea8075001f66",
       "human_message": "Disruption received.",
+      "phase": "DETECT",
       "recovery_attempt": 1,
       "related_resource_ids": [
         "transport"
       ],
       "semantic_type": "EVENT_RECEIVED",
       "sequence": 1,
-      "source_authority": "reflow_workflow_ledger",
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable EVENT_RECEIVED event; key=transport.",
-      "timestamp": "2026-08-27T12:59:49.423854+00:00"
+      "timestamp": "2026-08-27T19:07:25.691375+00:00"
     },
     {
       "cursor": "2",
-      "event_id": "EVENT_INTERPRETED-938b303718a6abe4",
+      "event_id": "EVENT_INTERPRETED-0fc3af5b0bd1ad84",
       "human_message": "Disruption interpreted against the objective.",
+      "phase": "DETECT",
       "recovery_attempt": 1,
       "related_resource_ids": [
-        "p1d-fresh-autonomous-20260827-01"
+        "gmail:afead0040fd186930e8929daa7d778fb73ce9712faba1b725e9b50fbf1e60076"
       ],
       "semantic_type": "EVENT_INTERPRETED",
       "sequence": 2,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable EVENT_INTERPRETED event; key=p1d-fresh-autonomous-20260827-01.",
-      "timestamp": "2026-08-27T12:59:49.617269+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable EVENT_INTERPRETED event; key=gmail:afead0040fd186930e8929daa7d778fb73ce9712faba1b725e9b50fbf1e60076.",
+      "timestamp": "2026-08-27T19:07:25.869360+00:00"
     },
     {
       "cursor": "3",
       "event_id": "IMPACT_MAPPED-7b072f7206e3a867",
       "human_message": "Affected objective path mapped.",
+      "phase": "IMPACT",
       "recovery_attempt": 1,
       "related_resource_ids": [
         "release-v2"
       ],
       "semantic_type": "IMPACT_MAPPED",
       "sequence": 3,
-      "source_authority": "reflow_workflow_ledger",
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable IMPACT_MAPPED event; key=release-v2.",
-      "timestamp": "2026-08-27T12:59:49.799585+00:00"
+      "timestamp": "2026-08-27T19:07:26.115623+00:00"
     },
     {
       "cursor": "4",
       "event_id": "PLAN_GENERATION_STARTED-4eb842a775745898",
       "human_message": "Recovery planning started.",
+      "phase": "PLAN",
       "recovery_attempt": 1,
       "related_resource_ids": [
         "revision-0"
       ],
       "semantic_type": "PLAN_GENERATION_STARTED",
       "sequence": 4,
-      "source_authority": "reflow_workflow_ledger",
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable PLAN_GENERATION_STARTED event; key=revision-0.",
-      "timestamp": "2026-08-27T12:59:49.897382+00:00"
+      "timestamp": "2026-08-27T19:07:26.297993+00:00"
     },
     {
       "cursor": "5",
-      "event_id": "PLANNING_FAILED-3dafcfaa62183432",
-      "human_message": "Planning attempt failed safely and remained retryable.",
+      "event_id": "PLAN_CREATED-50a7c8c091bebc77",
+      "human_message": "A recovery future was persisted.",
+      "phase": "PLAN",
       "recovery_attempt": 1,
       "related_resource_ids": [
-        "attempt-1"
+        "plan-deadline-first"
       ],
-      "semantic_type": "PLANNING_FAILED",
+      "semantic_type": "PLAN_CREATED",
       "sequence": 5,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable PLANNING_FAILED event; key=attempt-1.",
-      "timestamp": "2026-08-27T13:00:01.498671+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable PLAN_CREATED event; key=plan-deadline-first.",
+      "timestamp": "2026-08-27T19:07:37.383580+00:00"
     },
     {
       "cursor": "6",
-      "event_id": "WORKFLOW_RESUMED-66708974e5efa736",
-      "human_message": "Recovery workflow resumed from durable state.",
+      "event_id": "PLAN_CREATED-1e9551ebbb99f474",
+      "human_message": "A recovery future was persisted.",
+      "phase": "PLAN",
       "recovery_attempt": 1,
       "related_resource_ids": [
-        "attempt-2"
+        "plan-risk-minimization-first"
       ],
-      "semantic_type": "WORKFLOW_RESUMED",
+      "semantic_type": "PLAN_CREATED",
       "sequence": 6,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable WORKFLOW_RESUMED event; key=attempt-2.",
-      "timestamp": "2026-08-27T13:00:16.398802+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable PLAN_CREATED event; key=plan-risk-minimization-first.",
+      "timestamp": "2026-08-27T19:07:37.428626+00:00"
     },
     {
       "cursor": "7",
-      "event_id": "PLAN_CREATED-50a7c8c091bebc77",
+      "event_id": "PLAN_CREATED-0d68bf7e6ff84277",
       "human_message": "A recovery future was persisted.",
+      "phase": "PLAN",
       "recovery_attempt": 1,
       "related_resource_ids": [
-        "plan-deadline-first"
+        "plan-resource-balance-first"
       ],
       "semantic_type": "PLAN_CREATED",
       "sequence": 7,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable PLAN_CREATED event; key=plan-deadline-first.",
-      "timestamp": "2026-08-27T13:00:31.282406+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable PLAN_CREATED event; key=plan-resource-balance-first.",
+      "timestamp": "2026-08-27T19:07:37.485128+00:00"
     },
     {
       "cursor": "8",
-      "event_id": "PLAN_CREATED-1e9551ebbb99f474",
-      "human_message": "A recovery future was persisted.",
-      "recovery_attempt": 1,
-      "related_resource_ids": [
-        "plan-risk-minimization-first"
-      ],
-      "semantic_type": "PLAN_CREATED",
-      "sequence": 8,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable PLAN_CREATED event; key=plan-risk-minimization-first.",
-      "timestamp": "2026-08-27T13:00:31.373914+00:00"
-    },
-    {
-      "cursor": "9",
-      "event_id": "PLAN_CREATED-0d68bf7e6ff84277",
-      "human_message": "A recovery future was persisted.",
-      "recovery_attempt": 1,
-      "related_resource_ids": [
-        "plan-resource-balance-first"
-      ],
-      "semantic_type": "PLAN_CREATED",
-      "sequence": 9,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable PLAN_CREATED event; key=plan-resource-balance-first.",
-      "timestamp": "2026-08-27T13:00:31.422128+00:00"
-    },
-    {
-      "cursor": "10",
       "event_id": "RISK_CRITIQUE_COMPLETED-50a7c8c091bebc77",
       "human_message": "Risk critique was persisted.",
+      "phase": "PLAN",
       "recovery_attempt": 1,
       "related_resource_ids": [
         "plan-deadline-first"
       ],
       "semantic_type": "RISK_CRITIQUE_COMPLETED",
-      "sequence": 10,
-      "source_authority": "reflow_workflow_ledger",
+      "sequence": 8,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable RISK_CRITIQUE_COMPLETED event; key=plan-deadline-first.",
-      "timestamp": "2026-08-27T13:00:36.796976+00:00"
+      "timestamp": "2026-08-27T19:07:44.128161+00:00"
     },
     {
-      "cursor": "11",
+      "cursor": "9",
       "event_id": "RISK_CRITIQUE_COMPLETED-1e9551ebbb99f474",
       "human_message": "Risk critique was persisted.",
+      "phase": "PLAN",
       "recovery_attempt": 1,
       "related_resource_ids": [
         "plan-risk-minimization-first"
       ],
       "semantic_type": "RISK_CRITIQUE_COMPLETED",
-      "sequence": 11,
-      "source_authority": "reflow_workflow_ledger",
+      "sequence": 9,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable RISK_CRITIQUE_COMPLETED event; key=plan-risk-minimization-first.",
-      "timestamp": "2026-08-27T13:00:36.880992+00:00"
+      "timestamp": "2026-08-27T19:07:44.173107+00:00"
     },
     {
-      "cursor": "12",
+      "cursor": "10",
       "event_id": "RISK_CRITIQUE_COMPLETED-0d68bf7e6ff84277",
       "human_message": "Risk critique was persisted.",
+      "phase": "PLAN",
       "recovery_attempt": 1,
       "related_resource_ids": [
         "plan-resource-balance-first"
       ],
       "semantic_type": "RISK_CRITIQUE_COMPLETED",
-      "sequence": 12,
-      "source_authority": "reflow_workflow_ledger",
+      "sequence": 10,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable RISK_CRITIQUE_COMPLETED event; key=plan-resource-balance-first.",
-      "timestamp": "2026-08-27T13:00:36.918175+00:00"
+      "timestamp": "2026-08-27T19:07:44.209441+00:00"
+    },
+    {
+      "cursor": "11",
+      "event_id": "PLAN_SELECTED-0d68bf7e6ff84277",
+      "human_message": "A recovery plan was selected deterministically.",
+      "phase": "PLAN",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "plan-resource-balance-first"
+      ],
+      "semantic_type": "PLAN_SELECTED",
+      "sequence": 11,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable PLAN_SELECTED event; key=plan-resource-balance-first.",
+      "timestamp": "2026-08-27T19:07:44.296693+00:00"
+    },
+    {
+      "cursor": "12",
+      "event_id": "ACTION_RECEIPT_VERIFIED-0d832913d3aa41a5",
+      "human_message": "External action receipt was independently verified.",
+      "phase": "ACT",
+      "recovery_attempt": 1,
+      "related_resource_ids": [
+        "receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c"
+      ],
+      "semantic_type": "ACTION_RECEIPT_VERIFIED",
+      "sequence": 12,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable ACTION_RECEIPT_VERIFIED event; key=receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c.",
+      "timestamp": "2026-08-27T19:07:45.864597+00:00"
     },
     {
       "cursor": "13",
-      "event_id": "PLAN_SELECTED-1e9551ebbb99f474",
-      "human_message": "A recovery plan was selected deterministically.",
+      "event_id": "GITHUB_RELEASE_ACKNOWLEDGED-60a712a14cbdc409",
+      "human_message": "GitHub acknowledged the exact release.",
+      "phase": "ACT",
       "recovery_attempt": 1,
       "related_resource_ids": [
-        "plan-risk-minimization-first"
+        "reflow-p1c-95c383af3ed956f2d851544c2457-5353cf7c664f",
+        "378059416"
       ],
-      "semantic_type": "PLAN_SELECTED",
+      "semantic_type": "GITHUB_RELEASE_ACKNOWLEDGED",
       "sequence": 13,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable PLAN_SELECTED event; key=plan-risk-minimization-first.",
-      "timestamp": "2026-08-27T13:00:37.011758+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable GITHUB_RELEASE_ACKNOWLEDGED event; key=reflow-p1c-95c383af3ed956f2d851544c2457-5353cf7c664f.",
+      "timestamp": "2026-08-27T19:07:51.647623+00:00"
     },
     {
       "cursor": "14",
-      "event_id": "ACTION_RECEIPT_VERIFIED-5a539ef411ca8cb2",
-      "human_message": "External action receipt was independently verified.",
+      "event_id": "GITHUB_RUN_PINNED-e98b7167b2e35477",
+      "human_message": "The exact GitHub Actions run and attempt were pinned.",
+      "phase": "ACT",
       "recovery_attempt": 1,
       "related_resource_ids": [
-        "receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6"
+        "33106938744:1",
+        "33106938744"
       ],
-      "semantic_type": "ACTION_RECEIPT_VERIFIED",
+      "semantic_type": "GITHUB_RUN_PINNED",
       "sequence": 14,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable ACTION_RECEIPT_VERIFIED event; key=receipt-9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6.",
-      "timestamp": "2026-08-27T13:00:38.605919+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable GITHUB_RUN_PINNED event; key=33106938744:1.",
+      "timestamp": "2026-08-27T19:08:05.254392+00:00"
     },
     {
       "cursor": "15",
-      "event_id": "GITHUB_RELEASE_ACKNOWLEDGED-83429b0a1c6d4b36",
-      "human_message": "GitHub acknowledged the exact release.",
-      "recovery_attempt": 1,
-      "related_resource_ids": [
-        "reflow-p1c-cd0a32978a645e079242e5af068b-5353cf7c664f",
-        "377826344"
-      ],
-      "semantic_type": "GITHUB_RELEASE_ACKNOWLEDGED",
-      "sequence": 15,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable GITHUB_RELEASE_ACKNOWLEDGED event; key=reflow-p1c-cd0a32978a645e079242e5af068b-5353cf7c664f.",
-      "timestamp": "2026-08-27T13:01:05.002756+00:00"
-    },
-    {
-      "cursor": "16",
-      "event_id": "GITHUB_RUN_PINNED-dffebe9957ff44ba",
-      "human_message": "The exact GitHub Actions run and attempt were pinned.",
-      "recovery_attempt": 1,
-      "related_resource_ids": [
-        "33074677098:1",
-        "33074677098"
-      ],
-      "semantic_type": "GITHUB_RUN_PINNED",
-      "sequence": 16,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable GITHUB_RUN_PINNED event; key=33074677098:1.",
-      "timestamp": "2026-08-27T13:01:19.776043+00:00"
-    },
-    {
-      "cursor": "17",
       "event_id": "OBJECTIVE_VERIFICATION_FAILED-3750a34936a7b9d7",
       "human_message": "The action was verified, but the objective remained unhealthy.",
+      "phase": "VERIFY",
       "recovery_attempt": 1,
       "related_resource_ids": [
         "release-validation-green"
       ],
       "semantic_type": "OBJECTIVE_VERIFICATION_FAILED",
-      "sequence": 17,
-      "source_authority": "reflow_workflow_ledger",
+      "sequence": 15,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable OBJECTIVE_VERIFICATION_FAILED event; key=release-validation-green.",
-      "timestamp": "2026-08-27T13:01:21.475671+00:00"
+      "timestamp": "2026-08-27T19:08:06.771992+00:00"
     },
     {
-      "cursor": "18",
+      "cursor": "16",
       "event_id": "REPLAN_STARTED-454d377459df3a19",
       "human_message": "Recovery 02 replanning started from failed evidence.",
+      "phase": "REPLAN",
       "recovery_attempt": 2,
       "related_resource_ids": [
         "revision-2"
       ],
       "semantic_type": "REPLAN_STARTED",
-      "sequence": 18,
-      "source_authority": "reflow_workflow_ledger",
+      "sequence": 16,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable REPLAN_STARTED event; key=revision-2.",
-      "timestamp": "2026-08-27T13:01:25.564529+00:00"
+      "timestamp": "2026-08-27T19:08:11.285047+00:00"
+    },
+    {
+      "cursor": "17",
+      "event_id": "PLANNER_CHECKPOINTED-20ca29fe6365e7e2",
+      "human_message": "Revised recovery futures were checkpointed.",
+      "phase": "REPLAN",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "47a41e43-339e-450c-8f94-9001a743b735"
+      ],
+      "semantic_type": "PLANNER_CHECKPOINTED",
+      "sequence": 17,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable PLANNER_CHECKPOINTED event; key=47a41e43-339e-450c-8f94-9001a743b735.",
+      "timestamp": "2026-08-27T19:08:28.149360+00:00"
+    },
+    {
+      "cursor": "18",
+      "event_id": "CRITIC_CHECKPOINTED-20ca29fe6365e7e2",
+      "human_message": "The context-aware risk critique was checkpointed.",
+      "phase": "REPLAN",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "47a41e43-339e-450c-8f94-9001a743b735"
+      ],
+      "semantic_type": "CRITIC_CHECKPOINTED",
+      "sequence": 18,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable CRITIC_CHECKPOINTED event; key=47a41e43-339e-450c-8f94-9001a743b735.",
+      "timestamp": "2026-08-27T19:08:32.629185+00:00"
     },
     {
       "cursor": "19",
-      "event_id": "PLANNER_CHECKPOINTED-558517953abdfd39",
-      "human_message": "Revised recovery futures were checkpointed.",
+      "event_id": "POLICY_EVALUATED-20ca29fe6365e7e2",
+      "human_message": "Deterministic recovery policy was evaluated.",
+      "phase": "REPLAN",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "12f8c8e2-ac51-4b13-bae7-14ccce5d6e69"
+        "47a41e43-339e-450c-8f94-9001a743b735"
       ],
-      "semantic_type": "PLANNER_CHECKPOINTED",
+      "semantic_type": "POLICY_EVALUATED",
       "sequence": 19,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable PLANNER_CHECKPOINTED event; key=12f8c8e2-ac51-4b13-bae7-14ccce5d6e69.",
-      "timestamp": "2026-08-27T13:01:46.135705+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable POLICY_EVALUATED event; key=47a41e43-339e-450c-8f94-9001a743b735.",
+      "timestamp": "2026-08-27T19:08:32.684151+00:00"
     },
     {
       "cursor": "20",
-      "event_id": "CRITIC_CHECKPOINTED-558517953abdfd39",
-      "human_message": "The context-aware risk critique was checkpointed.",
+      "event_id": "RECOVERY_SELECTED-1e9551ebbb99f474",
+      "human_message": "Recovery 02 was selected deterministically.",
+      "phase": "REPLAN",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "12f8c8e2-ac51-4b13-bae7-14ccce5d6e69"
+        "plan-risk-minimization-first"
       ],
-      "semantic_type": "CRITIC_CHECKPOINTED",
+      "semantic_type": "RECOVERY_SELECTED",
       "sequence": 20,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable CRITIC_CHECKPOINTED event; key=12f8c8e2-ac51-4b13-bae7-14ccce5d6e69.",
-      "timestamp": "2026-08-27T13:01:53.393943+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable RECOVERY_SELECTED event; key=plan-risk-minimization-first.",
+      "timestamp": "2026-08-27T19:08:32.822885+00:00"
     },
     {
       "cursor": "21",
-      "event_id": "POLICY_EVALUATED-558517953abdfd39",
-      "human_message": "Deterministic recovery policy was evaluated.",
+      "event_id": "GITHUB_RELEASE_ACKNOWLEDGED-8458c080436b9f94",
+      "human_message": "GitHub acknowledged the exact release.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "12f8c8e2-ac51-4b13-bae7-14ccce5d6e69"
+        "reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785",
+        "378060699"
       ],
-      "semantic_type": "POLICY_EVALUATED",
+      "semantic_type": "GITHUB_RELEASE_ACKNOWLEDGED",
       "sequence": 21,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable POLICY_EVALUATED event; key=12f8c8e2-ac51-4b13-bae7-14ccce5d6e69.",
-      "timestamp": "2026-08-27T13:01:53.468903+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable GITHUB_RELEASE_ACKNOWLEDGED event; key=reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785.",
+      "timestamp": "2026-08-27T19:08:34.398058+00:00"
     },
     {
       "cursor": "22",
-      "event_id": "RECOVERY_SELECTED-0d68bf7e6ff84277",
-      "human_message": "Recovery 02 was selected deterministically.",
+      "event_id": "INCIDENT_REOPENED-9d92468d22f6ad48",
+      "human_message": "The failed objective reopened for another recovery.",
+      "phase": "REPLAN",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "plan-resource-balance-first"
+        "799d3ad2567198e85e64947ca9f0ccf04aed4bb77d18f9608b85875d420754a0"
       ],
-      "semantic_type": "RECOVERY_SELECTED",
+      "semantic_type": "INCIDENT_REOPENED",
       "sequence": 22,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable RECOVERY_SELECTED event; key=plan-resource-balance-first.",
-      "timestamp": "2026-08-27T13:01:53.754770+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable INCIDENT_REOPENED event; key=799d3ad2567198e85e64947ca9f0ccf04aed4bb77d18f9608b85875d420754a0.",
+      "timestamp": "2026-08-27T19:08:49.909247+00:00"
     },
     {
       "cursor": "23",
-      "event_id": "GITHUB_RELEASE_ACKNOWLEDGED-15ef66a4873c98c9",
-      "human_message": "GitHub acknowledged the exact release.",
+      "event_id": "GITHUB_RUN_PINNED-ee7301e4378bb28d",
+      "human_message": "The exact GitHub Actions run and attempt were pinned.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
-        "377826902"
+        "33106995963:1",
+        "33106995963"
       ],
-      "semantic_type": "GITHUB_RELEASE_ACKNOWLEDGED",
+      "semantic_type": "GITHUB_RUN_PINNED",
       "sequence": 23,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable GITHUB_RELEASE_ACKNOWLEDGED event; key=reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785.",
-      "timestamp": "2026-08-27T13:01:55.371242+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable GITHUB_RUN_PINNED event; key=33106995963:1.",
+      "timestamp": "2026-08-27T19:08:50.389583+00:00"
     },
     {
       "cursor": "24",
-      "event_id": "GITHUB_RUN_PINNED-e156a7621d55229d",
-      "human_message": "The exact GitHub Actions run and attempt were pinned.",
+      "event_id": "RELEASE_VALIDATION_SUCCEEDED-ee7301e4378bb28d",
+      "human_message": "Candidate validation succeeded.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "33074746109:1",
-        "33074746109"
+        "33106995963:1",
+        "33106995963"
       ],
-      "semantic_type": "GITHUB_RUN_PINNED",
+      "semantic_type": "RELEASE_VALIDATION_SUCCEEDED",
       "sequence": 24,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable GITHUB_RUN_PINNED event; key=33074746109:1.",
-      "timestamp": "2026-08-27T13:02:10.105622+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable RELEASE_VALIDATION_SUCCEEDED event; key=33106995963:1.",
+      "timestamp": "2026-08-27T19:08:51.863435+00:00"
     },
     {
       "cursor": "25",
-      "event_id": "INCIDENT_REOPENED-121850742f8f45d8",
-      "human_message": "The failed objective reopened for another recovery.",
+      "event_id": "FULL_RELEASE_PROMOTION_STARTED-9a30ca675a04c668",
+      "human_message": "Promotion of the validated release started.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "b865dc601a0c56227b869890a3722251f116c97b9da31d8a91e922ce350cbfd0"
+        "64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0",
+        "378060699"
       ],
-      "semantic_type": "INCIDENT_REOPENED",
+      "semantic_type": "FULL_RELEASE_PROMOTION_STARTED",
       "sequence": 25,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable INCIDENT_REOPENED event; key=b865dc601a0c56227b869890a3722251f116c97b9da31d8a91e922ce350cbfd0.",
-      "timestamp": "2026-08-27T13:02:23.170724+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable FULL_RELEASE_PROMOTION_STARTED event; key=64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0.",
+      "timestamp": "2026-08-27T19:08:52.000304+00:00"
     },
     {
       "cursor": "26",
-      "event_id": "RELEASE_VALIDATION_SUCCEEDED-e156a7621d55229d",
-      "human_message": "Candidate validation succeeded.",
+      "event_id": "FULL_RELEASE_PROMOTION_VERIFIED-a3a0b3ed5bfb344e",
+      "human_message": "The full latest release was independently verified.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "33074746109:1",
-        "33074746109"
+        "github-64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0",
+        "378060699"
       ],
-      "semantic_type": "RELEASE_VALIDATION_SUCCEEDED",
+      "semantic_type": "FULL_RELEASE_PROMOTION_VERIFIED",
       "sequence": 26,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable RELEASE_VALIDATION_SUCCEEDED event; key=33074746109:1.",
-      "timestamp": "2026-08-27T13:02:24.962605+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable FULL_RELEASE_PROMOTION_VERIFIED event; key=github-64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0.",
+      "timestamp": "2026-08-27T19:08:53.712768+00:00"
     },
     {
       "cursor": "27",
-      "event_id": "FULL_RELEASE_PROMOTION_STARTED-c382e65f4087bdc0",
-      "human_message": "Promotion of the validated release started.",
-      "recovery_attempt": 2,
-      "related_resource_ids": [
-        "608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
-        "377826902"
-      ],
-      "semantic_type": "FULL_RELEASE_PROMOTION_STARTED",
-      "sequence": 27,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable FULL_RELEASE_PROMOTION_STARTED event; key=608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66.",
-      "timestamp": "2026-08-27T13:02:25.135258+00:00"
-    },
-    {
-      "cursor": "28",
-      "event_id": "FULL_RELEASE_PROMOTION_VERIFIED-5ac2ce69f4ea4d0b",
-      "human_message": "The full latest release was independently verified.",
-      "recovery_attempt": 2,
-      "related_resource_ids": [
-        "github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
-        "377826902"
-      ],
-      "semantic_type": "FULL_RELEASE_PROMOTION_VERIFIED",
-      "sequence": 28,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable FULL_RELEASE_PROMOTION_VERIFIED event; key=github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66.",
-      "timestamp": "2026-08-27T13:02:26.808893+00:00"
-    },
-    {
-      "cursor": "29",
       "event_id": "OBJECTIVE_VERIFICATION_STARTED-454d377459df3a19",
       "human_message": "Deterministic objective verification started.",
+      "phase": "VERIFY",
       "recovery_attempt": 2,
       "related_resource_ids": [
         "revision-2"
       ],
       "semantic_type": "OBJECTIVE_VERIFICATION_STARTED",
-      "sequence": 29,
-      "source_authority": "reflow_workflow_ledger",
+      "sequence": 27,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable OBJECTIVE_VERIFICATION_STARTED event; key=revision-2.",
-      "timestamp": "2026-08-27T13:02:27.213518+00:00"
+      "timestamp": "2026-08-27T19:08:54.472374+00:00"
     },
     {
-      "cursor": "30",
+      "cursor": "28",
       "event_id": "OBJECTIVE_RESTORED-454d377459df3a19",
       "human_message": "All required objective invariants passed.",
+      "phase": "RESTORED",
       "recovery_attempt": 2,
       "related_resource_ids": [
         "revision-2"
       ],
       "semantic_type": "OBJECTIVE_RESTORED",
-      "sequence": 30,
-      "source_authority": "reflow_workflow_ledger",
+      "sequence": 28,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable OBJECTIVE_RESTORED event; key=revision-2.",
-      "timestamp": "2026-08-27T13:02:27.403179+00:00"
+      "timestamp": "2026-08-27T19:08:54.588385+00:00"
     }
   ],
   "verification": [
     {
       "invariants": [
         {
-          "evidence_id": "recovery-1:release-validation-green",
-          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074677098",
+          "evidence_id": "objective-verification:1",
+          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/actions/runs/33106938744",
           "expected": "true",
           "invariant_id": "release-validation-green",
           "observed": "false",
@@ -780,7 +865,7 @@
         }
       ],
       "objective_id": "release-v2",
-      "observed_at": "2026-08-27T13:01:19.348531+00:00",
+      "observed_at": "2026-08-27T19:08:04.820939+00:00",
       "recovery_attempt": 1,
       "status": "FAILED",
       "verification_id": "recovery-1"
@@ -788,8 +873,8 @@
     {
       "invariants": [
         {
-          "evidence_id": "recovery-2:active-release-candidate-revised",
-          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
+          "evidence_id": "objective-verification:2",
+          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785",
           "expected": "true",
           "invariant_id": "active-release-candidate-revised",
           "observed": "true",
@@ -797,8 +882,8 @@
           "status": "PASSED"
         },
         {
-          "evidence_id": "recovery-2:coordination-action-preserved",
-          "evidence_provenance": "google_calendar:p1b9bb0de0227d16b3713afc124a7f61c717d148e12321fc459357ab9e9a52441f6",
+          "evidence_id": "objective-verification:2",
+          "evidence_provenance": "google_calendar:p1b9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
           "expected": "true",
           "invariant_id": "coordination-action-preserved",
           "observed": "true",
@@ -806,8 +891,8 @@
           "status": "PASSED"
         },
         {
-          "evidence_id": "recovery-2:external-correlation-fresh",
-          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
+          "evidence_id": "objective-verification:2",
+          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785",
           "expected": "true",
           "invariant_id": "external-correlation-fresh",
           "observed": "true",
@@ -815,8 +900,8 @@
           "status": "PASSED"
         },
         {
-          "evidence_id": "recovery-2:protected-release-deadline-satisfied",
-          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
+          "evidence_id": "objective-verification:2",
+          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785",
           "expected": "true",
           "invariant_id": "protected-release-deadline-satisfied",
           "observed": "true",
@@ -824,8 +909,8 @@
           "status": "PASSED"
         },
         {
-          "evidence_id": "recovery-2:release-validation-green",
-          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/actions/runs/33074746109",
+          "evidence_id": "objective-verification:2",
+          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/actions/runs/33106995963",
           "expected": "true",
           "invariant_id": "release-validation-green",
           "observed": "true",
@@ -833,8 +918,8 @@
           "status": "PASSED"
         },
         {
-          "evidence_id": "recovery-2:shipped-full-release",
-          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
+          "evidence_id": "objective-verification:2",
+          "evidence_provenance": "https://github.com/Rex123-hash/EXperiments/releases/tag/reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785",
           "expected": "true",
           "invariant_id": "shipped-full-release",
           "observed": "true",
@@ -843,7 +928,7 @@
         }
       ],
       "objective_id": "release-v2",
-      "observed_at": "2026-08-27T13:02:27.241001+00:00",
+      "observed_at": "2026-08-27T19:08:54.504926+00:00",
       "recovery_attempt": 2,
       "status": "PASSED",
       "verification_id": "recovery-2"

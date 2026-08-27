@@ -72,7 +72,10 @@
             "type": "integer"
           },
           "system": {
-            "title": "System",
+            "$ref": "#/components/schemas/SourceAuthority"
+          },
+          "system_label": {
+            "title": "System Label",
             "type": "string"
           },
           "verification_state": {
@@ -99,6 +102,7 @@
           "recovery_attempt",
           "kind",
           "system",
+          "system_label",
           "desired_state_summary",
           "receipt_status",
           "write_acknowledged",
@@ -224,6 +228,77 @@
         ],
         "title": "CurrentPriority",
         "type": "object"
+      },
+      "DetectContextView": {
+        "additionalProperties": false,
+        "properties": {
+          "affected_resource_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Resource Ids",
+            "type": "array"
+          },
+          "bounded_summary": {
+            "title": "Bounded Summary",
+            "type": "string"
+          },
+          "disruption_type": {
+            "title": "Disruption Type",
+            "type": "string"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "source_evidence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Evidence Id"
+          },
+          "source_label": {
+            "title": "Source Label",
+            "type": "string"
+          },
+          "source_system": {
+            "$ref": "#/components/schemas/SourceAuthority"
+          }
+        },
+        "required": [
+          "source_system",
+          "source_label",
+          "disruption_type",
+          "bounded_summary"
+        ],
+        "title": "DetectContextView",
+        "type": "object"
+      },
+      "EventPhase": {
+        "enum": [
+          "DETECT",
+          "IMPACT",
+          "PLAN",
+          "ACT",
+          "VERIFY",
+          "REPLAN",
+          "RESTORED",
+          "SYSTEM"
+        ],
+        "title": "EventPhase",
+        "type": "string"
       },
       "EvidencePageView": {
         "additionalProperties": false,
@@ -355,9 +430,12 @@
           "semantic_status": {
             "$ref": "#/components/schemas/EvidenceSemanticStatus"
           },
-          "source_system": {
-            "title": "Source System",
+          "source_label": {
+            "title": "Source Label",
             "type": "string"
+          },
+          "source_system": {
+            "$ref": "#/components/schemas/SourceAuthority"
           },
           "summary": {
             "title": "Summary",
@@ -372,6 +450,7 @@
           "evidence_id",
           "recovery_attempt",
           "source_system",
+          "source_label",
           "evidence_kind",
           "title",
           "semantic_status",
@@ -395,6 +474,9 @@
             "title": "Human Message",
             "type": "string"
           },
+          "phase": {
+            "$ref": "#/components/schemas/EventPhase"
+          },
           "recovery_attempt": {
             "title": "Recovery Attempt",
             "type": "integer"
@@ -415,7 +497,10 @@
             "type": "integer"
           },
           "source_authority": {
-            "title": "Source Authority",
+            "$ref": "#/components/schemas/SourceAuthority"
+          },
+          "source_label": {
+            "title": "Source Label",
             "type": "string"
           },
           "technical_summary": {
@@ -433,10 +518,12 @@
           "cursor",
           "timestamp",
           "recovery_attempt",
+          "phase",
           "semantic_type",
           "human_message",
           "technical_summary",
-          "source_authority"
+          "source_authority",
+          "source_label"
         ],
         "title": "ExecutionEventView",
         "type": "object"
@@ -561,6 +648,21 @@
             "title": "Current Recovery Number",
             "type": "integer"
           },
+          "deadline_at": {
+            "title": "Deadline At",
+            "type": "string"
+          },
+          "deadline_margin_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline Margin Seconds"
+          },
           "deadline_timezone": {
             "title": "Deadline Timezone",
             "type": "string"
@@ -592,9 +694,31 @@
             "title": "Protected Deadline",
             "type": "string"
           },
+          "restored_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restored At"
+          },
           "revision": {
             "title": "Revision",
             "type": "integer"
+          },
+          "time_remaining_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Remaining Seconds"
           },
           "title": {
             "title": "Title",
@@ -610,6 +734,7 @@
           "title",
           "health",
           "protected_deadline",
+          "deadline_at",
           "deadline_timezone",
           "current_recovery_number",
           "workflow_stage",
@@ -924,6 +1049,54 @@
         "title": "OverviewView",
         "type": "object"
       },
+      "PlanActionDisposition": {
+        "enum": [
+          "PROPOSAL_ONLY",
+          "EXECUTABLE",
+          "EXECUTED"
+        ],
+        "title": "PlanActionDisposition",
+        "type": "string"
+      },
+      "PlanActionView": {
+        "additionalProperties": false,
+        "properties": {
+          "action_id": {
+            "title": "Action Id",
+            "type": "string"
+          },
+          "disposition": {
+            "$ref": "#/components/schemas/PlanActionDisposition"
+          },
+          "execution_evidence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Execution Evidence Id"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_id",
+          "kind",
+          "target",
+          "disposition"
+        ],
+        "title": "PlanActionView",
+        "type": "object"
+      },
       "PolicyDecisionView": {
         "additionalProperties": false,
         "properties": {
@@ -1077,6 +1250,16 @@
             "title": "Attempts",
             "type": "array"
           },
+          "detect_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DetectContextView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "evidence": {
             "items": {
               "$ref": "#/components/schemas/EvidenceView"
@@ -1093,6 +1276,16 @@
             },
             "title": "Plans",
             "type": "array"
+          },
+          "replan_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReplanContextView"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "revision": {
             "title": "Revision",
@@ -1137,6 +1330,13 @@
       "RecoveryPlanView": {
         "additionalProperties": false,
         "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/PlanActionView"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
           "assumptions_summary": {
             "items": {
               "type": "string"
@@ -1344,6 +1544,73 @@
         "title": "RecoverySummary",
         "type": "object"
       },
+      "ReplanContextView": {
+        "additionalProperties": false,
+        "properties": {
+          "changed_context_summary": {
+            "title": "Changed Context Summary",
+            "type": "string"
+          },
+          "failed_effect_fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Effect Fingerprint"
+          },
+          "failed_evidence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Evidence Id"
+          },
+          "failed_invariant_id": {
+            "title": "Failed Invariant Id",
+            "type": "string"
+          },
+          "prior_attempt": {
+            "title": "Prior Attempt",
+            "type": "integer"
+          },
+          "recovery_attempt": {
+            "title": "Recovery Attempt",
+            "type": "integer"
+          },
+          "replanning_input_fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replanning Input Fingerprint"
+          },
+          "replanning_input_summary": {
+            "title": "Replanning Input Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "recovery_attempt",
+          "prior_attempt",
+          "failed_invariant_id",
+          "replanning_input_summary",
+          "changed_context_summary"
+        ],
+        "title": "ReplanContextView",
+        "type": "object"
+      },
       "SemanticStatus": {
         "enum": [
           "PENDING",
@@ -1353,6 +1620,21 @@
           "UNAVAILABLE"
         ],
         "title": "SemanticStatus",
+        "type": "string"
+      },
+      "SourceAuthority": {
+        "enum": [
+          "gmail",
+          "google_calendar",
+          "github",
+          "github_actions",
+          "reflow_verifier",
+          "reflow_policy",
+          "reflow_engine",
+          "reflow_graph",
+          "unknown"
+        ],
+        "title": "SourceAuthority",
         "type": "string"
       },
       "ValidationError": {
@@ -1905,6 +2187,110 @@
           }
         },
         "summary": "Ui Events"
+      }
+    },
+    "/apps/objective_recovery_agent/internal/gmail/reconcile": {
+      "post": {
+        "operationId": "reconcile_gmail_history_apps_objective_recovery_agent_internal_gmail_reconcile_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Reconcile Gmail History Apps Objective Recovery Agent Internal Gmail Reconcile Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Reconcile Gmail History"
+      }
+    },
+    "/apps/objective_recovery_agent/internal/gmail/watch/initialize": {
+      "post": {
+        "operationId": "initialize_gmail_watch_apps_objective_recovery_agent_internal_gmail_watch_initialize_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Initialize Gmail Watch Apps Objective Recovery Agent Internal Gmail Watch Initialize Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Initialize Gmail Watch"
+      }
+    },
+    "/apps/objective_recovery_agent/internal/gmail/watch/renew": {
+      "post": {
+        "operationId": "renew_gmail_watch_apps_objective_recovery_agent_internal_gmail_watch_renew_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Renew Gmail Watch Apps Objective Recovery Agent Internal Gmail Watch Renew Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Renew Gmail Watch"
+      }
+    },
+    "/apps/objective_recovery_agent/trigger/gmail/pubsub": {
+      "post": {
+        "operationId": "receive_gmail_pubsub_apps_objective_recovery_agent_trigger_gmail_pubsub_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Envelope Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Receive Gmail Pubsub"
       }
     },
     "/apps/objective_recovery_agent/trigger/p1c/pubsub": {

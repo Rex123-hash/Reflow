@@ -14,6 +14,7 @@ from objective_recovery_agent.presentation import (
     workflow_stage,
 )
 from objective_recovery_agent.ui_schemas import (
+    EventPhase,
     EvidencePageView,
     ExecutionEventsView,
     ObjectiveFilter,
@@ -21,12 +22,15 @@ from objective_recovery_agent.ui_schemas import (
     ObjectivesView,
     OperatorContextView,
     OverviewView,
+    PlanActionDisposition,
     RecoveryCaseView,
     SemanticStatus,
+    SourceAuthority,
     VerificationStatus,
     WorkflowStage,
 )
 from objective_recovery_agent.ui_store import InMemoryPresentationStore
+from pydantic import ValidationError
 
 INCIDENT = "incident-p2a-real-like"
 A = "5353cf7c664f384d6642b5348c7f190187b06b4c"
@@ -51,7 +55,15 @@ def candidate(plan_id: str, sha: str, risk: int) -> dict[str, Any]:
         "plan_id": plan_id,
         "strategy_type": "risk-minimization-first",
         "initial_risk_score": risk,
-        "actions": [action("github_release_validation", sha, f"action-{plan_id}")],
+        "actions": [
+            action("github_release_validation", sha, f"action-{plan_id}"),
+            {
+                "action_id": f"assign-{plan_id}",
+                "action_type": "reassign_task",
+                "target": "work-api-migration",
+                "parameters": [],
+            },
+        ],
         "assumptions": [{"description": "Immutable artifact remains available."}],
         "unknowns": [],
     }
@@ -134,8 +146,15 @@ def restored_store() -> InMemoryPresentationStore:
             "affected_node_ids": ["release-v2", "work-api-migration"],
         },
         "disruption": {
+            "event_type": "personnel_unavailability",
+            "occurred_at": "2026-08-27T12:59:48+00:00",
+            "source": "gmail",
             "summary": "Backend lead became unavailable during release delivery.",
             "disrupted_node_ids": ["person-backend-lead"],
+            "evidence_references": [
+                "gmail-message:gmail-message-canonical",
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            ],
         },
         "stage": "RESOLVED",
         "status": "objective_restored",
@@ -144,6 +163,7 @@ def restored_store() -> InMemoryPresentationStore:
         "active_plan_revision": 2,
         "replan_count": 1,
         "updated_at": "2026-08-27T13:02:27+00:00",
+        "resolved_at": "2026-08-27T13:02:27+00:00",
         "selected_plan_id": "plan-r1",
         "planning_run": {
             "candidates": {"plans": [candidate("plan-r1", A, 2)]},
@@ -179,7 +199,20 @@ def restored_store() -> InMemoryPresentationStore:
     a_repeat = candidate("plan-r2-a-repeat", A, 1)
     store.revisions[(INCIDENT, 2)] = {
         "replanning_input": {
+            "fingerprint": "b" * 64,
             "context": {
+                "objective": {"objective_id": "release-v2"},
+                "objective_invariants": [
+                    "coordination-action-preserved",
+                    "active-release-candidate-revised",
+                    "release-validation-green",
+                    "shipped-full-release",
+                    "external-correlation-fresh",
+                    "protected-release-deadline-satisfied",
+                ],
+                "failed_invariant_id": "release-validation-green",
+                "failed_candidate_sha": A,
+                "failed_recovery_effects": [{"fingerprint": "c" * 64}],
                 "objective_graph": {
                     "nodes": [
                         {"node_id": "release-v2", "label": "Ship Release V2", "kind": "objective"},
@@ -201,8 +234,8 @@ def restored_store() -> InMemoryPresentationStore:
                             "relation": "depends_on",
                         }
                     ],
-                }
-            }
+                },
+            },
         },
         "planner_checkpoint": {"candidates": {"plans": [a_repeat, b_plan]}},
         "critic_checkpoint": {
@@ -331,6 +364,26 @@ def service(store: InMemoryPresentationStore | None = None) -> PresentationServi
         store or restored_store(),
         clock=lambda: datetime(2026, 8, 27, 13, tzinfo=UTC),
     )
+
+
+def active_verifying_store() -> InMemoryPresentationStore:
+    store = restored_store()
+    incident = store.incidents[INCIDENT]
+    incident.update(
+        {
+            "stage": "VERIFYING",
+            "status": "verifying",
+            "revision": 16,
+            "updated_at": "2026-08-27T13:02:26+00:00",
+        }
+    )
+    for field in ("final_verification", "resolved_at", "active_candidate_sha"):
+        incident.pop(field, None)
+    store.revisions[(INCIDENT, 2)].pop("closure_result", None)
+    store.events[INCIDENT] = [
+        event for event in store.events[INCIDENT] if event["event_type"] != "OBJECTIVE_RESTORED"
+    ]
+    return store
 
 
 @pytest.mark.parametrize(
@@ -510,6 +563,154 @@ def test_presentation_layer_has_no_frontend_dependency() -> None:
     assert "import frontend" not in source
 
 
+def test_every_public_evidence_reference_resolves_exactly_once() -> None:
+    case = service().recovery_case(INCIDENT)
+    evidence_ids = [item.evidence_id for item in case.evidence]
+    assert len(evidence_ids) == len(set(evidence_ids))
+    references = [
+        evidence_id
+        for attempt in case.attempts
+        for stage in attempt.stages
+        for evidence_id in stage.related_evidence_ids
+    ]
+    references.extend(item.evidence_id for item in case.actions if item.evidence_id)
+    references.extend(
+        invariant.evidence_id
+        for verification in case.verifications
+        for invariant in verification.invariants
+        if invariant.evidence_id
+    )
+    references.extend(
+        action.execution_evidence_id
+        for plan in case.plans
+        for action in plan.actions
+        if action.execution_evidence_id
+    )
+    assert references
+    assert all(evidence_ids.count(reference) == 1 for reference in references)
+
+
+def test_unresolved_evidence_reference_fails_contract_validation() -> None:
+    serialized = service().recovery_case(INCIDENT).model_dump(mode="json")
+    serialized["evidence"] = [
+        item for item in serialized["evidence"] if item["evidence_id"] != "objective-verification:2"
+    ]
+    with pytest.raises(ValidationError, match="unresolved evidence references"):
+        RecoveryCaseView.model_validate(serialized)
+
+
+def test_pending_verification_exposes_authoritative_expected_invariants() -> None:
+    case = service(active_verifying_store()).recovery_case(INCIDENT)
+    pending = case.verifications[-1]
+    expected = active_verifying_store().revisions[(INCIDENT, 2)]["replanning_input"]["context"][
+        "objective_invariants"
+    ]
+    assert pending.status is VerificationStatus.PENDING
+    assert [item.invariant_id for item in pending.invariants] == expected
+    assert all(
+        item.expected == "true"
+        and item.observed is None
+        and item.status is VerificationStatus.PENDING
+        for item in pending.invariants
+    )
+
+
+def test_plan_actions_distinguish_proposal_executable_and_executed_truth() -> None:
+    case = service().recovery_case(INCIDENT)
+    selected = next(item for item in case.plans if item.revision == 2 and item.selected)
+    assignment = next(item for item in selected.actions if item.kind == "reassign_task")
+    github = next(item for item in selected.actions if item.kind == "github_release_validation")
+    assert assignment.disposition is PlanActionDisposition.PROPOSAL_ONLY
+    assert assignment.execution_evidence_id is None
+    assert github.disposition is PlanActionDisposition.EXECUTED
+    assert github.execution_evidence_id == "github-run:102"
+
+    pending_store = restored_store()
+    pending_store.receipts.pop("receipt-b")
+    pending = service(pending_store).recovery_case(INCIDENT)
+    pending_plan = next(item for item in pending.plans if item.revision == 2 and item.selected)
+    pending_github = next(
+        item for item in pending_plan.actions if item.kind == "github_release_validation"
+    )
+    assert pending_github.disposition is PlanActionDisposition.EXECUTABLE
+    assert pending_github.execution_evidence_id is None
+
+
+def test_objective_timing_uses_restoration_time_not_viewing_clock() -> None:
+    restored = service().recovery_case(INCIDENT).objective
+    expected_margin = int(
+        (
+            datetime(2026, 8, 28, 17, tzinfo=UTC) - datetime(2026, 8, 27, 13, 2, 27, tzinfo=UTC)
+        ).total_seconds()
+    )
+    assert restored.restored_at == "2026-08-27T13:02:27+00:00"
+    assert restored.deadline_margin_seconds == expected_margin
+    assert restored.time_remaining_seconds is None
+
+    viewed_later = PresentationService(
+        restored_store(), clock=lambda: datetime(2030, 1, 1, tzinfo=UTC)
+    ).recovery_case(INCIDENT)
+    assert viewed_later.objective.deadline_margin_seconds == expected_margin
+    assert viewed_later.objective.time_remaining_seconds is None
+
+    active = service(active_verifying_store()).recovery_case(INCIDENT).objective
+    assert active.restored_at is None
+    assert active.deadline_margin_seconds is None
+    assert active.time_remaining_seconds == 100800
+
+
+def test_event_phase_metadata_preserves_durable_chronology() -> None:
+    events = service().events(INCIDENT).events
+    assert [item.timestamp for item in events] == sorted(item.timestamp for item in events)
+    assert (
+        next(item for item in events if item.semantic_type == "EVENT_RECEIVED").phase
+        is EventPhase.DETECT
+    )
+    assert (
+        next(item for item in events if item.semantic_type == "REPLAN_STARTED").phase
+        is EventPhase.REPLAN
+    )
+    restored = next(item for item in events if item.semantic_type == "OBJECTIVE_RESTORED")
+    assert restored.phase is EventPhase.RESTORED
+    assert restored.timestamp == "2026-08-27T13:02:27+00:00"
+
+
+def test_detect_replan_and_normalized_source_authorities_are_sanitized() -> None:
+    case = service().recovery_case(INCIDENT)
+    assert case.detect_context is not None
+    assert case.detect_context.source_system is SourceAuthority.GMAIL
+    assert case.detect_context.source_evidence_id == "gmail-message:gmail-message-canonical"
+    assert case.detect_context.affected_resource_ids == ["person-backend-lead"]
+    assert case.replan_context is not None
+    assert case.replan_context.failed_invariant_id == "release-validation-green"
+    assert case.replan_context.failed_evidence_id == "objective-verification:1"
+    assert case.replan_context.replanning_input_fingerprint == "b" * 64
+    assert case.replan_context.failed_effect_fingerprint == "c" * 64
+    assert {item.source_system for item in case.evidence} >= {
+        SourceAuthority.GMAIL,
+        SourceAuthority.GOOGLE_CALENDAR,
+        SourceAuthority.GITHUB_ACTIONS,
+        SourceAuthority.REFLOW_VERIFIER,
+    }
+    assert all(
+        item.source_authority is SourceAuthority.REFLOW_ENGINE
+        for item in service().events(INCIDENT).events
+    )
+    serialized = str(case.model_dump(mode="json")).casefold()
+    for forbidden in (
+        "raw_mime",
+        "normalized_text",
+        "access_token",
+        "refresh_token",
+        "oauth",
+        "authorization",
+        "private_prompt",
+        "chain_of_thought",
+        "thought_signature",
+    ):
+        assert forbidden not in serialized
+
+
 def test_real_sanitized_fixtures_validate_against_exact_contract_models() -> None:
     root = Path(__file__).parents[1] / "docs" / "ui-fixtures"
     OverviewView.model_validate_json((root / "overview.json").read_text(encoding="utf-8"))
@@ -517,17 +718,30 @@ def test_real_sanitized_fixtures_validate_against_exact_contract_models() -> Non
     active = RecoveryCaseView.model_validate_json(
         (root / "recovery-active.json").read_text(encoding="utf-8")
     )
-    RecoveryCaseView.model_validate_json(
+    restored = RecoveryCaseView.model_validate_json(
         (root / "recovery-restored.json").read_text(encoding="utf-8")
     )
-    EvidencePageView.model_validate_json((root / "evidence.json").read_text(encoding="utf-8"))
-    ExecutionEventsView.model_validate_json((root / "events.json").read_text(encoding="utf-8"))
+    evidence = EvidencePageView.model_validate_json(
+        (root / "evidence.json").read_text(encoding="utf-8")
+    )
+    events = ExecutionEventsView.model_validate_json(
+        (root / "events.json").read_text(encoding="utf-8")
+    )
     OperatorContextView.model_validate_json(
         (root / "operator-context.json").read_text(encoding="utf-8")
     )
-    assert active.revision == 16
+    assert active.revision == 15
     assert active.objective.health is ObjectiveHealth.RECOVERING
     assert active.objective.workflow_stage is WorkflowStage.VERIFY
     assert active.objective.is_live is True
     assert active.attempts[1].branch_from_attempt == 1
     assert active.verifications[-1].status is VerificationStatus.PENDING
+    assert len(active.verifications[-1].invariants) == 6
+    assert all(item.observed is None for item in active.verifications[-1].invariants)
+    assert restored.revision == 16
+    assert restored.objective.restored_at == "2026-08-27T19:08:54.504926+00:00"
+    assert restored.objective.deadline_margin_seconds == 78665
+    assert evidence.incident_id == "incident-0fc3af5b0bd1ad847aea"
+    assert events.incident_id == "incident-0fc3af5b0bd1ad847aea"
+    assert active.detect_context is not None
+    assert active.detect_context.source_system is SourceAuthority.GMAIL

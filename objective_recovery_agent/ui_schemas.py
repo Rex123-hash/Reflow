@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class PresentationModel(BaseModel):
@@ -28,6 +28,35 @@ class WorkflowStage(StrEnum):
     VERIFY = "VERIFY"
     REPLAN = "REPLAN"
     RESTORED = "RESTORED"
+
+
+class EventPhase(StrEnum):
+    DETECT = "DETECT"
+    IMPACT = "IMPACT"
+    PLAN = "PLAN"
+    ACT = "ACT"
+    VERIFY = "VERIFY"
+    REPLAN = "REPLAN"
+    RESTORED = "RESTORED"
+    SYSTEM = "SYSTEM"
+
+
+class SourceAuthority(StrEnum):
+    GMAIL = "gmail"
+    GOOGLE_CALENDAR = "google_calendar"
+    GITHUB = "github"
+    GITHUB_ACTIONS = "github_actions"
+    REFLOW_VERIFIER = "reflow_verifier"
+    REFLOW_POLICY = "reflow_policy"
+    REFLOW_ENGINE = "reflow_engine"
+    REFLOW_GRAPH = "reflow_graph"
+    UNKNOWN = "unknown"
+
+
+class PlanActionDisposition(StrEnum):
+    PROPOSAL_ONLY = "PROPOSAL_ONLY"
+    EXECUTABLE = "EXECUTABLE"
+    EXECUTED = "EXECUTED"
 
 
 class SemanticStatus(StrEnum):
@@ -106,10 +135,12 @@ class ExecutionEventView(PresentationModel):
     cursor: str
     timestamp: str
     recovery_attempt: int
+    phase: EventPhase
     semantic_type: str
     human_message: str
     technical_summary: str
-    source_authority: str
+    source_authority: SourceAuthority
+    source_label: str
     related_resource_ids: list[str] = Field(default_factory=list)
 
 
@@ -133,7 +164,11 @@ class ObjectiveContext(PresentationModel):
     title: str
     health: ObjectiveHealth
     protected_deadline: str
+    deadline_at: str
     deadline_timezone: str
+    time_remaining_seconds: int | None = None
+    restored_at: str | None = None
+    deadline_margin_seconds: int | None = None
     current_recovery_number: int
     workflow_stage: WorkflowStage
     incident_stage: str
@@ -170,6 +205,27 @@ class RecoverySummary(PresentationModel):
     what_changed: str | None = None
 
 
+class DetectContextView(PresentationModel):
+    source_system: SourceAuthority
+    source_label: str
+    source_evidence_id: str | None = None
+    occurred_at: str | None = None
+    disruption_type: str
+    bounded_summary: str
+    affected_resource_ids: list[str] = Field(default_factory=list)
+
+
+class ReplanContextView(PresentationModel):
+    recovery_attempt: int
+    prior_attempt: int
+    failed_invariant_id: str
+    failed_evidence_id: str | None = None
+    replanning_input_summary: str
+    changed_context_summary: str
+    replanning_input_fingerprint: str | None = None
+    failed_effect_fingerprint: str | None = None
+
+
 class GraphNodeView(PresentationModel):
     node_id: str
     label: str
@@ -202,6 +258,14 @@ class PolicyDecisionView(PresentationModel):
     violations: list[PolicyViolationView] = Field(default_factory=list)
 
 
+class PlanActionView(PresentationModel):
+    action_id: str
+    kind: str
+    target: str
+    disposition: PlanActionDisposition
+    execution_evidence_id: str | None = None
+
+
 class RecoveryPlanView(PresentationModel):
     plan_id: str
     title: str
@@ -215,6 +279,7 @@ class RecoveryPlanView(PresentationModel):
     policy: PolicyDecisionView | None = None
     assumptions_summary: list[str] = Field(default_factory=list)
     proposed_action_summary: list[str] = Field(default_factory=list)
+    actions: list[PlanActionView] = Field(default_factory=list)
     critic_summary: str | None = None
 
 
@@ -223,7 +288,8 @@ class ActionReceiptView(PresentationModel):
     receipt_id: str | None = None
     recovery_attempt: int
     kind: str
-    system: str
+    system: SourceAuthority
+    system_label: str
     desired_state_summary: str
     receipt_status: ReceiptStatusView
     write_acknowledged: bool
@@ -260,7 +326,8 @@ ProofValue = str | int | bool | None
 class EvidenceView(PresentationModel):
     evidence_id: str
     recovery_attempt: int
-    source_system: str
+    source_system: SourceAuthority
+    source_label: str
     evidence_kind: str
     title: str
     semantic_status: EvidenceSemanticStatus
@@ -281,12 +348,44 @@ class RecoveryCaseView(PresentationModel):
     objective: ObjectiveContext
     attempts: list[RecoveryAttemptView]
     summary: RecoverySummary
+    detect_context: DetectContextView | None = None
+    replan_context: ReplanContextView | None = None
     world: OperationalGraphView
     plans: list[RecoveryPlanView]
     actions: list[ActionReceiptView]
     verifications: list[VerificationView]
     what_changed: list[AttemptComparisonItem]
     evidence: list[EvidenceView]
+
+    @model_validator(mode="after")
+    def require_exact_evidence_links(self) -> RecoveryCaseView:
+        references = [
+            evidence_id
+            for attempt in self.attempts
+            for stage in attempt.stages
+            for evidence_id in stage.related_evidence_ids
+        ]
+        references.extend(
+            action.evidence_id for action in self.actions if action.evidence_id is not None
+        )
+        references.extend(
+            item.evidence_id
+            for verification in self.verifications
+            for item in verification.invariants
+            if item.evidence_id is not None
+        )
+        references.extend(
+            action.execution_evidence_id
+            for plan in self.plans
+            for action in plan.actions
+            if action.execution_evidence_id is not None
+        )
+        if self.detect_context and self.detect_context.source_evidence_id:
+            references.append(self.detect_context.source_evidence_id)
+        if self.replan_context and self.replan_context.failed_evidence_id:
+            references.append(self.replan_context.failed_evidence_id)
+        _require_exact_evidence_links(self.evidence, references)
+        return self
 
 
 class EvidencePageView(PresentationModel):
@@ -297,6 +396,26 @@ class EvidencePageView(PresentationModel):
     verification: list[VerificationView]
     decisions: list[RecoveryPlanView]
     evidence: list[EvidenceView]
+
+    @model_validator(mode="after")
+    def require_exact_evidence_links(self) -> EvidencePageView:
+        references = [
+            action.evidence_id for action in self.receipts if action.evidence_id is not None
+        ]
+        references.extend(
+            item.evidence_id
+            for verification in self.verification
+            for item in verification.invariants
+            if item.evidence_id is not None
+        )
+        references.extend(
+            action.execution_evidence_id
+            for plan in self.decisions
+            for action in plan.actions
+            if action.execution_evidence_id is not None
+        )
+        _require_exact_evidence_links(self.evidence, references)
+        return self
 
 
 class ExecutionEventsView(PresentationModel):
@@ -316,6 +435,43 @@ class OperatorContextView(PresentationModel):
     evidence: list[EvidenceView]
     verification: VerificationView | None = None
     events: list[ExecutionEventView]
+
+    @model_validator(mode="after")
+    def require_exact_evidence_links(self) -> OperatorContextView:
+        references = [
+            evidence_id
+            for stage in self.current_recovery.stages
+            for evidence_id in stage.related_evidence_ids
+        ]
+        references.extend(
+            action.execution_evidence_id
+            for plan in self.plans
+            for action in plan.actions
+            if action.execution_evidence_id is not None
+        )
+        if self.verification is not None:
+            references.extend(
+                item.evidence_id
+                for item in self.verification.invariants
+                if item.evidence_id is not None
+            )
+        _require_exact_evidence_links(self.evidence, references)
+        return self
+
+
+def _require_exact_evidence_links(evidence: list[EvidenceView], references: list[str]) -> None:
+    counts: dict[str, int] = {}
+    for item in evidence:
+        counts[item.evidence_id] = counts.get(item.evidence_id, 0) + 1
+    duplicates = sorted(evidence_id for evidence_id, count in counts.items() if count != 1)
+    unresolved = sorted({reference for reference in references if counts.get(reference) != 1})
+    if duplicates or unresolved:
+        details = []
+        if duplicates:
+            details.append(f"duplicate evidence IDs: {', '.join(duplicates)}")
+        if unresolved:
+            details.append(f"unresolved evidence references: {', '.join(unresolved)}")
+        raise ValueError("; ".join(details))
 
 
 def presentation_schema() -> dict[str, Any]:

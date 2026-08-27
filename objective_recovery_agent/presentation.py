@@ -10,6 +10,8 @@ from objective_recovery_agent.ui_schemas import (
     ActionReceiptView,
     AttemptComparisonItem,
     CurrentPriority,
+    DetectContextView,
+    EventPhase,
     EvidencePageView,
     EvidenceSemanticStatus,
     EvidenceView,
@@ -26,6 +28,8 @@ from objective_recovery_agent.ui_schemas import (
     OperationalGraphView,
     OperatorContextView,
     OverviewView,
+    PlanActionDisposition,
+    PlanActionView,
     PolicyDecisionView,
     PolicyViolationView,
     ReceiptStatusView,
@@ -34,7 +38,9 @@ from objective_recovery_agent.ui_schemas import (
     RecoveryPlanView,
     RecoveryStageView,
     RecoverySummary,
+    ReplanContextView,
     SemanticStatus,
+    SourceAuthority,
     VerificationInvariantView,
     VerificationStatus,
     VerificationView,
@@ -114,6 +120,60 @@ _EVENT_MESSAGES = {
     "OBJECTIVE_RESTORED": "All required objective invariants passed.",
 }
 
+_EVENT_PHASES = {
+    "EVENT_RECEIVED": EventPhase.DETECT,
+    "EVENT_INTERPRETED": EventPhase.DETECT,
+    "IMPACT_MAPPED": EventPhase.IMPACT,
+    "PLAN_GENERATION_STARTED": EventPhase.PLAN,
+    "PLANNING_FAILED": EventPhase.PLAN,
+    "PLAN_CREATED": EventPhase.PLAN,
+    "RISK_CRITIQUE_COMPLETED": EventPhase.PLAN,
+    "PLAN_REJECTED": EventPhase.PLAN,
+    "PLAN_SELECTED": EventPhase.PLAN,
+    "ALL_PLANS_INVALID": EventPhase.PLAN,
+    "BLOCKING_UNKNOWN": EventPhase.PLAN,
+    "ACTION_CLAIMED": EventPhase.ACT,
+    "ACTION_DUPLICATE_SUPPRESSED": EventPhase.SYSTEM,
+    "CALENDAR_WRITE_ACKNOWLEDGED": EventPhase.ACT,
+    "ACTION_RECEIPT_VERIFIED": EventPhase.ACT,
+    "GITHUB_RELEASE_ACKNOWLEDGED": EventPhase.ACT,
+    "GITHUB_RUN_PINNED": EventPhase.ACT,
+    "OBJECTIVE_VERIFICATION_FAILED": EventPhase.VERIFY,
+    "INCIDENT_REOPENED": EventPhase.REPLAN,
+    "REPLAN_STARTED": EventPhase.REPLAN,
+    "PLANNER_CHECKPOINTED": EventPhase.REPLAN,
+    "CRITIC_CHECKPOINTED": EventPhase.REPLAN,
+    "POLICY_EVALUATED": EventPhase.REPLAN,
+    "RECOVERY_SELECTED": EventPhase.REPLAN,
+    "RELEASE_VALIDATION_STARTED": EventPhase.ACT,
+    "RELEASE_VALIDATION_SUCCEEDED": EventPhase.ACT,
+    "FULL_RELEASE_PROMOTION_STARTED": EventPhase.ACT,
+    "FULL_RELEASE_PROMOTION_VERIFIED": EventPhase.ACT,
+    "OBJECTIVE_VERIFICATION_STARTED": EventPhase.VERIFY,
+    "OBJECTIVE_RESTORED": EventPhase.RESTORED,
+    "WORKFLOW_RESUMED": EventPhase.SYSTEM,
+}
+
+_SOURCE_LABELS = {
+    SourceAuthority.GMAIL: "Gmail",
+    SourceAuthority.GOOGLE_CALENDAR: "Google Calendar",
+    SourceAuthority.GITHUB: "GitHub",
+    SourceAuthority.GITHUB_ACTIONS: "GitHub Actions",
+    SourceAuthority.REFLOW_VERIFIER: "Reflow deterministic verifier",
+    SourceAuthority.REFLOW_POLICY: "Reflow policy",
+    SourceAuthority.REFLOW_ENGINE: "Reflow engine",
+    SourceAuthority.REFLOW_GRAPH: "Reflow operational graph",
+    SourceAuthority.UNKNOWN: "Unknown authority",
+}
+
+_EXECUTABLE_PLAN_ACTIONS = {"github_release_validation", "calendar_coordination"}
+_PROPOSAL_ONLY_PLAN_ACTIONS = {
+    "assign_task",
+    "reassign_task",
+    "assign_work_item",
+    "reassign_work_item",
+}
+
 
 def _as_dict(value: object) -> dict[str, Any]:
     return cast(dict[str, Any], value) if isinstance(value, dict) else {}
@@ -137,6 +197,57 @@ def _bool_text(value: object) -> str | None:
     if value is None:
         return None
     return str(value)
+
+
+def _source_authority(value: object) -> SourceAuthority:
+    normalized = str(value or "").strip().casefold().replace(" ", "_")
+    aliases = {
+        "gmail": SourceAuthority.GMAIL,
+        "google_calendar": SourceAuthority.GOOGLE_CALENDAR,
+        "calendar": SourceAuthority.GOOGLE_CALENDAR,
+        "github": SourceAuthority.GITHUB,
+        "github_actions": SourceAuthority.GITHUB_ACTIONS,
+        "reflow_deterministic_verifier": SourceAuthority.REFLOW_VERIFIER,
+        "reflow_verifier": SourceAuthority.REFLOW_VERIFIER,
+        "reflow_policy": SourceAuthority.REFLOW_POLICY,
+        "reflow_workflow_ledger": SourceAuthority.REFLOW_ENGINE,
+        "reflow_engine": SourceAuthority.REFLOW_ENGINE,
+        "reflow_graph": SourceAuthority.REFLOW_GRAPH,
+    }
+    return aliases.get(normalized, SourceAuthority.UNKNOWN)
+
+
+def _source_label(authority: SourceAuthority) -> str:
+    return _SOURCE_LABELS[authority]
+
+
+def _deadline(value: object) -> datetime:
+    parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise ValueError("objective deadline must include a timezone")
+    return parsed
+
+
+def _source_evidence_id(incident: dict[str, Any]) -> str | None:
+    disruption = _as_dict(incident.get("disruption"))
+    if _source_authority(disruption.get("source")) is not SourceAuthority.GMAIL:
+        return None
+    return next(
+        (
+            str(reference)
+            for reference in _as_list(disruption.get("evidence_references"))
+            if str(reference).startswith("gmail-message:")
+        ),
+        None,
+    )
+
+
+def _replanning_context(revision_2: dict[str, Any] | None) -> dict[str, Any]:
+    if revision_2 is None:
+        return {}
+    replanning = _as_dict(revision_2.get("replanning_input"))
+    context = _as_dict(replanning.get("context"))
+    return context or replanning
 
 
 def objective_health(stage: str | None, status: str | None) -> ObjectiveHealth:
@@ -353,6 +464,14 @@ class PresentationService:
         event_values = self._events(incident_id)
         health = objective_health(str(incident.get("stage")), str(incident.get("status")))
         stage = workflow_stage(str(incident.get("stage"))) or WorkflowStage.DETECT
+        deadline_at = str(objective["deadline_at_utc"])
+        deadline = _deadline(deadline_at)
+        restored_at = (
+            _iso(incident.get("resolved_at") or incident.get("updated_at"))
+            if health is ObjectiveHealth.RESTORED
+            else None
+        )
+        restored_time = _deadline(restored_at) if restored_at is not None else None
         context = ObjectiveContext(
             objective_id=str(objective["objective_id"]),
             objective_version=int(
@@ -360,8 +479,20 @@ class PresentationService:
             ),
             title=str(objective["label"]),
             health=health,
-            protected_deadline=str(objective["deadline_at_utc"]),
+            protected_deadline=deadline_at,
+            deadline_at=deadline_at,
             deadline_timezone=str(objective["deadline_timezone"]),
+            time_remaining_seconds=(
+                int((deadline - self._clock()).total_seconds())
+                if health is not ObjectiveHealth.RESTORED
+                else None
+            ),
+            restored_at=restored_at,
+            deadline_margin_seconds=(
+                int((deadline - restored_time).total_seconds())
+                if restored_time is not None
+                else None
+            ),
             current_recovery_number=_recovery_number(incident),
             workflow_stage=stage,
             incident_stage=str(incident.get("stage", "UNKNOWN")),
@@ -373,12 +504,14 @@ class PresentationService:
         verifications = self._verifications(incident, revision_2)
         evidence = self._evidence(incident, revision_2, verifications)
         attempts = self._attempts(incident, revision_2, event_values, actions)
-        plans = self._plans(incident, revision_2)
+        plans = self._plans(incident, revision_2, actions)
         return RecoveryCaseView(
             revision=context.revision,
             objective=context,
             attempts=attempts,
             summary=self._summary(incident, revision_2, context),
+            detect_context=self._detect_context(incident),
+            replan_context=self._replan_context(incident, revision_2),
             world=self._world(incident, revision_2, health),
             plans=plans,
             actions=actions,
@@ -469,12 +602,14 @@ class PresentationService:
                     cursor=str(sequence),
                     timestamp=_iso(value.get("occurred_at")) or "",
                     recovery_attempt=attempt,
+                    phase=_EVENT_PHASES.get(event_type, EventPhase.SYSTEM),
                     semantic_type=event_type,
                     human_message=_EVENT_MESSAGES.get(
                         event_type, event_type.replace("_", " ").capitalize() + "."
                     ),
                     technical_summary=f"Durable {event_type} event; key={key or 'none'}.",
-                    source_authority="reflow_workflow_ledger",
+                    source_authority=SourceAuthority.REFLOW_ENGINE,
+                    source_label=_source_label(SourceAuthority.REFLOW_ENGINE),
                     related_resource_ids=related,
                 )
             )
@@ -518,6 +653,7 @@ class PresentationService:
         )
         if incident.get("stage") == "RESOLVED" and not failed:
             first_status = SemanticStatus.COMPLETED
+        source_evidence_id = _source_evidence_id(incident)
         first = RecoveryAttemptView(
             attempt_number=1,
             label="Recovery 01",
@@ -535,6 +671,7 @@ class PresentationService:
                     subtitle="Disruption accepted into durable recovery state.",
                     status=SemanticStatus.COMPLETED,
                     timestamp=self._event_time(events, "EVENT_RECEIVED"),
+                    related_evidence_ids=([source_evidence_id] if source_evidence_id else []),
                 ),
                 RecoveryStageView(
                     stage_id="recovery-1-impact",
@@ -576,6 +713,11 @@ class PresentationService:
                         else SemanticStatus.PENDING
                     ),
                     timestamp=_iso(failed.get("observed_at")),
+                    related_evidence_ids=(
+                        ["objective-verification:1"]
+                        if failed or incident.get("github_action_receipt_id")
+                        else []
+                    ),
                     failure_reason=failure_reason,
                 ),
             ],
@@ -625,6 +767,7 @@ class PresentationService:
                         subtitle="Failed Recovery 01 evidence became the new planning context.",
                         status=status_for(WorkflowStage.REPLAN),
                         timestamp=self._event_time(events, "REPLAN_STARTED"),
+                        related_evidence_ids=["objective-verification:1"],
                     ),
                     RecoveryStageView(
                         stage_id="recovery-2-plan",
@@ -658,6 +801,7 @@ class PresentationService:
                         ),
                         status=status_for(WorkflowStage.VERIFY),
                         timestamp=self._event_time(events, "OBJECTIVE_VERIFICATION_STARTED"),
+                        related_evidence_ids=["objective-verification:2"],
                     ),
                     RecoveryStageView(
                         stage_id="recovery-2-restored",
@@ -673,7 +817,10 @@ class PresentationService:
         return output
 
     def _plans(
-        self, incident: dict[str, Any], revision_2: dict[str, Any] | None
+        self,
+        incident: dict[str, Any],
+        revision_2: dict[str, Any] | None,
+        actions: list[ActionReceiptView],
     ) -> list[RecoveryPlanView]:
         output = self._plan_group(
             candidates=_as_list(
@@ -687,6 +834,7 @@ class PresentationService:
                 str(incident.get("selected_plan_id")) if incident.get("selected_plan_id") else None
             ),
             revision=1,
+            executed_actions=[item for item in actions if item.recovery_attempt == 1],
         )
         if revision_2 is None:
             return output
@@ -703,6 +851,7 @@ class PresentationService:
                 decisions=_as_list(selection.get("policy_decisions")),
                 selected_plan_id=(str(selected.get("plan_id")) if selected else None),
                 revision=2,
+                executed_actions=[item for item in actions if item.recovery_attempt == 2],
             )
         )
         return output
@@ -715,6 +864,7 @@ class PresentationService:
         decisions: list[Any],
         selected_plan_id: str | None,
         revision: int,
+        executed_actions: list[ActionReceiptView],
     ) -> list[RecoveryPlanView]:
         critique_by_id = {str(_as_dict(item).get("plan_id")): _as_dict(item) for item in critiques}
         decision_by_id = {str(_as_dict(item).get("plan_id")): _as_dict(item) for item in decisions}
@@ -756,11 +906,50 @@ class PresentationService:
                 for item in _as_list(candidate.get("unknowns"))
                 if _as_dict(item).get("description")
             )
-            actions = []
+            action_summaries = []
+            action_views: list[PlanActionView] = []
             for item in _as_list(candidate.get("actions")):
                 action = _as_dict(item)
-                actions.append(
+                action_id = str(action.get("action_id", "unknown"))
+                kind = str(action.get("action_type", "action"))
+                target = str(action.get("target", "unknown"))
+                action_summaries.append(
                     f"{action.get('action_type', 'action')} → {action.get('target', 'unknown')}"
+                )
+                receipt = next(
+                    (item for item in executed_actions if item.action_id == action_id),
+                    None,
+                )
+                if receipt is None and kind == "github_release_validation":
+                    candidates = [
+                        item for item in executed_actions if item.kind == "candidate_validation"
+                    ]
+                    receipt = candidates[0] if len(candidates) == 1 else None
+                selected_and_valid = plan_id == selected_plan_id and valid is not False
+                if kind in _PROPOSAL_ONLY_PLAN_ACTIONS or not selected_and_valid:
+                    disposition = PlanActionDisposition.PROPOSAL_ONLY
+                elif kind in _EXECUTABLE_PLAN_ACTIONS and receipt is not None:
+                    disposition = (
+                        PlanActionDisposition.EXECUTED
+                        if receipt.write_acknowledged
+                        else PlanActionDisposition.EXECUTABLE
+                    )
+                elif kind in _EXECUTABLE_PLAN_ACTIONS:
+                    disposition = PlanActionDisposition.EXECUTABLE
+                else:
+                    disposition = PlanActionDisposition.PROPOSAL_ONLY
+                action_views.append(
+                    PlanActionView(
+                        action_id=action_id,
+                        kind=kind,
+                        target=target,
+                        disposition=disposition,
+                        execution_evidence_id=(
+                            receipt.evidence_id
+                            if disposition is PlanActionDisposition.EXECUTED and receipt is not None
+                            else None
+                        ),
+                    )
                 )
             score = critique.get("adjusted_risk_score", candidate.get("initial_risk_score"))
             output.append(
@@ -780,7 +969,8 @@ class PresentationService:
                     deterministic_rejection_reason=rejection,
                     policy=policy,
                     assumptions_summary=assumptions,
-                    proposed_action_summary=actions,
+                    proposed_action_summary=action_summaries,
+                    actions=action_views,
                     critic_summary=(
                         str(critique.get("verdict_summary"))
                         if critique.get("verdict_summary")
@@ -808,6 +998,7 @@ class PresentationService:
             )
         github_receipt = incident.get("github_action_receipt_id")
         if isinstance(github_receipt, str):
+            github_evidence = _as_dict(incident.get("github_evidence"))
             passed = _as_dict(incident.get("github_verification")).get("passed")
             output.append(
                 self._action_view(
@@ -820,7 +1011,7 @@ class PresentationService:
                     outcome=(
                         VerificationStatus.PASSED if passed is True else VerificationStatus.FAILED
                     ),
-                    evidence_id=f"github-validation:{github_receipt}",
+                    evidence_id=f"github-run:{github_evidence.get('run_id')}",
                 )
             )
         if revision_2 is None:
@@ -842,7 +1033,7 @@ class PresentationService:
                         if evidence.get("conclusion") == "success"
                         else VerificationStatus.FAILED
                     ),
-                    evidence_id=f"github-validation:{validation_receipt}",
+                    evidence_id=f"github-run:{evidence.get('run_id')}",
                 )
             )
         promotion = _as_dict(revision_2.get("promotion_evidence"))
@@ -863,7 +1054,7 @@ class PresentationService:
                         "Promote the exact validated Candidate B release to latest full release."
                     ),
                     outcome=(VerificationStatus.PASSED if promoted else VerificationStatus.FAILED),
-                    evidence_id=f"github-promotion:{promotion_receipt}",
+                    evidence_id=f"github-promotion:{evidence.get('release_id')}",
                 )
             )
         return output
@@ -885,7 +1076,8 @@ class PresentationService:
                 receipt_id=receipt_id,
                 recovery_attempt=attempt,
                 kind=kind,
-                system="unknown",
+                system=SourceAuthority.UNKNOWN,
+                system_label=_source_label(SourceAuthority.UNKNOWN),
                 desired_state_summary=desired,
                 receipt_status=ReceiptStatusView.PENDING,
                 write_acknowledged=False,
@@ -905,12 +1097,14 @@ class PresentationService:
             receipt_status = ReceiptStatusView.PENDING
         intent = _as_dict(claim.get("intent"))
         action = _as_dict(intent.get("action"))
+        authority = _source_authority(receipt.get("tool"))
         return ActionReceiptView(
             action_id=str(action.get("action_id") or receipt.get("action_id") or receipt_id),
             receipt_id=receipt_id,
             recovery_attempt=attempt,
             kind=kind,
-            system=str(receipt.get("tool", "unknown")),
+            system=authority,
+            system_label=_source_label(authority),
             desired_state_summary=desired,
             receipt_status=receipt_status,
             write_acknowledged=write_at is not None,
@@ -934,16 +1128,11 @@ class PresentationService:
         elif incident.get("github_action_receipt_id"):
             unavailable = bool(incident.get("external_evidence_unavailable"))
             output.append(
-                VerificationView(
-                    verification_id="recovery-1",
-                    recovery_attempt=1,
+                self._pending_verification(
                     objective_id="release-v2",
-                    status=(
-                        VerificationStatus.UNAVAILABLE
-                        if unavailable
-                        else VerificationStatus.PENDING
-                    ),
-                    invariants=[],
+                    attempt=1,
+                    invariant_ids=["release-validation-green"],
+                    unavailable=unavailable,
                 )
             )
         final = incident.get("final_verification")
@@ -951,20 +1140,53 @@ class PresentationService:
             output.append(self._verification_view(final, attempt=2, verification_id="recovery-2"))
         elif revision_2 is not None:
             unavailable = bool(incident.get("external_evidence_unavailable"))
+            replanning = _replanning_context(revision_2)
+            expected = [str(item) for item in _as_list(replanning.get("objective_invariants"))]
+            if not expected:
+                raise ValueError(
+                    "P1D presentation cannot expose pending verification without persisted "
+                    "objective invariants"
+                )
             output.append(
-                VerificationView(
-                    verification_id="recovery-2",
-                    recovery_attempt=2,
-                    objective_id="release-v2",
-                    status=(
-                        VerificationStatus.UNAVAILABLE
-                        if unavailable
-                        else VerificationStatus.PENDING
+                self._pending_verification(
+                    objective_id=str(
+                        _as_dict(replanning.get("objective")).get("objective_id", "release-v2")
                     ),
-                    invariants=[],
+                    attempt=2,
+                    invariant_ids=expected,
+                    unavailable=unavailable,
                 )
             )
         return output
+
+    @staticmethod
+    def _pending_verification(
+        *, objective_id: str, attempt: int, invariant_ids: list[str], unavailable: bool
+    ) -> VerificationView:
+        verification_id = f"recovery-{attempt}"
+        status = VerificationStatus.UNAVAILABLE if unavailable else VerificationStatus.PENDING
+        return VerificationView(
+            verification_id=verification_id,
+            recovery_attempt=attempt,
+            objective_id=objective_id,
+            status=status,
+            invariants=[
+                VerificationInvariantView(
+                    invariant_id=invariant_id,
+                    expected="true",
+                    observed=None,
+                    status=status,
+                    evidence_provenance="persisted deterministic objective-verifier specification",
+                    evidence_id=f"objective-verification:{attempt}",
+                    reason=(
+                        "Authoritative observation is unavailable."
+                        if unavailable
+                        else "Awaiting deterministic objective verification."
+                    ),
+                )
+                for invariant_id in invariant_ids
+            ],
+        )
 
     @staticmethod
     def _verification_view(
@@ -997,7 +1219,7 @@ class PresentationService:
                     evidence_provenance=(
                         str(check["source_reference"]) if check.get("source_reference") else None
                     ),
-                    evidence_id=f"{verification_id}:{check.get('invariant_id', 'unknown')}",
+                    evidence_id=f"objective-verification:{attempt}",
                     reason=(str(check["reason"]) if check.get("reason") else None),
                 )
             )
@@ -1017,6 +1239,35 @@ class PresentationService:
         verifications: list[VerificationView],
     ) -> list[EvidenceView]:
         output: list[EvidenceView] = []
+        disruption = _as_dict(incident.get("disruption"))
+        source_evidence_id = _source_evidence_id(incident)
+        if source_evidence_id is not None:
+            references = [str(item) for item in _as_list(disruption.get("evidence_references"))]
+            content_hash = next(
+                (item.removeprefix("sha256:") for item in references if item.startswith("sha256:")),
+                "",
+            )
+            output.append(
+                EvidenceView(
+                    evidence_id=source_evidence_id,
+                    recovery_attempt=1,
+                    source_system=SourceAuthority.GMAIL,
+                    source_label=_source_label(SourceAuthority.GMAIL),
+                    evidence_kind="disruption_source",
+                    title="Gmail disruption source",
+                    semantic_status=EvidenceSemanticStatus.VERIFIED_HEALTHY,
+                    observed_at=_iso(disruption.get("occurred_at")),
+                    summary=str(disruption.get("summary", "Gmail disruption accepted.")),
+                    proof_fields={
+                        "message_id": source_evidence_id.removeprefix("gmail-message:"),
+                        "content_sha256": content_hash,
+                        "disruption_type": str(disruption.get("event_type", "unknown")),
+                        "affected_resource_count": len(
+                            _as_list(disruption.get("disrupted_node_ids"))
+                        ),
+                    },
+                )
+            )
         calendar_receipt = incident.get("action_receipt_id")
         if isinstance(calendar_receipt, str):
             loaded = self._store.load_action_evidence(calendar_receipt)
@@ -1026,7 +1277,8 @@ class PresentationService:
                 EvidenceView(
                     evidence_id=f"calendar:{calendar_receipt}",
                     recovery_attempt=1,
-                    source_system="Google Calendar",
+                    source_system=SourceAuthority.GOOGLE_CALENDAR,
+                    source_label=_source_label(SourceAuthority.GOOGLE_CALENDAR),
                     evidence_kind="external_read_back",
                     title="Recovery coordination preserved",
                     semantic_status=(
@@ -1065,7 +1317,8 @@ class PresentationService:
                     EvidenceView(
                         evidence_id=f"github-promotion:{promotion.get('release_id')}",
                         recovery_attempt=2,
-                        source_system="GitHub",
+                        source_system=SourceAuthority.GITHUB,
+                        source_label=_source_label(SourceAuthority.GITHUB),
                         evidence_kind="full_release_read_back",
                         title="Validated release promoted to full latest release",
                         semantic_status=(
@@ -1092,7 +1345,8 @@ class PresentationService:
                 EvidenceView(
                     evidence_id=f"objective-verification:{verification.recovery_attempt}",
                     recovery_attempt=verification.recovery_attempt,
-                    source_system="Reflow deterministic verifier",
+                    source_system=SourceAuthority.REFLOW_VERIFIER,
+                    source_label=_source_label(SourceAuthority.REFLOW_VERIFIER),
                     evidence_kind="objective_verification",
                     title=f"Recovery {verification.recovery_attempt:02d} objective verification",
                     semantic_status=(
@@ -1133,7 +1387,8 @@ class PresentationService:
         return EvidenceView(
             evidence_id=f"github-run:{run_id}",
             recovery_attempt=attempt,
-            source_system="GitHub Actions",
+            source_system=SourceAuthority.GITHUB_ACTIONS,
+            source_label=_source_label(SourceAuthority.GITHUB_ACTIONS),
             evidence_kind="workflow_run_read_back",
             title=f"Candidate validation run {run_id}",
             semantic_status=semantic,
@@ -1149,6 +1404,61 @@ class PresentationService:
                 "workflow_path": str(value.get("workflow_path", "")),
                 "conclusion": conclusion,
             },
+        )
+
+    @staticmethod
+    def _detect_context(incident: dict[str, Any]) -> DetectContextView:
+        disruption = _as_dict(incident.get("disruption"))
+        authority = _source_authority(disruption.get("source"))
+        return DetectContextView(
+            source_system=authority,
+            source_label=_source_label(authority),
+            source_evidence_id=_source_evidence_id(incident),
+            occurred_at=_iso(disruption.get("occurred_at")),
+            disruption_type=str(disruption.get("event_type", "unknown")),
+            bounded_summary=str(
+                disruption.get("summary") or "A disruption affected the protected objective."
+            ),
+            affected_resource_ids=[
+                str(item) for item in _as_list(disruption.get("disrupted_node_ids"))
+            ],
+        )
+
+    @staticmethod
+    def _replan_context(
+        incident: dict[str, Any], revision_2: dict[str, Any] | None
+    ) -> ReplanContextView | None:
+        if revision_2 is None:
+            return None
+        replanning = _replanning_context(revision_2)
+        failed_invariant = str(replanning.get("failed_invariant_id", "release-validation-green"))
+        effects = [_as_dict(item) for item in _as_list(replanning.get("failed_recovery_effects"))]
+        wrapper = _as_dict(revision_2.get("replanning_input"))
+        failed_sha = str(
+            replanning.get("failed_candidate_sha")
+            or _as_dict(incident.get("github_evidence")).get("head_sha")
+            or "unknown"
+        )
+        return ReplanContextView(
+            recovery_attempt=2,
+            prior_attempt=1,
+            failed_invariant_id=failed_invariant,
+            failed_evidence_id="objective-verification:1",
+            replanning_input_summary=(
+                f"Recovery 01 candidate {failed_sha} left {failed_invariant} false."
+            ),
+            changed_context_summary=(
+                "The failed external effect was excluded and immutable revised candidates became "
+                "the eligible planning context."
+            ),
+            replanning_input_fingerprint=(
+                str(wrapper["fingerprint"]) if wrapper.get("fingerprint") else None
+            ),
+            failed_effect_fingerprint=(
+                str(effects[0].get("fingerprint"))
+                if effects and effects[0].get("fingerprint")
+                else None
+            ),
         )
 
     @staticmethod

@@ -1,4 +1,4 @@
-# Reflow logged-in UI backend contract — P2A
+# Reflow logged-in UI backend contract — P2B
 
 Version: `v1`. This is the compatibility boundary for Overview, Objectives, Recovery, Evidence,
 and read-only Operator context. Presentation resources are derived by the backend from durable
@@ -37,6 +37,11 @@ the returned `next_cursor` as the next `after` integer.
 ```text
 ObjectiveHealth       HEALTHY | WATCHING | RECOVERING | NEEDS_ATTENTION | RESTORED
 WorkflowStage         DETECT | IMPACT | PLAN | ACT | VERIFY | REPLAN | RESTORED
+EventPhase            DETECT | IMPACT | PLAN | ACT | VERIFY | REPLAN | RESTORED | SYSTEM
+SourceAuthority       gmail | google_calendar | github | github_actions |
+                      reflow_verifier | reflow_policy | reflow_engine |
+                      reflow_graph | unknown
+PlanActionDisposition PROPOSAL_ONLY | EXECUTABLE | EXECUTED
 SemanticStatus        PENDING | CURRENT | COMPLETED | FAILED | UNAVAILABLE
 ReceiptStatusView     PENDING | WRITE_ACKNOWLEDGED | VERIFIED
 VerificationStatus    PASSED | FAILED | PENDING | UNAVAILABLE
@@ -105,7 +110,8 @@ OverviewView {
 ObjectivesView { revision, filter, items: ObjectiveSummary[] }
 
 ObjectiveContext {
-  objective_id, objective_version, title, health, protected_deadline, deadline_timezone,
+  objective_id, objective_version, title, health, protected_deadline, deadline_at,
+  deadline_timezone, time_remaining_seconds?, restored_at?, deadline_margin_seconds?,
   current_recovery_number, workflow_stage, incident_stage, incident_status,
   revision, is_live
 }
@@ -122,6 +128,17 @@ RecoveryAttemptView {
 
 RecoverySummary { what_happened, why_current_recovery_exists?, what_changed? }
 
+DetectContextView {
+  source_system, source_label, source_evidence_id?, occurred_at?, disruption_type,
+  bounded_summary, affected_resource_ids[]
+}
+
+ReplanContextView {
+  recovery_attempt, prior_attempt, failed_invariant_id, failed_evidence_id?,
+  replanning_input_summary, changed_context_summary, replanning_input_fingerprint?,
+  failed_effect_fingerprint?
+}
+
 GraphNodeView { node_id, label, kind, state, affected, critical_path }
 GraphEdgeView { source, target, relation }
 OperationalGraphView { nodes: GraphNodeView[], edges: GraphEdgeView[] }
@@ -132,11 +149,14 @@ PolicyDecisionView { plan_id, valid, blocking_unknowns[], violations[] }
 RecoveryPlanView {
   plan_id, title, revision, recovery_attempt, candidate_sha?, risk_score?, selected,
   valid?, deterministic_rejection_reason?, policy?, assumptions_summary[],
-  proposed_action_summary[], critic_summary?
+  proposed_action_summary[], actions: PlanActionView[], critic_summary?
 }
 
+PlanActionView { action_id, kind, target, disposition, execution_evidence_id? }
+
 ActionReceiptView {
-  action_id, receipt_id?, recovery_attempt, kind, system, desired_state_summary,
+  action_id, receipt_id?, recovery_attempt, kind, system, system_label,
+  desired_state_summary,
   receipt_status, write_acknowledged, write_acknowledged_at?,
   read_back_completed, read_back_at?, external_reference?, verification_state,
   evidence_id?
@@ -151,20 +171,22 @@ VerificationView {
 }
 
 EvidenceView {
-  evidence_id, recovery_attempt, source_system, evidence_kind, title,
+  evidence_id, recovery_attempt, source_system, source_label, evidence_kind, title,
   semantic_status, external_reference?, observed_at?, summary, proof_fields{}
 }
 
 AttemptComparisonItem { field, recovery_1?, recovery_2? }
 
 RecoveryCaseView {
-  revision, objective, attempts[], summary, world, plans[], actions[],
+  revision, objective, attempts[], summary, detect_context?, replan_context?, world,
+  plans[], actions[],
   verifications[], what_changed[], evidence[]
 }
 
 ExecutionEventView {
-  event_id, sequence, cursor, timestamp, recovery_attempt, semantic_type,
-  human_message, technical_summary, source_authority, related_resource_ids[]
+  event_id, sequence, cursor, timestamp, recovery_attempt, phase, semantic_type,
+  human_message, technical_summary, source_authority, source_label,
+  related_resource_ids[]
 }
 
 EvidencePageView {
@@ -187,6 +209,11 @@ failed Recovery 01 invariant. Every spine stage has a semantic kind and a
 `PENDING | CURRENT | COMPLETED | FAILED | UNAVAILABLE` status. Related evidence IDs link stages to
 the right-rail cards without leaking persistence IDs beyond stable receipt/evidence identifiers.
 
+Every non-null public evidence reference is an exact foreign key into the same incident domain's
+`EvidenceView.evidence_id` set. The backend rejects duplicate evidence IDs and unresolved stage,
+action, invariant, plan-action, Detect, or Replan references. Fixture export therefore fails
+instead of emitting a fuzzy or dangling join.
+
 The canonical restored fixture exposes:
 
 ```json
@@ -197,7 +224,7 @@ The canonical restored fixture exposes:
   "branch_from_attempt": 1,
   "branch_reason": "Recovery 01 was action-verified, but release-validation-green was false.",
   "candidate_sha": "7b7881ed1785cc37e038c44193ff2373badf54e7",
-  "selected_plan_id": "plan-resource-balance-first"
+  "selected_plan_id": "plan-risk-minimization-first"
 }
 ```
 
@@ -212,6 +239,12 @@ Recovery 01 and Recovery 02 plans remain distinct through `revision` and `recove
 Candidate A exact-repeat rejection is represented through rule
 `failed_recovery_exact_repeat` where that candidate was evaluated; the live fresh planner proposed
 only B futures, so its live decisions are valid rather than a fabricated rejection event.
+
+Each plan also exposes typed action truth. Assignment and reassignment remain `PROPOSAL_ONLY`;
+there is no assignment adapter. A selected, policy-valid external action is `EXECUTABLE` before a
+durable write acknowledgement and `EXECUTED` only when backend authority proves execution. An
+executed action may link to its exact evidence card through `execution_evidence_id`. Presence in a
+plan never proves execution.
 
 ## Actions, receipts, and outcome truth
 
@@ -236,6 +269,36 @@ nonterminal authoritative work is `PENDING`; an observed false invariant is `FAI
 
 The final canonical verification contains exactly six passed invariants. Recovery 01 retains its
 failed `release-validation-green` observation.
+
+At the pending P1D boundary, the same six invariant IDs come from persisted
+`replanning_input.objective_invariants`, the specification consumed by the deterministic verifier.
+Each pending row has `expected: "true"`, `observed: null`, and `status: PENDING`; no observation is
+borrowed from the later restored checkpoint.
+
+## Objective timing
+
+An active Recovery context exposes `time_remaining_seconds` from the protected deadline and the
+backend clock. A restored context instead exposes persisted `restored_at` and
+`deadline_margin_seconds = deadline_at - restored_at`; it never recalculates historical urgency
+from the viewing clock. The canonical restored incident has a positive 78,665-second margin. The
+historical active fixture freezes its clock at verification start and reports the same time then
+remaining.
+
+## Activity phase versus durable order
+
+`ExecutionEventView.phase` is explicit metadata for Activity grouping. `sequence`, `cursor`,
+timestamp, semantic type, and chronological order remain unchanged for Durable Ledger. In
+particular, `INCIDENT_REOPENED` is grouped as Recovery 02 / `REPLAN` without moving or rewriting
+the persisted event.
+
+## Detect, Replan, and normalized authority
+
+`detect_context` exposes a bounded source type, occurrence time, disruption classification,
+affected resource IDs, and exact source-evidence link. The P1E authority is `gmail`; raw bodies,
+sender addresses, MIME, OAuth material, prompts, and model reasoning are excluded.
+`replan_context` distinguishes Recovery 02 through the failed invariant/evidence, safe input and
+failed-effect fingerprints, and a bounded description of changed planning context. Machine fields
+use `SourceAuthority`; human labels remain separate.
 
 ## Evidence modes
 
@@ -270,8 +333,8 @@ states, not transport errors. GitHub/Calendar unavailability must never be rende
 
 ## Real sanitized fixtures
 
-Fixtures were exported through the presentation models from canonical incident
-`incident-938b303718a6abe41244`:
+Fixtures were exported through the presentation models from canonical P1E incident
+`incident-0fc3af5b0bd1ad847aea`:
 
 - [`overview.json`](ui-fixtures/overview.json)
 - [`objectives.json`](ui-fixtures/objectives.json)
@@ -281,14 +344,14 @@ Fixtures were exported through the presentation models from canonical incident
 - [`events.json`](ui-fixtures/events.json)
 - [`operator-context.json`](ui-fixtures/operator-context.json)
 
-They contain real P1D proof identifiers and external references but no secrets. Contract tests also
-exercise an active `EXECUTING` representation without claiming restoration.
+They contain real Gmail, Calendar, GitHub, policy, and verifier proof identifiers and external
+references but no secrets.
 
 `recovery-active.json` is a historical presentation of the same canonical incident at its genuine
-revision-16 `VERIFYING / verifying` boundary. It was reconstructed through the unchanged
+revision-15 `VERIFYING / verifying` boundary. It was reconstructed through the unchanged
 `PresentationService` from the durable revision-2 checkpoints through `promotion_evidence` and
 `calendar_closure_evidence`, the verified action receipts, and workflow events through
-`OBJECTIVE_VERIFICATION_STARTED`. The later revision-17 `closure_result`, incident
+`OBJECTIVE_VERIFICATION_STARTED`. The later revision-16 `closure_result`, incident
 `final_verification`/resolution fields, and `OBJECTIVE_RESTORED` event were excluded. No plan,
 receipt, evidence value, outcome, or hypothetical workflow state was synthesized.
 
@@ -299,7 +362,7 @@ receipt, evidence value, outcome, or hypothetical workflow state was synthesized
   corrected or backed by future real evidence.
 - There is no objective percentage, owner, progress score, vanity metric, or invented analytics.
 - Operator is read-only. Natural-language commands, replan/execution commands, Gemini control
-  tools, and all external mutation are unsupported in P2A.
+  tools, and all external mutation are unsupported in P2B.
 - The public contract does not expose Firestore collection names, raw documents, phase leases,
   revision subcollection layout, or private action-claim internals.
-- P1E/Gmail and frontend implementation remain out of scope.
+- Gmail ingestion remains frozen. P2B exposes only minimized P1E source provenance.

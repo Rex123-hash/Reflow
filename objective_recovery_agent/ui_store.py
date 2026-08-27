@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol, cast
 
 from google.cloud import firestore
+from google.cloud.firestore_v1.services.firestore import FirestoreClient
 
 
 class PresentationStore(Protocol):
@@ -32,8 +33,16 @@ def _document(snapshot: Any) -> dict[str, Any]:
 class FirestorePresentationStore:
     """Keeps Firestore layout private behind the semantic presentation service."""
 
-    def __init__(self, project_id: str) -> None:
+    def __init__(self, project_id: str, *, transport: Literal["grpc", "rest"] = "grpc") -> None:
         self._client = firestore.Client(project=project_id)
+        if transport == "rest":
+            # The export path uses bounded REST reads so it exits cleanly in CLI environments
+            # where the default Firestore streaming transport can leave a live gRPC worker.
+            client = cast(Any, self._client)
+            client._firestore_api_internal = FirestoreClient(
+                credentials=client._credentials,
+                transport="rest",
+            )
 
     def list_objectives(self) -> tuple[dict[str, Any], ...]:
         return tuple(_document(item) for item in self._client.collection("objectives").stream())
