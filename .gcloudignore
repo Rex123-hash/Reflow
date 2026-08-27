@@ -1,14 +1,14 @@
-.gcloudignore
-.git
-.venv
-.mypy_cache
-.pytest_cache
-.ruff_cache
-__pycache__
-*.pyc
-.coverage
-deployment
-docs
-scripts
-tests
-tmp
+# Cloud Run is built from a deliberately small backend-only context. Keep this
+# as an allowlist so local credentials, UI assets, proof artifacts, and caches
+# cannot enter the Cloud Build source archive.
+**
+!.gcloudignore
+!.dockerignore
+!Dockerfile
+!pyproject.toml
+!README.md
+!uv.lock
+!objective_recovery_agent/
+!objective_recovery_agent/**
+!src/
+!src/**
