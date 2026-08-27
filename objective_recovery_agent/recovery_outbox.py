@@ -19,6 +19,14 @@ def handoff_id_for(incident_id: str, verification_fingerprint: str) -> str:
     return hashlib.sha256(f"{incident_id}|{verification_fingerprint}".encode()).hexdigest()
 
 
+def p1c_handoff_id_for(incident_id: str, verified_effect_fingerprint: str) -> str:
+    """Identify the fact-only P1B→P1C continuation without transport data."""
+
+    return hashlib.sha256(
+        f"{incident_id}|{verified_effect_fingerprint}|P1C_RECOVERY_CONTINUATION_NEEDED".encode()
+    ).hexdigest()
+
+
 @dataclass(frozen=True, slots=True)
 class RecoveryHandoff:
     handoff_id: str
@@ -38,6 +46,21 @@ class RecoveryHandoff:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class P1CContinuationHandoff:
+    handoff_id: str
+    incident_id: str
+    verified_effect_fingerprint: str
+    source_revision: int
+    event_type: str = "P1C_RECOVERY_CONTINUATION_NEEDED"
+    state: str = "PENDING"
+
+    def payload(self) -> dict[str, str]:
+        # The frozen P1C transport contract requires only the authoritative
+        # incident identity. Candidate/SHA/action decisions stay inside P1C.
+        return {"incident_id": self.incident_id}
+
+
 class RecoveryHandoffLedger(Protocol):
     def mark_recovery_handoff_published(self, handoff_id: str, message_id: str) -> None: ...
 
@@ -46,12 +69,31 @@ class RecoveryPublisher(Protocol):
     def publish(self, handoff: RecoveryHandoff) -> str: ...
 
 
+class P1CContinuationPublisher(Protocol):
+    def publish(self, handoff: P1CContinuationHandoff) -> str: ...
+
+
 class PubSubRecoveryPublisher:
     def __init__(self, project_id: str, topic: str) -> None:
         self._publisher = PublisherClient()
         self._topic_path = self._publisher.topic_path(project_id, topic)
 
     def publish(self, handoff: RecoveryHandoff) -> str:
+        future = self._publisher.publish(
+            self._topic_path,
+            json.dumps(handoff.payload(), sort_keys=True, separators=(",", ":")).encode(),
+            handoff_id=handoff.handoff_id,
+            event_type=handoff.event_type,
+        )
+        return str(future.result(timeout=30))
+
+
+class PubSubP1CContinuationPublisher:
+    def __init__(self, project_id: str, topic: str) -> None:
+        self._publisher = PublisherClient()
+        self._topic_path = self._publisher.topic_path(project_id, topic)
+
+    def publish(self, handoff: P1CContinuationHandoff) -> str:
         future = self._publisher.publish(
             self._topic_path,
             json.dumps(handoff.payload(), sort_keys=True, separators=(",", ":")).encode(),
@@ -74,6 +116,25 @@ def publish_handoff(
         handoff.handoff_id,
         handoff.incident_id,
         handoff.failed_verification_fingerprint,
+        handoff.source_revision,
+        handoff.event_type,
+        "PUBLISHED",
+    )
+
+
+def publish_p1c_handoff(
+    ledger: RecoveryHandoffLedger,
+    publisher: P1CContinuationPublisher,
+    handoff: P1CContinuationHandoff,
+) -> P1CContinuationHandoff:
+    if handoff.state == "PUBLISHED":
+        return handoff
+    message_id = publisher.publish(handoff)
+    ledger.mark_recovery_handoff_published(handoff.handoff_id, message_id)
+    return P1CContinuationHandoff(
+        handoff.handoff_id,
+        handoff.incident_id,
+        handoff.verified_effect_fingerprint,
         handoff.source_revision,
         handoff.event_type,
         "PUBLISHED",

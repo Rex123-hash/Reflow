@@ -12,7 +12,12 @@ from typing import Any, Protocol, cast
 from google.cloud import firestore
 
 from objective_recovery_agent.observability import emit_operational_event
-from objective_recovery_agent.recovery_outbox import RecoveryHandoff, handoff_id_for
+from objective_recovery_agent.recovery_outbox import (
+    P1CContinuationHandoff,
+    RecoveryHandoff,
+    handoff_id_for,
+    p1c_handoff_id_for,
+)
 from objective_recovery_agent.schemas import (
     DisruptionEvent,
     IncidentStage,
@@ -60,6 +65,13 @@ class WorkflowLedger(Protocol):
         failed_verification_fingerprint: str,
     ) -> RecoveryHandoff | None: ...
 
+    def persist_p1c_continuation(
+        self,
+        incident_id: str,
+        fields: dict[str, Any],
+        verified_effect_fingerprint: str,
+    ) -> P1CContinuationHandoff: ...
+
     def mark_recovery_handoff_published(self, handoff_id: str, message_id: str) -> None: ...
 
 
@@ -77,6 +89,17 @@ def _recovery_handoff(expected: dict[str, Any], state: str = "PENDING") -> Recov
         handoff_id=str(expected["handoff_id"]),
         incident_id=str(expected["incident_id"]),
         failed_verification_fingerprint=str(expected["failed_verification_fingerprint"]),
+        source_revision=int(expected["source_revision"]),
+        event_type=str(expected["event_type"]),
+        state=state,
+    )
+
+
+def _p1c_handoff(expected: dict[str, Any], state: str = "PENDING") -> P1CContinuationHandoff:
+    return P1CContinuationHandoff(
+        handoff_id=str(expected["handoff_id"]),
+        incident_id=str(expected["incident_id"]),
+        verified_effect_fingerprint=str(expected["verified_effect_fingerprint"]),
         source_revision=int(expected["source_revision"]),
         event_type=str(expected["event_type"]),
         state=state,
@@ -291,6 +314,77 @@ class FirestoreWorkflowLedger:
 
         return cast(RecoveryHandoff | None, persist(transaction))
 
+    def persist_p1c_continuation(
+        self,
+        incident_id: str,
+        fields: dict[str, Any],
+        verified_effect_fingerprint: str,
+    ) -> P1CContinuationHandoff:
+        """Atomically persist the verified P1B terminal state and P1C outbox."""
+
+        if fields.get("action_receipt_status") != "verified":
+            raise ValueError("P1C continuation requires a VERIFIED P1B receipt")
+        incident_ref = self._client.collection("incidents").document(incident_id)
+        handoff_id = p1c_handoff_id_for(incident_id, verified_effect_fingerprint)
+        outbox_ref = self._client.collection("recovery_outbox").document(handoff_id)
+        transaction = self._client.transaction()
+        now = datetime.now(UTC)
+
+        @firestore.transactional
+        def persist(transaction: Any) -> P1CContinuationHandoff:
+            incident_snapshot = incident_ref.get(transaction=transaction)
+            if not incident_snapshot.exists:
+                raise KeyError(incident_id)
+            incident = incident_snapshot.to_dict() or {}
+            if not incident.get("selected_plan_id"):
+                raise ValueError("P1C continuation requires the persisted selected plan")
+            if incident.get("stage") not in {
+                IncidentStage.EXECUTING.value,
+                IncidentStage.VERIFYING.value,
+            }:
+                raise ValueError("incident is not eligible for a P1C continuation")
+
+            outbox_snapshot = outbox_ref.get(transaction=transaction)
+            if outbox_snapshot.exists:
+                outbox = outbox_snapshot.to_dict() or {}
+                stable = {
+                    "handoff_id": handoff_id,
+                    "incident_id": incident_id,
+                    "verified_effect_fingerprint": verified_effect_fingerprint,
+                    "event_type": "P1C_RECOVERY_CONTINUATION_NEEDED",
+                }
+                if any(outbox.get(key) != value for key, value in stable.items()):
+                    raise ValueError("P1C continuation handoff identity collision")
+                return _p1c_handoff(outbox, str(outbox.get("state", "PENDING")))
+
+            already_terminal = (
+                incident.get("stage") == IncidentStage.VERIFYING.value
+                and incident.get("action_receipt_status") == "verified"
+            )
+            source_revision = int(incident.get("revision", 0)) + (0 if already_terminal else 1)
+            expected = {
+                "handoff_id": handoff_id,
+                "incident_id": incident_id,
+                "verified_effect_fingerprint": verified_effect_fingerprint,
+                "source_revision": source_revision,
+                "event_type": "P1C_RECOVERY_CONTINUATION_NEEDED",
+            }
+            if not already_terminal:
+                transaction.set(
+                    incident_ref,
+                    {
+                        **_json_safe(fields),
+                        "stage": IncidentStage.VERIFYING.value,
+                        "updated_at": now,
+                        "revision": firestore.Increment(1),
+                    },
+                    merge=True,
+                )
+            transaction.create(outbox_ref, {**expected, "state": "PENDING", "created_at": now})
+            return _p1c_handoff(expected)
+
+        return cast(P1CContinuationHandoff, persist(transaction))
+
     def mark_recovery_handoff_published(self, handoff_id: str, message_id: str) -> None:
         ref = self._client.collection("recovery_outbox").document(handoff_id)
         transaction = self._client.transaction()
@@ -427,6 +521,43 @@ class InMemoryWorkflowLedger:
             )
         self.recovery_outbox[handoff_id] = {**expected, "state": "PENDING"}
         return _recovery_handoff(expected)
+
+    def persist_p1c_continuation(
+        self,
+        incident_id: str,
+        fields: dict[str, Any],
+        verified_effect_fingerprint: str,
+    ) -> P1CContinuationHandoff:
+        if fields.get("action_receipt_status") != "verified":
+            raise ValueError("P1C continuation requires a VERIFIED P1B receipt")
+        incident = self.incidents[incident_id]
+        if not incident.get("selected_plan_id"):
+            raise ValueError("P1C continuation requires the persisted selected plan")
+        if incident.get("stage") not in {"EXECUTING", "VERIFYING"}:
+            raise ValueError("incident is not eligible for a P1C continuation")
+        handoff_id = p1c_handoff_id_for(incident_id, verified_effect_fingerprint)
+        existing = self.recovery_outbox.get(handoff_id)
+        stable = {
+            "handoff_id": handoff_id,
+            "incident_id": incident_id,
+            "verified_effect_fingerprint": verified_effect_fingerprint,
+            "event_type": "P1C_RECOVERY_CONTINUATION_NEEDED",
+        }
+        if existing is not None:
+            if any(existing.get(key) != value for key, value in stable.items()):
+                raise ValueError("P1C continuation handoff identity collision")
+            return _p1c_handoff(existing, str(existing.get("state", "PENDING")))
+        already_terminal = (
+            incident.get("stage") == "VERIFYING"
+            and incident.get("action_receipt_status") == "verified"
+        )
+        source_revision = int(incident.get("revision", 0)) + (0 if already_terminal else 1)
+        expected = {**stable, "source_revision": source_revision}
+        if not already_terminal:
+            incident.update(deepcopy(_json_safe(fields)))
+            incident.update({"stage": "VERIFYING", "revision": source_revision})
+        self.recovery_outbox[handoff_id] = {**expected, "state": "PENDING"}
+        return _p1c_handoff(expected)
 
     def mark_recovery_handoff_published(self, handoff_id: str, message_id: str) -> None:
         outbox = self.recovery_outbox[handoff_id]

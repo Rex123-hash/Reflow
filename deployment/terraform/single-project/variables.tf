@@ -50,3 +50,14 @@ variable "github_p1c_workflow_path" {
   description = "Exact GitHub API workflow path representation authorized for P1C."
   default     = ".github/workflows/release-validation.yml"
 }
+
+variable "gmail_mailbox" {
+  type        = string
+  description = "Dedicated, explicitly authorized P1E Gmail mailbox. Empty disables watch jobs."
+  default     = ""
+
+  validation {
+    condition     = var.gmail_mailbox == "" || can(regex("^[^@[:space:]]+@[^@[:space:]]+$", var.gmail_mailbox))
+    error_message = "gmail_mailbox must be empty or a valid dedicated mailbox identity."
+  }
+}

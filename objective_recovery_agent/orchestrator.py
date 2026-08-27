@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from dataclasses import dataclass
@@ -29,6 +30,10 @@ from objective_recovery_agent.calendar_execution import (
 from objective_recovery_agent.ledger import WorkflowLedger
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.planning import PlanningPhaseError, pairwise_diversity
+from objective_recovery_agent.recovery_outbox import (
+    P1CContinuationPublisher,
+    publish_p1c_handoff,
+)
 from objective_recovery_agent.schemas import (
     AssumptionState,
     CandidateGeneration,
@@ -55,6 +60,10 @@ class PlanningService(Protocol):
         event_id: str | None = None,
         incident_id: str | None = None,
     ) -> CritiqueGeneration: ...
+
+
+class P1CContinuationPublishFailure(RuntimeError):
+    """The durable P1C outbox exists but transport publication remains pending."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,41 +156,17 @@ class RecoveryOrchestrator:
         ledger: WorkflowLedger,
         planner: PlanningService,
         calendar_executor: CalendarActionExecutor | None = None,
+        p1c_publisher: P1CContinuationPublisher | None = None,
     ) -> None:
         self._ledger = ledger
         self._planner = planner
         self._calendar_executor = calendar_executor
+        self._p1c_publisher = p1c_publisher
 
     async def process(self, disruption: DisruptionEvent, message_id: str) -> ProcessResult:
         started = time.perf_counter()
         try:
             claim = self._ledger.claim_event(disruption, message_id)
-        except CalendarExecutionFailure as error:
-            failure_stage = (
-                IncidentStage.EXECUTING if error.retryable else IncidentStage.PARTIAL_FAILURE
-            )
-            self._checkpoint(
-                claim.incident_id,
-                failure_stage,
-                {
-                    "status": "action_retryable" if error.retryable else "partial_failure",
-                    "last_error_category": error.category,
-                },
-                event_id=disruption.event_id,
-            )
-            if error.retryable:
-                self._ledger.release_claim(disruption.event_id, error.category)
-                raise
-            self._ledger.complete_claim(disruption.event_id)
-            incident = self._ledger.load_incident(claim.incident_id)
-            return ProcessResult(
-                claim.incident_id,
-                False,
-                False,
-                failure_stage,
-                incident.get("selected_plan_id"),
-                int((time.perf_counter() - started) * 1000),
-            )
         except Exception as error:
             emit_operational_event(
                 OperationalEvent.INCIDENT_CLAIM_FAILED,
@@ -221,6 +206,44 @@ class RecoveryOrchestrator:
                 attempt=claim.attempt,
                 resumed=claim.resumed,
             )
+        except CalendarExecutionFailure as error:
+            failure_stage = (
+                IncidentStage.EXECUTING if error.retryable else IncidentStage.PARTIAL_FAILURE
+            )
+            self._checkpoint(
+                claim.incident_id,
+                failure_stage,
+                {
+                    "status": "action_retryable" if error.retryable else "partial_failure",
+                    "last_error_category": error.category,
+                },
+                event_id=disruption.event_id,
+            )
+            if error.retryable:
+                self._ledger.release_claim(disruption.event_id, error.category)
+                raise
+            self._ledger.complete_claim(disruption.event_id)
+            incident = self._ledger.load_incident(claim.incident_id)
+            return ProcessResult(
+                claim.incident_id,
+                False,
+                False,
+                failure_stage,
+                incident.get("selected_plan_id"),
+                int((time.perf_counter() - started) * 1000),
+            )
+        except P1CContinuationPublishFailure as error:
+            emit_operational_event(
+                "P1C_CONTINUATION_PUBLISH_FAILED",
+                event_id=disruption.event_id,
+                incident_id=claim.incident_id,
+                attempt=claim.attempt,
+                error_type=(
+                    type(error.__cause__).__name__ if error.__cause__ else type(error).__name__
+                ),
+            )
+            self._ledger.release_claim(disruption.event_id, "p1c_continuation_publish")
+            raise
         except Exception as error:
             error_category = (
                 error.category.value
@@ -604,18 +627,40 @@ class RecoveryOrchestrator:
                     "external_event_id": receipt.external_event_id,
                 },
             )
-            self._checkpoint(
-                incident_id,
-                IncidentStage.VERIFYING,
-                {
-                    "status": "action_receipt_verified"
-                    if receipt.status is ReceiptStatus.VERIFIED
-                    else "action_receipt_verification_failed",
-                    "action_receipt_id": receipt.receipt_id,
-                    "action_receipt_status": receipt.status.value,
-                },
-                event_id=disruption.event_id,
-            )
+            terminal_fields = {
+                "status": "action_receipt_verified"
+                if receipt.status is ReceiptStatus.VERIFIED
+                else "action_receipt_verification_failed",
+                "action_receipt_id": receipt.receipt_id,
+                "action_receipt_status": receipt.status.value,
+            }
+            if receipt.status is ReceiptStatus.VERIFIED and self._p1c_publisher is not None:
+                verified_effect = {
+                    "receipt_id": receipt.receipt_id,
+                    "idempotency_key": receipt.idempotency_key,
+                    "external_event_id": receipt.external_event_id,
+                    "observed_state": dict(receipt.observed_state),
+                    "status": receipt.status.value,
+                }
+                fingerprint = hashlib.sha256(
+                    json.dumps(
+                        verified_effect, sort_keys=True, separators=(",", ":"), default=str
+                    ).encode()
+                ).hexdigest()
+                handoff = self._ledger.persist_p1c_continuation(
+                    incident_id, terminal_fields, fingerprint
+                )
+                try:
+                    publish_p1c_handoff(self._ledger, self._p1c_publisher, handoff)
+                except Exception as error:
+                    raise P1CContinuationPublishFailure from error
+            else:
+                self._checkpoint(
+                    incident_id,
+                    IncidentStage.VERIFYING,
+                    terminal_fields,
+                    event_id=disruption.event_id,
+                )
             return ProcessResult(
                 incident_id,
                 False,

@@ -34,6 +34,19 @@ output "p1d_pubsub_subscription" {
   value = google_pubsub_subscription.p1d_push.id
 }
 
+output "gmail_pubsub_topic" {
+  value = google_pubsub_topic.gmail.id
+}
+
+output "gmail_pubsub_subscription" {
+  value = google_pubsub_subscription.gmail_push.id
+}
+
+output "gmail_oauth_secret" {
+  description = "Secret container only; Terraform creates no credential version."
+  value       = google_secret_manager_secret.gmail_oauth_user.id
+}
+
 output "github_p1c_secret" {
   value = google_secret_manager_secret.github_p1c_token.id
 }

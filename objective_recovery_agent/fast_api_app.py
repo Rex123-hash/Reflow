@@ -24,6 +24,18 @@ from objective_recovery_agent.github_execution import (
 )
 from objective_recovery_agent.github_gateway import RequestsGitHubGateway
 from objective_recovery_agent.github_ledger import FirestoreGitHubActionLedger
+from objective_recovery_agent.gmail_gateway import (
+    GmailApiGateway,
+    GmailGatewayError,
+    SecretManagerCredentialProvider,
+)
+from objective_recovery_agent.gmail_ingestion import (
+    GmailIngestionConfiguration,
+    GmailIngestionService,
+    PubSubDisruptionPublisher,
+)
+from objective_recovery_agent.gmail_interpretation import AdkGmailInterpreter
+from objective_recovery_agent.gmail_store import FirestoreGmailStore
 from objective_recovery_agent.ledger import FirestoreWorkflowLedger
 from objective_recovery_agent.objective_store import FirestoreObjectiveStore
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
@@ -38,7 +50,10 @@ from objective_recovery_agent.p1d import (
 from objective_recovery_agent.p1d_store import FirestoreP1DStore
 from objective_recovery_agent.planning import AdkPlanningService
 from objective_recovery_agent.presentation import PresentationService
-from objective_recovery_agent.recovery_outbox import PubSubRecoveryPublisher
+from objective_recovery_agent.recovery_outbox import (
+    PubSubP1CContinuationPublisher,
+    PubSubRecoveryPublisher,
+)
 from objective_recovery_agent.schemas import (
     DisruptionEvent,
     P1CContinuation,
@@ -88,6 +103,12 @@ def get_orchestrator() -> RecoveryOrchestrator:
         FirestoreWorkflowLedger(project_id),
         AdkPlanningService(),
         calendar_executor,
+        PubSubP1CContinuationPublisher(
+            project_id,
+            os.environ.get("P1C_PUBSUB_TOPIC", "objective-recovery-p1c"),
+        )
+        if calendar_executor is not None
+        else None,
     )
 
 
@@ -106,6 +127,39 @@ def get_presentation_service() -> PresentationService:
     if not project_id:
         raise RuntimeError("GOOGLE_CLOUD_PROJECT is required")
     return PresentationService(FirestorePresentationStore(project_id))
+
+
+@lru_cache(maxsize=1)
+def get_gmail_service() -> GmailIngestionService:
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    mailbox = os.environ.get("GMAIL_MAILBOX")
+    if not project_id or not mailbox:
+        raise RuntimeError("GOOGLE_CLOUD_PROJECT and GMAIL_MAILBOX are required")
+    secret_id = os.environ.get("GMAIL_OAUTH_SECRET_ID", "objective-recovery-gmail-oauth-user")
+    topic = os.environ.get(
+        "GMAIL_PUBSUB_TOPIC",
+        f"projects/{project_id}/topics/objective-recovery-gmail",
+    )
+    subscription = os.environ.get(
+        "GMAIL_PUBSUB_SUBSCRIPTION",
+        f"projects/{project_id}/subscriptions/objective-recovery-gmail-push",
+    )
+    credentials = SecretManagerCredentialProvider(project_id, secret_id).load()
+    return GmailIngestionService(
+        configuration=GmailIngestionConfiguration(
+            mailbox=mailbox,
+            topic_name=topic,
+            subscription_name=subscription,
+            credential_secret_resource=f"projects/{project_id}/secrets/{secret_id}",
+        ),
+        gateway=GmailApiGateway(credentials),
+        store=FirestoreGmailStore(project_id, mailbox),
+        interpreter=AdkGmailInterpreter(),
+        disruption_publisher=PubSubDisruptionPublisher(
+            project_id,
+            os.environ.get("DISRUPTION_PUBSUB_TOPIC", "objective-recovery-disruptions"),
+        ),
+    )
 
 
 type PresentationValue = (
@@ -361,6 +415,80 @@ async def receive_pubsub(envelope_data: dict[str, object]) -> Response:
         media_type="application/json",
         status_code=status.HTTP_200_OK,
     )
+
+
+@app.post("/apps/objective_recovery_agent/trigger/gmail/pubsub")
+async def receive_gmail_pubsub(envelope_data: dict[str, object]) -> Response:
+    try:
+        envelope = PubSubEnvelope.model_validate(envelope_data)
+        expected = os.environ.get("GMAIL_PUBSUB_SUBSCRIPTION")
+        if expected and envelope.subscription != expected:
+            raise ValueError("unexpected Gmail Pub/Sub subscription")
+        await get_gmail_service().handle_notification(envelope)
+    except (ValidationError, ValueError, binascii.Error, json.JSONDecodeError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"invalid Gmail Pub/Sub envelope: {type(error).__name__}",
+        ) from error
+    except GmailGatewayError as error:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_503_SERVICE_UNAVAILABLE if error.retryable else status.HTTP_409_CONFLICT
+            ),
+            detail=f"Gmail ingestion failed: {error.category}",
+        ) from error
+    except Exception as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Gmail ingestion failed: {type(error).__name__}",
+        ) from error
+    return Response(
+        content=json.dumps({"status": "accepted"}),
+        media_type="application/json",
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@app.post("/apps/objective_recovery_agent/internal/gmail/watch/initialize")
+async def initialize_gmail_watch() -> dict[str, str]:
+    try:
+        await get_gmail_service().initialize_watch()
+    except GmailGatewayError as error:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_503_SERVICE_UNAVAILABLE if error.retryable else status.HTTP_409_CONFLICT
+            ),
+            detail=f"Gmail watch initialization failed: {error.category}",
+        ) from error
+    return {"status": "ACTIVE"}
+
+
+@app.post("/apps/objective_recovery_agent/internal/gmail/watch/renew")
+async def renew_gmail_watch() -> dict[str, str]:
+    try:
+        await get_gmail_service().renew_watch()
+    except GmailGatewayError as error:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_503_SERVICE_UNAVAILABLE if error.retryable else status.HTTP_409_CONFLICT
+            ),
+            detail=f"Gmail watch renewal failed: {error.category}",
+        ) from error
+    return {"status": "ACTIVE"}
+
+
+@app.post("/apps/objective_recovery_agent/internal/gmail/reconcile")
+async def reconcile_gmail_history() -> dict[str, str]:
+    try:
+        await get_gmail_service().reconcile()
+    except GmailGatewayError as error:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_503_SERVICE_UNAVAILABLE if error.retryable else status.HTTP_409_CONFLICT
+            ),
+            detail=f"Gmail reconciliation failed: {error.category}",
+        ) from error
+    return {"status": "synchronized"}
 
 
 @app.post("/apps/objective_recovery_agent/trigger/p1c/pubsub")

@@ -15,7 +15,7 @@ from google.adk.models import Gemini
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.schemas import (
@@ -255,7 +255,7 @@ def create_replan_critic_workflow() -> Workflow:
 
 async def run_workflow(
     workflow: Workflow,
-    payload: PlanningInput | CandidateSet | ReplanningInput | ReplanCriticInput,
+    payload: BaseModel,
 ) -> WorkflowResult:
     session_service = InMemorySessionService()
     user_id = "objective-recovery"

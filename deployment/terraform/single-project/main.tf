@@ -30,7 +30,9 @@ locals {
     "cloudbuild.googleapis.com",
     "cloudtrace.googleapis.com",
     "calendar-json.googleapis.com",
+    "cloudscheduler.googleapis.com",
     "firestore.googleapis.com",
+    "gmail.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "logging.googleapis.com",
@@ -111,6 +113,24 @@ resource "google_secret_manager_secret_iam_member" "github_p1c_token_accessor" {
   member    = "serviceAccount:${google_service_account.app.email}"
 }
 
+resource "google_secret_manager_secret" "gmail_oauth_user" {
+  project   = var.project_id
+  secret_id = "${var.project_name}-gmail-oauth-user"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret_iam_member" "gmail_oauth_user_accessor" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.gmail_oauth_user.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.app.email}"
+}
+
 resource "google_service_account_iam_member" "app_calendar_token_creator" {
   service_account_id = google_service_account.app.name
   role               = "roles/iam.serviceAccountTokenCreator"
@@ -121,6 +141,22 @@ resource "google_service_account" "pubsub_invoker" {
   project      = var.project_id
   account_id   = "${var.project_name}-pubsub"
   display_name = "Objective Recovery authenticated Pub/Sub push"
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_service_account" "gmail_push_invoker" {
+  project      = var.project_id
+  account_id   = "${var.project_name}-gmail-push"
+  display_name = "Objective Recovery authenticated Gmail Pub/Sub push"
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_service_account" "gmail_scheduler_invoker" {
+  project      = var.project_id
+  account_id   = "${var.project_name}-gmail-job"
+  display_name = "Objective Recovery authenticated Gmail maintenance"
 
   depends_on = [google_project_service.required]
 }
@@ -195,6 +231,30 @@ resource "google_cloud_run_v2_service" "app" {
         value = google_pubsub_topic.p1d.name
       }
       env {
+        name  = "P1C_PUBSUB_TOPIC"
+        value = google_pubsub_topic.p1c.name
+      }
+      env {
+        name  = "DISRUPTION_PUBSUB_TOPIC"
+        value = google_pubsub_topic.disruptions.name
+      }
+      env {
+        name  = "GMAIL_MAILBOX"
+        value = lower(var.gmail_mailbox)
+      }
+      env {
+        name  = "GMAIL_PUBSUB_TOPIC"
+        value = "projects/${var.project_id}/topics/${google_pubsub_topic.gmail.name}"
+      }
+      env {
+        name  = "GMAIL_PUBSUB_SUBSCRIPTION"
+        value = "projects/${var.project_id}/subscriptions/${var.project_name}-gmail-push"
+      }
+      env {
+        name  = "GMAIL_OAUTH_SECRET_ID"
+        value = google_secret_manager_secret.gmail_oauth_user.secret_id
+      }
+      env {
         name = "GITHUB_P1C_TOKEN"
         value_source {
           secret_key_ref {
@@ -215,6 +275,7 @@ resource "google_cloud_run_v2_service" "app" {
     google_project_iam_member.app_roles,
     google_service_account_iam_member.app_calendar_token_creator,
     google_secret_manager_secret_iam_member.github_p1c_token_accessor,
+    google_secret_manager_secret_iam_member.gmail_oauth_user_accessor,
   ]
 }
 
@@ -230,6 +291,34 @@ resource "google_service_account_iam_member" "pubsub_token_creator" {
   service_account_id = google_service_account.pubsub_invoker.name
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_cloud_run_v2_service_iam_member" "gmail_push_invoker" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_service.app.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.gmail_push_invoker.email}"
+}
+
+resource "google_cloud_run_v2_service_iam_member" "gmail_scheduler_invoker" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_service.app.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.gmail_scheduler_invoker.email}"
+}
+
+resource "google_service_account_iam_member" "gmail_push_token_creator" {
+  service_account_id = google_service_account.gmail_push_invoker.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_service_account_iam_member" "gmail_scheduler_token_creator" {
+  service_account_id = google_service_account.gmail_scheduler_invoker.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 }
 
 resource "google_pubsub_topic" "disruptions" {
@@ -258,6 +347,32 @@ resource "google_pubsub_topic" "p1d" {
   name    = "${var.project_name}-p1d"
 
   depends_on = [google_project_service.required]
+}
+
+resource "google_pubsub_topic" "gmail" {
+  project = var.project_id
+  name    = "${var.project_name}-gmail"
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_pubsub_topic_iam_member" "gmail_api_publisher" {
+  project = var.project_id
+  topic   = google_pubsub_topic.gmail.name
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:gmail-api-push@system.gserviceaccount.com"
+}
+
+resource "google_pubsub_topic_iam_member" "runtime_publishers" {
+  for_each = toset([
+    google_pubsub_topic.disruptions.name,
+    google_pubsub_topic.p1c.name,
+  ])
+
+  project = var.project_id
+  topic   = each.value
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.app.email}"
 }
 
 resource "google_pubsub_topic_iam_member" "p1d_runtime_publisher" {
@@ -314,6 +429,50 @@ resource "google_pubsub_subscription" "push" {
 resource "google_pubsub_subscription_iam_member" "dead_letter_subscriber" {
   project      = var.project_id
   subscription = google_pubsub_subscription.push.name
+  role         = "roles/pubsub.subscriber"
+  member       = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_pubsub_subscription" "gmail_push" {
+  project = var.project_id
+  name    = "${var.project_name}-gmail-push"
+  topic   = google_pubsub_topic.gmail.id
+
+  ack_deadline_seconds = 600
+
+  push_config {
+    push_endpoint = "${google_cloud_run_v2_service.app.uri}/apps/objective_recovery_agent/trigger/gmail/pubsub"
+
+    oidc_token {
+      service_account_email = google_service_account.gmail_push_invoker.email
+      audience              = google_cloud_run_v2_service.app.uri
+    }
+  }
+
+  retry_policy {
+    minimum_backoff = "10s"
+    maximum_backoff = "600s"
+  }
+
+  dead_letter_policy {
+    dead_letter_topic     = google_pubsub_topic.dead_letter.id
+    max_delivery_attempts = 20
+  }
+
+  expiration_policy {
+    ttl = ""
+  }
+
+  depends_on = [
+    google_cloud_run_v2_service_iam_member.gmail_push_invoker,
+    google_pubsub_topic_iam_member.dead_letter_publisher,
+    google_service_account_iam_member.gmail_push_token_creator,
+  ]
+}
+
+resource "google_pubsub_subscription_iam_member" "gmail_dead_letter_subscriber" {
+  project      = var.project_id
+  subscription = google_pubsub_subscription.gmail_push.name
   role         = "roles/pubsub.subscriber"
   member       = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
@@ -404,4 +563,66 @@ resource "google_pubsub_subscription_iam_member" "p1d_dead_letter_subscriber" {
   subscription = google_pubsub_subscription.p1d_push.name
   role         = "roles/pubsub.subscriber"
   member       = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_cloud_scheduler_job" "gmail_watch_renewal" {
+  count = var.gmail_mailbox == "" ? 0 : 1
+
+  project   = var.project_id
+  region    = var.region
+  name      = "${var.project_name}-gmail-watch-renewal"
+  schedule  = "0 4 * * *"
+  time_zone = "Etc/UTC"
+
+  http_target {
+    uri         = "${google_cloud_run_v2_service.app.uri}/apps/objective_recovery_agent/internal/gmail/watch/renew"
+    http_method = "POST"
+
+    oidc_token {
+      service_account_email = google_service_account.gmail_scheduler_invoker.email
+      audience              = google_cloud_run_v2_service.app.uri
+    }
+  }
+
+  retry_config {
+    retry_count          = 5
+    min_backoff_duration = "10s"
+    max_backoff_duration = "300s"
+  }
+
+  depends_on = [
+    google_cloud_run_v2_service_iam_member.gmail_scheduler_invoker,
+    google_service_account_iam_member.gmail_scheduler_token_creator,
+  ]
+}
+
+resource "google_cloud_scheduler_job" "gmail_reconciliation" {
+  count = var.gmail_mailbox == "" ? 0 : 1
+
+  project   = var.project_id
+  region    = var.region
+  name      = "${var.project_name}-gmail-reconciliation"
+  schedule  = "*/15 * * * *"
+  time_zone = "Etc/UTC"
+
+  http_target {
+    uri         = "${google_cloud_run_v2_service.app.uri}/apps/objective_recovery_agent/internal/gmail/reconcile"
+    http_method = "POST"
+
+    oidc_token {
+      service_account_email = google_service_account.gmail_scheduler_invoker.email
+      audience              = google_cloud_run_v2_service.app.uri
+    }
+  }
+
+  retry_config {
+    retry_count          = 5
+    min_backoff_duration = "10s"
+    max_backoff_duration = "300s"
+  }
+
+  depends_on = [
+    google_cloud_run_v2_service_iam_member.gmail_scheduler_invoker,
+    google_service_account_iam_member.gmail_scheduler_token_creator,
+  ]
 }

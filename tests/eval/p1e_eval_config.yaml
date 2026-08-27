@@ -1,0 +1,6 @@
+metrics_to_run:
+  - p1e_structured_correctness
+
+custom_metrics:
+  - name: p1e_structured_correctness
+    custom_function_file: p1e_metrics.py
