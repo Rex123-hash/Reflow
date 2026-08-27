@@ -22,6 +22,14 @@ output "pubsub_subscription" {
   value = google_pubsub_subscription.push.id
 }
 
+output "p1c_pubsub_topic" {
+  value = google_pubsub_topic.p1c.id
+}
+
+output "github_p1c_secret" {
+  value = google_secret_manager_secret.github_p1c_token.id
+}
+
 output "runtime_service_account" {
   value = google_service_account.app.email
 }

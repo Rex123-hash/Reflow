@@ -14,11 +14,15 @@ from pydantic import ValidationError
 from objective_recovery_agent.action_ledger import FirestoreActionReceiptLedger
 from objective_recovery_agent.calendar_execution import CalendarExecutionService
 from objective_recovery_agent.calendar_gateway import GoogleCalendarGateway
+from objective_recovery_agent.github_execution import GitHubP1CService, P1CState
+from objective_recovery_agent.github_gateway import RequestsGitHubGateway
+from objective_recovery_agent.github_ledger import FirestoreGitHubActionLedger
 from objective_recovery_agent.ledger import FirestoreWorkflowLedger
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.orchestrator import RecoveryOrchestrator
+from objective_recovery_agent.p1c import P1CConfiguration, authorize_p1c_intent
 from objective_recovery_agent.planning import AdkPlanningService
-from objective_recovery_agent.schemas import DisruptionEvent, PubSubEnvelope
+from objective_recovery_agent.schemas import DisruptionEvent, P1CContinuation, PubSubEnvelope
 
 if os.getenv("K_SERVICE"):
     from objective_recovery_agent.app_utils.telemetry import setup_telemetry
@@ -26,8 +30,8 @@ if os.getenv("K_SERVICE"):
     setup_telemetry()
 
 app = FastAPI(
-    title="Objective Recovery P1B",
-    description="Event-driven planning plus a verified, scoped Calendar action.",
+    title="Objective Recovery P1C",
+    description="Verified Calendar action plus independent GitHub objective evidence.",
     docs_url=None,
     redoc_url=None,
     openapi_url=None,
@@ -59,9 +63,35 @@ def get_orchestrator() -> RecoveryOrchestrator:
 def health() -> dict[str, str]:
     return {
         "status": "ready",
-        "scope": "P1B",
-        "terminal_state": "VERIFYING",
+        "scope": "P1C",
+        "terminal_state": "VERIFICATION_FAILED",
     }
+
+
+@lru_cache(maxsize=1)
+def get_p1c_service() -> tuple[GitHubP1CService, FirestoreWorkflowLedger, P1CConfiguration]:
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    token = os.environ.get("GITHUB_P1C_TOKEN")
+    if not project_id or not token:
+        raise RuntimeError("GOOGLE_CLOUD_PROJECT and GITHUB_P1C_TOKEN are required")
+    workflow = FirestoreWorkflowLedger(project_id)
+    configuration = P1CConfiguration(
+        repository=os.environ.get("GITHUB_P1C_REPOSITORY", "Rex123-hash/EXperiments"),
+        candidate_sha=os.environ.get(
+            "GITHUB_P1C_CANDIDATE_SHA",
+            "5353cf7c664f384d6642b5348c7f190187b06b4c",
+        ),
+        workflow_id=int(os.environ.get("GITHUB_P1C_WORKFLOW_ID", "343576501")),
+        workflow_path=os.environ.get(
+            "GITHUB_P1C_WORKFLOW_PATH", ".github/workflows/release-validation.yml"
+        ),
+    )
+    service = GitHubP1CService(
+        ledger=FirestoreGitHubActionLedger(project_id),
+        workflow_ledger=workflow,
+        gateway=RequestsGitHubGateway(token),
+    )
+    return service, workflow, configuration
 
 
 @app.post("/apps/objective_recovery_agent/trigger/pubsub")
@@ -117,6 +147,50 @@ async def receive_pubsub(envelope_data: dict[str, object]) -> Response:
     }
     return Response(
         content=json.dumps(body),
+        media_type="application/json",
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@app.post("/apps/objective_recovery_agent/trigger/p1c/pubsub")
+async def receive_p1c_pubsub(envelope_data: dict[str, object]) -> Response:
+    try:
+        envelope = PubSubEnvelope.model_validate(envelope_data)
+        decoded = base64.b64decode(envelope.message.data, validate=True)
+        continuation = P1CContinuation.model_validate_json(decoded)
+    except (ValidationError, ValueError, binascii.Error, json.JSONDecodeError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"invalid P1C continuation envelope: {type(error).__name__}",
+        ) from error
+    try:
+        service, workflow, configuration = get_p1c_service()
+        incident = workflow.load_incident(continuation.incident_id)
+        intent = authorize_p1c_intent(incident, configuration)
+        result = service.advance(intent)
+    except Exception as error:
+        retryable = bool(getattr(error, "retryable", False))
+        raise HTTPException(
+            status_code=(
+                status.HTTP_503_SERVICE_UNAVAILABLE if retryable else status.HTTP_409_CONFLICT
+            ),
+            detail=f"P1C continuation failed: {type(error).__name__}",
+        ) from error
+    if result.state in {P1CState.WAITING_FOR_RUN, P1CState.WAITING_FOR_COMPLETION}:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"P1C continuation pending: {result.state.value}",
+        )
+    return Response(
+        content=json.dumps(
+            {
+                "incident_id": continuation.incident_id,
+                "stage": result.state.value,
+                "receipt_status": result.receipt_status.value,
+                "run_id": result.run_id,
+                "run_attempt": result.run_attempt,
+            }
+        ),
         media_type="application/json",
         status_code=status.HTTP_200_OK,
     )

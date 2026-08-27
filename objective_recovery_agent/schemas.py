@@ -47,6 +47,9 @@ class WorkflowEventType(StrEnum):
     CALENDAR_WRITE_ACKNOWLEDGED = "CALENDAR_WRITE_ACKNOWLEDGED"
     ACTION_RECEIPT_VERIFIED = "ACTION_RECEIPT_VERIFIED"
     ACTION_RECEIPT_VERIFICATION_FAILED = "ACTION_RECEIPT_VERIFICATION_FAILED"
+    GITHUB_RELEASE_ACKNOWLEDGED = "GITHUB_RELEASE_ACKNOWLEDGED"
+    GITHUB_RUN_PINNED = "GITHUB_RUN_PINNED"
+    OBJECTIVE_VERIFICATION_FAILED = "OBJECTIVE_VERIFICATION_FAILED"
 
 
 class IncidentStage(StrEnum):
@@ -59,6 +62,7 @@ class IncidentStage(StrEnum):
     PLAN_SELECTED = "PLAN_SELECTED"
     EXECUTING = "EXECUTING"
     VERIFYING = "VERIFYING"
+    VERIFICATION_FAILED = "VERIFICATION_FAILED"
     PARTIAL_FAILURE = "PARTIAL_FAILURE"
     NO_VALID_PLAN = "NO_VALID_PLAN"
     PLANNING_FAILED = "PLANNING_FAILED"
@@ -278,6 +282,10 @@ class PubSubMessage(StrictModel):
 class PubSubEnvelope(StrictModel):
     message: PubSubMessage
     subscription: str
+
+
+class P1CContinuation(StrictModel):
+    incident_id: Annotated[str, Field(min_length=10, max_length=160)]
 
 
 def _iso_timestamp(value: object) -> str:

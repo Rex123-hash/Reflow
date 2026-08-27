@@ -36,6 +36,7 @@ locals {
     "logging.googleapis.com",
     "pubsub.googleapis.com",
     "run.googleapis.com",
+    "secretmanager.googleapis.com",
     "serviceusage.googleapis.com",
   ])
 }
@@ -90,6 +91,24 @@ resource "google_project_iam_member" "app_roles" {
   project = var.project_id
   role    = each.value
   member  = "serviceAccount:${google_service_account.app.email}"
+}
+
+resource "google_secret_manager_secret" "github_p1c_token" {
+  project   = var.project_id
+  secret_id = "${var.project_name}-github-p1c-token"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret_iam_member" "github_p1c_token_accessor" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.github_p1c_token.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.app.email}"
 }
 
 resource "google_service_account_iam_member" "app_calendar_token_creator" {
@@ -156,6 +175,31 @@ resource "google_cloud_run_v2_service" "app" {
         value = google_service_account.app.email
       }
       env {
+        name  = "GITHUB_P1C_REPOSITORY"
+        value = var.github_p1c_repository
+      }
+      env {
+        name  = "GITHUB_P1C_CANDIDATE_SHA"
+        value = var.github_p1c_candidate_sha
+      }
+      env {
+        name  = "GITHUB_P1C_WORKFLOW_ID"
+        value = tostring(var.github_p1c_workflow_id)
+      }
+      env {
+        name  = "GITHUB_P1C_WORKFLOW_PATH"
+        value = var.github_p1c_workflow_path
+      }
+      env {
+        name = "GITHUB_P1C_TOKEN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.github_p1c_token.secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
         name  = "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
         value = "false"
       }
@@ -166,6 +210,7 @@ resource "google_cloud_run_v2_service" "app" {
     google_firestore_database.workflow,
     google_project_iam_member.app_roles,
     google_service_account_iam_member.app_calendar_token_creator,
+    google_secret_manager_secret_iam_member.github_p1c_token_accessor,
   ]
 }
 
@@ -193,6 +238,13 @@ resource "google_pubsub_topic" "disruptions" {
 resource "google_pubsub_topic" "dead_letter" {
   project = var.project_id
   name    = "${var.project_name}-dead-letter"
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_pubsub_topic" "p1c" {
+  project = var.project_id
+  name    = "${var.project_name}-p1c"
 
   depends_on = [google_project_service.required]
 }
@@ -244,6 +296,50 @@ resource "google_pubsub_subscription" "push" {
 resource "google_pubsub_subscription_iam_member" "dead_letter_subscriber" {
   project      = var.project_id
   subscription = google_pubsub_subscription.push.name
+  role         = "roles/pubsub.subscriber"
+  member       = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_pubsub_subscription" "p1c_push" {
+  project = var.project_id
+  name    = "${var.project_name}-p1c-push"
+  topic   = google_pubsub_topic.p1c.id
+
+  ack_deadline_seconds = 120
+
+  push_config {
+    push_endpoint = "${google_cloud_run_v2_service.app.uri}/apps/objective_recovery_agent/trigger/p1c/pubsub"
+
+    oidc_token {
+      service_account_email = google_service_account.pubsub_invoker.email
+      audience              = google_cloud_run_v2_service.app.uri
+    }
+  }
+
+  retry_policy {
+    minimum_backoff = "10s"
+    maximum_backoff = "60s"
+  }
+
+  dead_letter_policy {
+    dead_letter_topic     = google_pubsub_topic.dead_letter.id
+    max_delivery_attempts = 20
+  }
+
+  expiration_policy {
+    ttl = ""
+  }
+
+  depends_on = [
+    google_cloud_run_v2_service_iam_member.pubsub_invoker,
+    google_pubsub_topic_iam_member.dead_letter_publisher,
+    google_service_account_iam_member.pubsub_token_creator,
+  ]
+}
+
+resource "google_pubsub_subscription_iam_member" "p1c_dead_letter_subscriber" {
+  project      = var.project_id
+  subscription = google_pubsub_subscription.p1c_push.name
   role         = "roles/pubsub.subscriber"
   member       = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
