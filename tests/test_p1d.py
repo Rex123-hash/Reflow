@@ -115,6 +115,9 @@ def context(artifacts: list[RecoveryArtifact]) -> ReplanningInput:
         ),
         objective_invariants=["release-validation-green"],
         objective_graph={},
+        resources=[],
+        allowed_work_item_ids=[],
+        allowed_commitment_ids=[],
         previous_selected_plan={},
         previous_plan_assumptions=[],
         previous_plan_unknowns=[],
@@ -222,6 +225,31 @@ def test_two_valid_b_plans_use_normal_stable_tie_break() -> None:
     plans = [candidate("z-plan", B), candidate("a-plan", B)]
     values, _ = evaluated(plans, [artifact(B)], {"z-plan": 10, "a-plan": 10})
     assert select_best_valid_plan(values).plan_id == "a-plan"
+
+
+def test_assignment_proposal_actions_are_retained_but_not_executable() -> None:
+    plan = candidate("plan-b", B)
+    plan.actions.append(
+        ProposedAction(
+            action_id="proposal-assign-backend",
+            action_type="reassign_task",
+            target="work-api-migration",
+            parameters=[
+                ActionParameter(key="person_id", value="person-backend-lead"),
+                ActionParameter(key="proposal_only", value="true"),
+            ],
+        )
+    )
+    values, decisions = evaluated([plan], [artifact(B)], {"plan-b": 10})
+    selected = select_best_valid_plan(values)
+    assert decisions[0]["is_valid"] is True
+    assert [action.action_type for action in selected.actions] == [
+        "github_release_validation",
+        "reassign_task",
+    ]
+    assert (
+        sum(action.action_type == "github_release_validation" for action in selected.actions) == 1
+    )
 
 
 def promotion_intent() -> GitHubReleaseIntent:

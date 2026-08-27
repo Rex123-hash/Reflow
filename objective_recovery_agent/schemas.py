@@ -345,6 +345,9 @@ class ReplanningInput(StrictModel):
     objective: ObjectiveRecord
     objective_invariants: list[str]
     objective_graph: dict[str, Any]
+    resources: list[ResourceOption]
+    allowed_work_item_ids: list[str]
+    allowed_commitment_ids: list[str]
     previous_selected_plan: dict[str, Any]
     previous_plan_assumptions: list[dict[str, Any]]
     previous_plan_unknowns: list[dict[str, Any]]

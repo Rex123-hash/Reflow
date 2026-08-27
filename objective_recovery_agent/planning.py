@@ -211,7 +211,9 @@ def create_replan_workflow() -> Workflow:
             "Do not repeat a historically failed objective effect. Do not assume an artifact is "
             "selected merely because it is available. If no executable future exists, return "
             "plans that truthfully expose their blocking unknown or policy conflict; never invent "
-            "an artifact, SHA, external result, or success."
+            "an artifact, SHA, external result, or success. Assignment proposals may use only "
+            "the supplied resources, person IDs, work-item IDs, and their exact declared skills; "
+            "they are proposals and must not be represented as already executed."
         ),
         generate_content_config=_generation_config(8192),
         timeout=PLANNER_TIMEOUT_SECONDS,

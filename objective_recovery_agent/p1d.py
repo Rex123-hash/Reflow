@@ -30,10 +30,8 @@ from objective_recovery.domain.models import (
 )
 from objective_recovery.domain.policy import (
     FailedRecoveryRepeatPolicy,
-    MaxWorkloadPolicy,
     PolicyEngine,
     ProtectedDeadlinePolicy,
-    RequiredSkillsPolicy,
     recovery_effect_fingerprint,
 )
 from objective_recovery.domain.state_machine import Incident
@@ -67,7 +65,7 @@ from objective_recovery_agent.schemas import (
     ReplanningInput,
     WorkflowEventType,
 )
-from objective_recovery_agent.world import objective_graph_snapshot
+from objective_recovery_agent.world import RESOURCES, objective_graph_snapshot
 
 PLAN_REVISION = 2
 FAILED_CANDIDATE_A = "5353cf7c664f384d6642b5348c7f190187b06b4c"
@@ -219,14 +217,17 @@ class ExecutableRecoveryPolicy:
         self._configuration = configuration
 
     def evaluate(self, plan: RecoveryPlan) -> tuple[PolicyViolation, ...]:
-        if len(plan.actions) != 1 or plan.actions[0].action_type != "github_release_validation":
+        github_actions = [
+            action for action in plan.actions if action.action_type == "github_release_validation"
+        ]
+        if len(github_actions) != 1:
             return (
                 PolicyViolation(
                     self.rule_id,
                     "recovery must contain exactly one supported GitHub validation action",
                 ),
             )
-        action = plan.actions[0]
+        action = github_actions[0]
         parameters = dict(action.parameters)
         violations: list[PolicyViolation] = []
         candidate_sha = parameters.get("candidate_sha", "")
@@ -266,14 +267,6 @@ def evaluate_replan_candidates(
     deadline = datetime.fromisoformat(replanning_input.objective.deadline_at_utc)
     engine = PolicyEngine(
         (
-            MaxWorkloadPolicy(),
-            RequiredSkillsPolicy(
-                {
-                    "person-backup": frozenset({"python", "api"}),
-                    "person-generalist": frozenset({"release", "documentation"}),
-                    "person-qa": frozenset({"qa", "python"}),
-                }
-            ),
             ProtectedDeadlinePolicy({"commit-release": deadline}),
             FailedRecoveryRepeatPolicy(failed),
             ExecutableRecoveryPolicy(available=available, configuration=configuration),
@@ -301,12 +294,18 @@ def evaluate_replan_candidates(
 
 
 def _plan_dict(plan: RecoveryPlan) -> dict[str, Any]:
+    github_action = next(
+        (action for action in plan.actions if action.action_type == "github_release_validation"),
+        None,
+    )
     return {
         "plan_id": plan.plan_id,
         "strategy_type": plan.strategy,
         "risk_score": str(plan.risk_score),
-        "semantic_fingerprint": dict(plan.actions[0].parameters).get(
-            "selected_plan_semantic_fingerprint"
+        "semantic_fingerprint": (
+            dict(github_action.parameters).get("selected_plan_semantic_fingerprint")
+            if github_action is not None
+            else None
         ),
         "actions": [
             {
@@ -321,6 +320,56 @@ def _plan_dict(plan: RecoveryPlan) -> dict[str, Any]:
         "expected_objective_effect": plan.expected_objective_effect,
         "risks": list(plan.risks),
         "required_evidence": list(plan.required_evidence),
+    }
+
+
+def deterministic_selection(
+    *,
+    incident_id: str,
+    candidates: CandidateSet,
+    critiques: CritiqueGeneration,
+    replanning_input: ReplanningInput,
+    configuration: P1DConfiguration,
+) -> dict[str, Any]:
+    """Select from persisted model output using the versioned deterministic policy."""
+    evaluated, decisions = evaluate_replan_candidates(
+        incident_id=incident_id,
+        candidates=candidates,
+        critiques=critiques,
+        replanning_input=replanning_input,
+        configuration=configuration,
+    )
+    try:
+        selected = select_best_valid_plan(evaluated)
+    except NoValidPlanError:
+        return {
+            "result": "NO_VALID_PLAN",
+            "policy_decisions": decisions,
+            "policy_version": "p1d-executable-v2",
+        }
+    github_actions = [
+        action for action in selected.actions if action.action_type == "github_release_validation"
+    ]
+    if len(github_actions) != 1:
+        raise AssertionError("valid selected plan lacks one GitHub validation action")
+    action = github_actions[0]
+    parameters = dict(action.parameters)
+    selected_fingerprint = recovery_effect_fingerprint(
+        action_type=action.action_type,
+        repository=action.target,
+        candidate_sha=parameters["candidate_sha"],
+        workflow_id=parameters["workflow_id"],
+        workflow_path=parameters["workflow_path"],
+    )
+    failed_fingerprints = {item.fingerprint for item in replanning_input.failed_recovery_effects}
+    if selected_fingerprint in failed_fingerprints:
+        raise AssertionError("failed recovery fingerprint survived final selection")
+    return {
+        "result": "PLAN_SELECTED",
+        "selected_plan": _plan_dict(selected),
+        "selected_effect_fingerprint": selected_fingerprint,
+        "policy_decisions": decisions,
+        "policy_version": "p1d-executable-v2",
     }
 
 
@@ -377,6 +426,13 @@ def build_replanning_input(
             "protected-release-deadline-satisfied",
         ],
         objective_graph=objective_graph_snapshot(),
+        resources=list(RESOURCES),
+        allowed_work_item_ids=[
+            "work-api-migration",
+            "work-api-tests",
+            "work-release-notes",
+        ],
+        allowed_commitment_ids=["commit-release"],
         previous_selected_plan=dict(incident.get("selected_plan", {})),
         previous_plan_assumptions=list(previous_candidate.get("assumptions", [])),
         previous_plan_unknowns=list(previous_candidate.get("unknowns", [])),
@@ -460,7 +516,12 @@ def _validation_intent(
     plan: RecoveryPlan,
     configuration: P1DConfiguration,
 ) -> GitHubReleaseIntent:
-    action = plan.actions[0]
+    github_actions = [
+        action for action in plan.actions if action.action_type == "github_release_validation"
+    ]
+    if len(github_actions) != 1:
+        raise ValueError("selected P1D plan lacks one exact GitHub validation action")
+    action = github_actions[0]
     parameters = dict(action.parameters)
     return GitHubReleaseIntent(
         incident_id=incident_id,
@@ -696,7 +757,7 @@ class P1DService:
         critiqued = CritiqueGeneration.model_validate(revision["critic_checkpoint"])
 
         if "selection" not in revision:
-            evaluated, decisions = evaluate_replan_candidates(
+            selection = deterministic_selection(
                 incident_id=handoff.incident_id,
                 candidates=generated.candidates,
                 critiques=critiqued,
@@ -707,33 +768,20 @@ class P1DService:
                 handoff.incident_id,
                 WorkflowEventType.POLICY_EVALUATED,
                 generated.planning_run_id,
-                {"decisions": decisions},
+                {
+                    "decisions": selection["policy_decisions"],
+                    "policy_version": selection["policy_version"],
+                },
             )
-            try:
-                selected = select_best_valid_plan(evaluated)
-            except NoValidPlanError:
+            if selection["result"] == "NO_VALID_PLAN":
                 self._store.checkpoint(
                     handoff.incident_id,
                     "selection",
-                    {"result": "NO_VALID_PLAN", "policy_decisions": decisions},
+                    selection,
                     stage=IncidentStage.NO_VALID_PLAN,
                     status="no_valid_plan",
                 )
                 return P1DResult(handoff.incident_id, P1DState.NO_VALID_PLAN, "NO_VALID_PLAN")
-            action = selected.actions[0]
-            parameters = dict(action.parameters)
-            selected_fingerprint = recovery_effect_fingerprint(
-                action_type=action.action_type,
-                repository=action.target,
-                candidate_sha=parameters["candidate_sha"],
-                workflow_id=parameters["workflow_id"],
-                workflow_path=parameters["workflow_path"],
-            )
-            failed_fingerprints = {
-                item.fingerprint for item in replanning_input.failed_recovery_effects
-            }
-            if selected_fingerprint in failed_fingerprints:
-                raise AssertionError("failed recovery fingerprint survived final selection")
             domain = Incident(
                 handoff.incident_id,
                 replanning_input.objective.objective_id,
@@ -742,12 +790,6 @@ class P1DService:
                 [IncidentStatus.VALIDATING],
             )
             domain.transition_to(IncidentStatus.PLAN_SELECTED)
-            selection = {
-                "result": "PLAN_SELECTED",
-                "selected_plan": _plan_dict(selected),
-                "selected_effect_fingerprint": selected_fingerprint,
-                "policy_decisions": decisions,
-            }
             self._store.checkpoint(
                 handoff.incident_id,
                 "selection",
@@ -755,30 +797,97 @@ class P1DService:
                 stage=IncidentStage.PLAN_SELECTED,
                 status="plan_selected",
             )
+            selected_data = cast(dict[str, Any], selection["selected_plan"])
+            selected_actions = cast(list[dict[str, Any]], selected_data["actions"])
+            github_action = next(
+                action
+                for action in selected_actions
+                if action["action_type"] == "github_release_validation"
+            )
             self._workflow.record_event(
                 handoff.incident_id,
                 WorkflowEventType.RECOVERY_SELECTED,
-                selected.plan_id,
-                {"plan_id": selected.plan_id, "candidate_sha": parameters["candidate_sha"]},
+                str(selected_data["plan_id"]),
+                {
+                    "plan_id": selected_data["plan_id"],
+                    "candidate_sha": github_action["parameters"]["candidate_sha"],
+                },
             )
             revision = self._store.load_revision(handoff.incident_id)
         selection = dict(revision["selection"])
+        if selection.get("result") == "NO_VALID_PLAN" and "policy_version" not in selection:
+            if "selection_reassessment" not in revision:
+                reassessment = deterministic_selection(
+                    incident_id=handoff.incident_id,
+                    candidates=generated.candidates,
+                    critiques=critiqued,
+                    replanning_input=replanning_input,
+                    configuration=self._configuration,
+                )
+                self._workflow.record_event(
+                    handoff.incident_id,
+                    WorkflowEventType.POLICY_EVALUATED,
+                    f"{generated.planning_run_id}:selection-reassessment",
+                    {
+                        "decisions": reassessment["policy_decisions"],
+                        "policy_version": reassessment["policy_version"],
+                        "reused_persisted_planner_and_critic": True,
+                    },
+                )
+                stage = (
+                    IncidentStage.PLAN_SELECTED
+                    if reassessment["result"] == "PLAN_SELECTED"
+                    else IncidentStage.NO_VALID_PLAN
+                )
+                status = (
+                    "plan_selected"
+                    if reassessment["result"] == "PLAN_SELECTED"
+                    else "no_valid_plan"
+                )
+                self._store.checkpoint(
+                    handoff.incident_id,
+                    "selection_reassessment",
+                    reassessment,
+                    stage=stage,
+                    status=status,
+                )
+                if reassessment["result"] == "PLAN_SELECTED":
+                    selected_data = cast(dict[str, Any], reassessment["selected_plan"])
+                    selected_actions = cast(list[dict[str, Any]], selected_data["actions"])
+                    github_action = next(
+                        action
+                        for action in selected_actions
+                        if action["action_type"] == "github_release_validation"
+                    )
+                    self._workflow.record_event(
+                        handoff.incident_id,
+                        WorkflowEventType.RECOVERY_SELECTED,
+                        f"{selected_data['plan_id']}:selection-reassessment",
+                        {
+                            "plan_id": selected_data["plan_id"],
+                            "candidate_sha": github_action["parameters"]["candidate_sha"],
+                            "reused_persisted_planner_and_critic": True,
+                        },
+                    )
+                revision = self._store.load_revision(handoff.incident_id)
+            selection = dict(revision["selection_reassessment"])
         if selection.get("result") == "NO_VALID_PLAN":
             return P1DResult(handoff.incident_id, P1DState.NO_VALID_PLAN, "NO_VALID_PLAN")
         selected_data = cast(dict[str, Any], selection["selected_plan"])
-        selected_action = cast(list[dict[str, Any]], selected_data["actions"])[0]
+        selected_actions = cast(list[dict[str, Any]], selected_data["actions"])
         selected = RecoveryPlan(
             plan_id=str(selected_data["plan_id"]),
             strategy=str(selected_data["strategy_type"]),
             risk_score=Decimal(str(selected_data["risk_score"])),
-            actions=(
+            actions=tuple(
                 Action(
                     str(selected_action["action_id"]),
                     str(selected_action["action_type"]),
                     str(selected_action["target"]),
                     tuple(sorted(dict(selected_action["parameters"]).items())),
                     str(selected_action["idempotency_key"]),
-                ),
+                )
+                for selected_action in selected_actions
             ),
         )
         validation_intent = _validation_intent(handoff.incident_id, selected, self._configuration)
