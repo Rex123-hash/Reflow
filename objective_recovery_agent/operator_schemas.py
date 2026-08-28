@@ -136,6 +136,15 @@ class OperatorIntent(OperatorModel):
             elif self.subject == "JIRA" and self.intent_type == "INSPECT":
                 if self.target is None or self.fact_ids:
                     raise ValueError("Jira inspection requires an external target")
+            elif (
+                self.subject == "CALENDAR"
+                and self.intent_type == "INSPECT"
+                and self.target is not None
+            ):
+                if self.target.authority != "GOOGLE_CALENDAR" or self.fact_ids:
+                    raise ValueError(
+                        "Dedicated Calendar inspection requires only its external target"
+                    )
             elif not self.fact_ids:
                 raise ValueError("Supported intent must select authoritative facts")
         elif (

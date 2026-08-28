@@ -61,9 +61,7 @@ def main() -> None:
                             "description": "Approved action result after execution and read-back",
                             "content": {
                                 "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/OperatorActionView"
-                                    }
+                                    "schema": {"$ref": "#/components/schemas/OperatorActionView"}
                                 }
                             },
                         }

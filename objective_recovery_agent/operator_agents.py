@@ -66,8 +66,17 @@ operations,
 and no target unless useful for clarification. Supported results have clarification null. Keep
 incident_id unchanged and recovery_attempt null or a known attempt. ACT has no fact_ids or
 hypothetical changes; non-ACT has no requested operations. Jira INSPECT uses an exact configured
-target and no incident fact_ids. "Update that task" without one exact identifier is
+target and no incident fact_ids. Dedicated Operator-demo Calendar INSPECT also requires the exact
+GOOGLE_CALENDAR/EVENT target from capabilities and no incident fact_ids. If that capability is
+unconfigured, return CLARIFICATION_REQUIRED; never substitute canonical Calendar evidence.
+Canonical recovery Calendar inspection uses its incident evidence and no external target.
+"Update that task" without one exact identifier is
 CLARIFICATION_REQUIRED and must not guess.
+An explicit Jira issue key outside configured resource_identifiers is UNSUPPORTED, not ambiguous;
+never ask to authorize that different issue through clarification.
+If a requested mutation has no corresponding configured authority/operation, return UNSUPPORTED
+before considering missing parameters. Clarify missing parameters only for an available mutation
+capability. The unconfigured dedicated Calendar INSPECT rule above remains CLARIFICATION_REQUIRED.
 Only these hypothetical kinds exist: CI_PASSED (target identifies the observed candidate/recovery,
 value 'true'); DEADLINE_SHIFT_MINUTES (target objective_id, value signed integer minutes, max
 one day); RESOURCE_AVAILABLE_AT (target a resource mentioned in facts, value ISO8601 timestamp

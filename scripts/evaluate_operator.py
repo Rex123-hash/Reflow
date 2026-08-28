@@ -105,12 +105,15 @@ def evaluation_trace(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 async def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--case-delay", type=float, default=0)
     parser.add_argument("--url")
     parser.add_argument("--context-url")
     parser.add_argument("--output", default="artifacts/p2f-local-evaluation.json")
     parser.add_argument("--traces-output", default="artifacts/p2f-agent-eval-traces.json")
     parser.add_argument("--case", action="append")
     args = parser.parse_args()
+    if not 0 <= args.case_delay <= 30:
+        parser.error("case-delay must be between 0 and 30 seconds")
     environment()
     from objective_recovery_agent.external_reality_schemas import ExternalRealityView
     from objective_recovery_agent.operator_api import get_operator_service
@@ -160,6 +163,8 @@ async def main() -> None:
     for case in cases:
         if args.case and case["id"] not in args.case:
             continue
+        if records and args.case_delay:
+            await asyncio.sleep(args.case_delay)
         payload = OperatorQuery(
             incident_id="incident-0fc3af5b0bd1ad847aea", message=case["message"]
         )

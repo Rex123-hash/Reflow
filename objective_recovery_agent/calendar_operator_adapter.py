@@ -112,10 +112,12 @@ class CalendarOperatorAdapter:
             raise OperatorAdapterError(error.category.value) from error
         if value is None:
             raise OperatorAdapterError("calendar_resource_missing")
+        extended = value.get("extendedProperties")
+        private = extended.get("private") if isinstance(extended, dict) else None
         if (
             value.get("id") != self._demo_event_id
-            or value.get("extendedProperties", {}).get("private", {}).get("reflow_resource")
-            != "operator_demo"
+            or not isinstance(private, dict)
+            or private.get("reflow_resource") != "operator_demo"
             or value.get("attendees")
             or value.get("recurrence")
             or value.get("recurringEventId")

@@ -211,6 +211,33 @@ resource "google_cloud_run_v2_service" "app" {
         value = var.operator_demo_calendar_event_id
       }
       env {
+        name  = "OPERATOR_ALLOWED_SUBJECT_HASHES"
+        value = var.operator_allowed_subject_hashes
+      }
+      dynamic "env" {
+        for_each = var.operator_jira == null ? {} : {
+          JIRA_BASE_URL       = var.operator_jira.base_url
+          JIRA_EMAIL          = var.operator_jira.email
+          JIRA_DEMO_ISSUE_KEY = var.operator_jira.issue_key
+        }
+        content {
+          name  = env.key
+          value = env.value
+        }
+      }
+      dynamic "env" {
+        for_each = var.operator_jira == null ? [] : [var.operator_jira]
+        content {
+          name = "JIRA_API_TOKEN"
+          value_source {
+            secret_key_ref {
+              secret  = env.value.secret_id
+              version = env.value.secret_version
+            }
+          }
+        }
+      }
+      env {
         name  = "OBJECTIVE_RECOVERY_SERVICE_ACCOUNT"
         value = google_service_account.app.email
       }

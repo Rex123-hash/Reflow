@@ -6,6 +6,7 @@ Writes sanitized validated intents and metadata, not prompts or hidden reasoning
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import json
 import uuid
@@ -14,6 +15,11 @@ from scripts.evaluate_operator import ROOT, environment, evaluation_trace
 
 
 async def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--case-delay", type=float, default=0)
+    args = parser.parse_args()
+    if not 0 <= args.case_delay <= 30:
+        parser.error("case-delay must be between 0 and 30 seconds")
     environment()
     from objective_recovery_agent.operator_agents import AdkOperatorAgents
     from objective_recovery_agent.operator_context import build_snapshot
@@ -87,6 +93,22 @@ async def main() -> None:
             "operations": ["JIRA_ASSIGN"],
         },
         {
+            "id": "calendar_inspect",
+            "message": "What time is the Operator demo coordination event?",
+            "intent": "INSPECT",
+            "disposition": "SUPPORTED",
+            "target": "p2goperator20260828",
+            "operations": [],
+        },
+        {
+            "id": "calendar_inspect_unconfigured",
+            "message": "What time is the Operator demo coordination event?",
+            "intent": None,
+            "disposition": "CLARIFICATION_REQUIRED",
+            "operations": [],
+            "without_calendar": True,
+        },
+        {
             "id": "calendar_act",
             "message": "Move the Operator demo coordination event by one hour.",
             "intent": "ACT",
@@ -128,12 +150,18 @@ async def main() -> None:
     agents = AdkOperatorAgents()
     records = []
     for case in cases:
+        if records and args.case_delay:
+            await asyncio.sleep(args.case_delay)
         try:
             intent, trace = await agents.interpret(
                 IntentInput(
                     request=OperatorQuery(incident_id=incident, message=case["message"]),
                     snapshot=snapshot,
-                    capabilities=capabilities,
+                    capabilities=tuple(
+                        item
+                        for item in capabilities
+                        if not case.get("without_calendar") or item.authority != "GOOGLE_CALENDAR"
+                    ),
                 ),
                 str(uuid.uuid4()),
             )

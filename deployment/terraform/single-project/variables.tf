@@ -33,6 +33,28 @@ variable "operator_demo_calendar_event_id" {
   default     = ""
 }
 
+variable "operator_allowed_subject_hashes" {
+  description = "Explicitly approved Firebase UID SHA-256; empty keeps Operator ACT disabled."
+  type        = string
+  default     = ""
+  validation {
+    condition     = var.operator_allowed_subject_hashes == "" || can(regex("^[a-f0-9]{64}$", var.operator_allowed_subject_hashes))
+    error_message = "Configure exactly one approved subject hash, or leave empty."
+  }
+}
+
+variable "operator_jira" {
+  description = "Private-backend Jira demo configuration and existing Secret Manager reference, never a token value."
+  type = object({
+    base_url       = string
+    email          = string
+    issue_key      = string
+    secret_id      = string
+    secret_version = string
+  })
+  default = null
+}
+
 variable "github_p1c_repository" {
   type        = string
   description = "Single GitHub proof repository authorized for P1C."

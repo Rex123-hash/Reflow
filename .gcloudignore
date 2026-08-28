@@ -11,6 +11,8 @@
 !deployment/
 !deployment/p2d/
 !deployment/p2d/**
+!deployment/p2g/
+!deployment/p2g/**
 !docs/
 !docs/ui-fixtures/
 !docs/ui-fixtures/**

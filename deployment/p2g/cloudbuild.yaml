@@ -1,0 +1,15 @@
+# Build the existing private backend and BFF from one reviewed source revision.
+steps:
+  - id: backend
+    name: gcr.io/cloud-builders/docker
+    waitFor: ['-']
+    args: [build, --file, Dockerfile, --build-arg, 'COMMIT_SHA=${COMMIT_SHA}', --tag, '${_BACKEND_IMAGE}', .]
+  - id: bff
+    name: gcr.io/cloud-builders/docker
+    waitFor: ['-']
+    args: [build, --file, deployment/p2d/Dockerfile, --build-arg, 'COMMIT_SHA=${COMMIT_SHA}', --tag, '${_BFF_IMAGE}', .]
+images:
+  - '${_BACKEND_IMAGE}'
+  - '${_BFF_IMAGE}'
+options:
+  logging: CLOUD_LOGGING_ONLY

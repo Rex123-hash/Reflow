@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
 import pytest
 import requests
-from objective_recovery_agent.calendar_operator_adapter import CalendarOperatorAdapter
+from objective_recovery_agent.calendar_operator_adapter import (
+    CalendarOperatorAdapter,
+    OperatorCalendarGateway,
+)
 from objective_recovery_agent.jira_operator_adapter import JiraOperatorAdapter
 from objective_recovery_agent.operator_actions import (
     ActionAuthorizationPolicy,
@@ -15,7 +19,7 @@ from objective_recovery_agent.operator_actions import (
     OperatorActionCoordinator,
     OperatorAdapterError,
 )
-from objective_recovery_agent.operator_agents import AdkOperatorAgents
+from objective_recovery_agent.operator_agents import AdkOperatorAgents, OperatorReasoningError
 from objective_recovery_agent.operator_schemas import (
     Authority,
     IntentInput,
@@ -29,7 +33,7 @@ from objective_recovery_agent.operator_schemas import (
 from objective_recovery_agent.operator_service import OperatorService
 from pydantic import ValidationError
 
-from test_operator_runtime import INCIDENT, REQUEST, FakeAgents, snapshot
+from test_operator_runtime import INCIDENT, REQUEST, FakeAgents, intent, snapshot
 
 
 class FakeAdapter:
@@ -661,6 +665,143 @@ def test_calendar_missing_resource_and_readback_mismatch_are_not_verified() -> N
         adapter.inspect(target("GOOGLE_CALENDAR", "operator-demo"))
     passed, proof = adapter.verify({"start": "expected"}, {"start": "observed"})
     assert not passed and proof["comparison"] == "FAILED"
+
+
+@pytest.mark.parametrize(
+    "unsafe",
+    [
+        {"extendedProperties": []},
+        {"extendedProperties": {"private": []}},
+        {"attendees": [{"email": "fixture@example.invalid"}]},
+        {"recurrence": ["RRULE:FREQ=DAILY"]},
+        {"recurringEventId": "series"},
+        {"status": "cancelled"},
+    ],
+)
+def test_calendar_inspection_rejects_unsafe_demo(unsafe: dict[str, Any]) -> None:
+    gateway = CalendarGatewayStub()
+    assert gateway.value is not None
+    gateway.value.update(unsafe)
+    adapter = CalendarOperatorAdapter(
+        calendar_id="demo-calendar", demo_event_id="operator-demo", gateway=cast(Any, gateway)
+    )
+    with pytest.raises(OperatorAdapterError, match="calendar_not_isolated_operator_demo"):
+        adapter.inspect(target("GOOGLE_CALENDAR", "operator-demo"))
+    assert gateway.patches == []
+
+
+def test_calendar_real_gateway_stale_etag_never_verifies() -> None:
+    baseline = CalendarGatewayStub().value
+    writes: list[dict[str, Any]] = []
+
+    class Session:
+        def request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
+            assert url.endswith("/events/operator-demo")
+            response = requests.Response()
+            response.status_code = 200 if method == "GET" else 412
+            if method != "GET":
+                assert method == "PATCH" and kwargs["headers"] == {"If-Match": "before"}
+                writes.append(kwargs)
+            response._content = json.dumps(baseline if method == "GET" else {}).encode()
+            return response
+
+    gateway = object.__new__(OperatorCalendarGateway)
+    gateway._session = cast(Any, Session())
+    gateway._request_timeout = 1
+    adapter = CalendarOperatorAdapter(
+        calendar_id="demo-calendar", demo_event_id="operator-demo", gateway=gateway
+    )
+    control = OperatorActionCoordinator(
+        CapabilityRegistry((adapter,)), InMemoryOperatorActionStore()
+    )
+    result = control.request(
+        request_id=REQUEST,
+        idempotency_key="stale-calendar-etag",
+        subject_hash="a" * 64,
+        role="OPERATOR",
+        target=target("GOOGLE_CALENDAR", "operator-demo"),
+        operations=(operation("CALENDAR_RESCHEDULE", "60"),),
+    )
+    assert len(writes) == 1 and result.lifecycle == "FAILED"
+    assert result.execution_acknowledgement == {} and result.verification_result != "PASSED"
+
+
+def test_viewer_and_expired_approval_do_not_execute() -> None:
+    adapter = FakeAdapter()
+    store = InMemoryOperatorActionStore()
+    control = OperatorActionCoordinator(CapabilityRegistry((adapter,)), store)
+    pending = control.request(
+        request_id=REQUEST,
+        idempotency_key="expired-approval",
+        subject_hash="a" * 64,
+        role="OPERATOR",
+        target=target(),
+        operations=(operation("JIRA_ASSIGN", "Srishti"),),
+    )
+    with pytest.raises(OperatorAdapterError, match="approval_not_authorized"):
+        control.approve(pending.operator_action_id, "a" * 64, "VIEWER")
+    store.actions[pending.operator_action_id] = pending.model_copy(
+        update={"created_at": (datetime.now(UTC) - timedelta(minutes=16)).isoformat()}
+    )
+    expired = control.approve(pending.operator_action_id, "a" * 64, "OPERATOR")
+    assert expired.lifecycle == "FAILED" and expired.error_category == "approval_expired_or_revoked"
+    assert adapter.executions == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "scenario", ["valid", "missing", "unmarked", "unconfigured", "omitted_target", "canonical_id"]
+)
+async def test_dedicated_calendar_inspection_never_substitutes_canonical(scenario: str) -> None:
+    gateway = CalendarGatewayStub()
+    if scenario == "missing":
+        gateway.value = None
+    elif scenario == "unmarked":
+        assert gateway.value is not None
+        gateway.value["extendedProperties"] = {}
+    adapter = CalendarOperatorAdapter(
+        calendar_id="demo-calendar", demo_event_id="operator-demo", gateway=cast(Any, gateway)
+    )
+    registry = CapabilityRegistry(() if scenario == "unconfigured" else (adapter,))
+    coordinator = OperatorActionCoordinator(registry, InMemoryOperatorActionStore())
+
+    async def read(_: str) -> Any:
+        return snapshot()
+
+    async def canonical(_: str) -> Any:
+        pytest.fail("Dedicated inspection must never read canonical Calendar state")
+
+    selected = (
+        None
+        if scenario == "omitted_target"
+        else target(
+            "GOOGLE_CALENDAR", "p1b-canonical" if scenario == "canonical_id" else "operator-demo"
+        )
+    )
+    agents = FakeAgents(
+        intent(
+            "INSPECT",
+            subject="CALENDAR",
+            target=selected,
+            fact_ids=["action:calendar-9899dba7a849a328a49d"] if selected is None else [],
+        )
+    )
+    service = OperatorService(read, canonical, agents, coordinator)
+    query = OperatorQuery(
+        incident_id=INCIDENT, message="What time is the Operator demo coordination event?"
+    )
+    if scenario != "valid":
+        with pytest.raises(OperatorReasoningError):
+            await service.query(query, REQUEST)
+    else:
+        result = await service.query(query, REQUEST)
+        assert result.inspection is not None
+        assert result.inspection.observed_state["event_id"] == "operator-demo"
+        assert "2026-08-28T15:00:00+05:30" in result.answer
+        assert result.facts[0].fact_id == "calendar:operator-demo"
+        assert result.evidence == ()
+        assert result.action is None and result.external_effects_executed is False
+    assert gateway.patches == []
 
 
 def test_partial_write_failure_preserves_ack_and_never_repeats() -> None:

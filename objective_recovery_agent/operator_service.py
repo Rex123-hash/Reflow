@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import re
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from typing import Literal, Protocol
@@ -158,9 +159,13 @@ class OperatorService:
                 intent = OperatorIntent(
                     disposition="SUPPORTED",
                     intent_type="ACT",
-                    subject={"JIRA": "JIRA", "GOOGLE_CALENDAR": "CALENDAR", "REFLOW": "OBJECTIVE"}[
-                        replay.authority
-                    ],
+                    subject=(
+                        "JIRA"
+                        if replay.authority == "JIRA"
+                        else "CALENDAR"
+                        if replay.authority == "GOOGLE_CALENDAR"
+                        else "OBJECTIVE"
+                    ),
                     incident_id=query.incident_id,
                     question="Previously recorded Operator request",
                     hypothetical_changes=(),
@@ -187,6 +192,19 @@ class OperatorService:
             # Validate even injected implementations; no unvalidated model output is used.
             intent = OperatorIntent.model_validate(intent)
             deadline = None if replay else validate_intent(intent, snapshot, self._registry)
+            if (
+                intent.disposition == "SUPPORTED"
+                and intent.intent_type in {"INSPECT", "EXPLAIN"}
+                and re.search(r"\boperator[\s-]+demo\b", query.message, re.IGNORECASE)
+                and (
+                    intent.subject != "CALENDAR"
+                    or intent.target is None
+                    or intent.target.authority != "GOOGLE_CALENDAR"
+                    or intent.target.resource_type != "EVENT"
+                )
+            ):
+                # A model omission must not substitute canonical recovery evidence.
+                raise OperatorReasoningError("Dedicated Operator Calendar inspection unavailable")
             facts = tuple(
                 fact
                 for key in dict.fromkeys(intent.fact_ids)
@@ -225,9 +243,11 @@ class OperatorService:
                     operations=intent.requested_operations,
                     request_fingerprint=fingerprint,
                 )
+                if action is None:
+                    raise OperatorReasoningError("Action receipt unavailable")
                 provenance = "OPERATOR_ACTION"
                 external_effects = bool(action.execution_acknowledgement)
-                if action.error_category in {
+                if action.error_category is not None and action.error_category in {
                     "jira_assignee_ambiguous",
                     "jira_assignee_not_found",
                     "jira_transition_ambiguous",
@@ -295,6 +315,33 @@ class OperatorService:
                                     f"priority {state.get('priority')}; assignee "
                                     f"{state.get('assignee_display_name')}; due date "
                                     f"{state.get('due_date')}."
+                                ),
+                                800,
+                            ),
+                            evidence_ids=(),
+                        ),
+                    )
+                    answer = facts[0].text
+                elif intent.subject == "CALENDAR" and intent.target is not None:
+                    if intent.target.authority != "GOOGLE_CALENDAR":
+                        raise OperatorReasoningError("Calendar inspection target invalid")
+                    try:
+                        inspection = await asyncio.to_thread(self._registry.inspect, intent.target)
+                    except OperatorAdapterError as error:
+                        raise OperatorReasoningError(
+                            "Dedicated Operator Calendar inspection unavailable"
+                        ) from error
+                    state = inspection.observed_state
+                    evidence_ids = set()
+                    facts = (
+                        OperatorFact(
+                            fact_id=f"calendar:{intent.target.resource_identifier}",
+                            text=safe_text(
+                                (
+                                    f"Fresh Operator demo Calendar read-back at "
+                                    f"{inspection.observed_at}: {state.get('title')}; "
+                                    f"{state.get('start')} to {state.get('end')}; "
+                                    f"status {state.get('status')}."
                                 ),
                                 800,
                             ),
