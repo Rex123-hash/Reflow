@@ -137,12 +137,17 @@ export function tuneAuthoredMaterial(material: THREE.Material, maps: AuthoredMic
     next.clearcoat = 0.14;
     next.clearcoatRoughness = 0.39;
     next.ior = 1.48;
-    const reflectionFacing = nodeName === "PrimaryForestTrack_1" || nodeName === "InnerRecoveryArc";
-    next.envMapIntensity = nodeName === "PrimaryForestTrack_1" ? 2.25 : nodeName === "InnerRecoveryArc" ? 1.2 : 0.34;
-    if (reflectionFacing) {
-      next.clearcoat = 0.2;
-      next.clearcoatRoughness = 0.34;
-    }
+    // One value for one material. The six ForestEnamel meshes are all near-flat
+    // horizontal arcs on the top face at similar height (thickness 0.030-0.052,
+    // identical node transforms), so they share an orientation and the shader
+    // already computes their reflection vectors per pixel. Scaling IBL per node
+    // was compensating for something the renderer does correctly.
+    //
+    // Measured before removal: PrimaryForestTrack_1 at 2.25 rendered #234334 and
+    // PrimaryForestTrack_0 at 0.34 rendered #294637 — about six points apart
+    // despite a 6.6x difference, because environmentIntensity is 0.46 against a
+    // soft neutral room and direct light dominates. The numbers were near-inert.
+    next.envMapIntensity = 0.34;
   } else if (next.name === "MutedPrecisionBrass") {
     next.color.set("#b7965a");
     next.metalness = 0.92;

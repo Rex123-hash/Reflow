@@ -149,7 +149,11 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
 
         const xAction = conditions.desktop ? -1.55 : conditions.tablet ? -1 : 0;
         const xReplan = conditions.desktop ? -0.6 : 0;
-        const heroScale = conditions.desktop ? 0.38 : conditions.tablet ? 0.42 : 0.22;
+        // Reference PAGES/1.png shows the instrument considerably larger in the
+        // hero than 0.38 produced — roughly half the frame height rather than a
+        // third, with the raised centre hub clearly readable. Measured against a
+        // matched-crop overlay (visual-qa/compare-hero-orb.png).
+        const heroScale = conditions.desktop ? 0.52 : conditions.tablet ? 0.5 : 0.26;
         const riskScale = conditions.desktop ? 0.56 : conditions.tablet ? 0.52 : 0.32;
         const futureScale = conditions.desktop ? 0.45 : conditions.tablet ? 0.46 : 0.3;
         p.scale = heroScale;
@@ -157,7 +161,10 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
         // screen so it clears the headline and lede. At 1.5 it sat directly behind
         // the copy; legible only while the render was washed out, which it no
         // longer is. Verified at 390px: visual-qa/after-normal-390.png.
-        p.y = conditions.mobile ? 3.4 : conditions.tablet ? 2.35 : 2.7;
+        // Pushing the instrument further from the camera raises it in frame, which
+        // is where the reference places it — the full top face and the centre hub
+        // are visible above the fold rather than half-cropped by the viewport.
+        p.y = conditions.mobile ? 3.4 : conditions.tablet ? 2.1 : 2.15;
 
         const beats = gsap.utils.toArray<HTMLElement>("[data-beat]", root);
         const progressItems = gsap.utils.toArray<HTMLElement>("[data-progress-stage]", root);

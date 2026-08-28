@@ -44,13 +44,20 @@ interface SatelliteOrbit {
   verticalBias: number;
 }
 
+// Orbit radii ride the authored rails (AUTHORED_ORB_RAILS) and clear the body.
+//
+// They previously did not: AUTHORED_BODY_RADIUS is 2.82, and the innermost
+// satellite orbited at radiusZ 2.52 — inside the disc footprint — so on the near
+// side of its orbit it crossed the rim and read as stuck to the body rather than
+// orbiting it. The reference shows all three well clear, out on the rails.
+// radiusZ keeps the existing ~0.826 foreshortening ratio against radiusX.
 const SATELLITES: SatelliteOrbit[] = [
   {
     kind: "plan",
     bodyRadius: 0.19,
     scale: [1, 0.96, 1.05],
-    radiusX: 3.05,
-    radiusZ: 2.52,
+    radiusX: 3.7788,
+    radiusZ: 3.122,
     period: 45,
     phase: 3.52,
     inclination: 0.018,
@@ -61,8 +68,8 @@ const SATELLITES: SatelliteOrbit[] = [
     kind: "act",
     bodyRadius: 0.205,
     scale: [1.02, 0.97, 1],
-    radiusX: 3.55,
-    radiusZ: 2.94,
+    radiusX: 4.7658,
+    radiusZ: 3.937,
     period: 57,
     phase: 1.86,
     inclination: -0.03,
@@ -73,8 +80,8 @@ const SATELLITES: SatelliteOrbit[] = [
     kind: "verify",
     bodyRadius: 0.2,
     scale: [1.04, 0.97, 1.02],
-    radiusX: 4.05,
-    radiusZ: 3.32,
+    radiusX: 5.4426,
+    radiusZ: 4.496,
     period: 68,
     phase: 5.68,
     inclination: 0.038,

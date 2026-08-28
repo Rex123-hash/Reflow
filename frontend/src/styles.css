@@ -60,7 +60,7 @@ body[data-fidelity-approach] {
 .production-story-rails { position:absolute; inset:0; width:100%; height:100%; z-index:4; pointer-events:none; overflow:visible; }
 .production-story-rails path { fill:none; stroke:#849d8b; stroke-width:1.05; vector-effect:non-scaling-stroke; }
 .production-story-rails path:last-of-type { stroke:#1d4c39; }
-.production-story-rails text { fill:#1d4c39; font:700 9px Inter, sans-serif; letter-spacing:.16em; opacity:.72; }
+.production-story-rails text { fill:#1d4c39; font:700 11.5px Inter, sans-serif; letter-spacing:.17em; opacity:1; }
 .production-instrument-layer::before { content:""; position:absolute; z-index:0; left:50%; top:61%; width:min(78vw,980px); aspect-ratio:1.65; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(ellipse,rgba(231,238,231,.3) 0%,rgba(255,248,236,.18) 42%,transparent 72%); filter:blur(18px); opacity:.5; animation:reflow-atmosphere 12s ease-in-out infinite alternate; }
 .production-instrument-layer.stage-risk::before { opacity:.32; }
 .production-instrument-layer.stage-futures::before { opacity:.46; }

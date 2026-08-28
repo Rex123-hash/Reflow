@@ -232,12 +232,15 @@ export function ReflowInstrument({ pose, progress, activeStage, reducedMotion, r
     const incomplete = windowed(0.54, 0.59, 0.69, 0.75);
     const replan = windowed(0.67, 0.72, 0.84, 0.89);
     const restored = smooth(0.83, 0.9);
+    // The reference hero shows the orbital rails as visible hairlines, not as the
+    // near-invisible 0.02-0.03 they sat at here. Each rail keeps its own
+    // story-stage emphasis; only the hero baseline is lifted.
     const railOpacity = [
-      0.025 + impact * 0.31 + incomplete * 0.34,
-      0.025 + action * 0.5 + replan * 0.22,
-      0.025 + impact * 0.16 + futures * 0.24,
-      0.02 + futures * 0.34 + replan * 0.34,
-      0.025 + hero * 0.28 + restored * 0.09,
+      0.025 + hero * 0.34 + impact * 0.31 + incomplete * 0.34,
+      0.025 + hero * 0.3 + action * 0.5 + replan * 0.22,
+      0.025 + hero * 0.32 + impact * 0.16 + futures * 0.24,
+      0.02 + hero * 0.26 + futures * 0.34 + replan * 0.34,
+      0.025 + hero * 0.5 + restored * 0.09,
     ];
     const failure = windowed(0.57, 0.615, 0.72, 0.79);
     const forest = new THREE.Color("#1d4c39");
@@ -251,11 +254,14 @@ export function ReflowInstrument({ pose, progress, activeStage, reducedMotion, r
     });
 
     const replanLocal = clamp((storyProgress - 0.69) / 0.14);
+    // PLAN / DETECT / ACT / VERIFY are legible in the reference hero. They were at
+    // 0.17 here, which reads as smudges. The hero term is raised; every later
+    // stage keeps the emphasis it already had.
     const labelOpacity = [
-      0.06 + hero * 0.11 + futures * 0.84 + replan * (1 - replanLocal) * 0.76 + restored * 0.08,
-      0.06 + hero * 0.11 + impact * 0.88 + restored * 0.08,
-      0.06 + hero * 0.11 + action * 0.9 + replan * Math.sin(replanLocal * Math.PI) * 0.72 + restored * 0.08,
-      0.06 + hero * 0.11 + incomplete * 0.9 + replan * replanLocal * 0.78 + restored * 0.12,
+      0.06 + hero * 0.84 + futures * 0.84 + replan * (1 - replanLocal) * 0.76 + restored * 0.08,
+      0.06 + hero * 0.84 + impact * 0.88 + restored * 0.08,
+      0.06 + hero * 0.84 + action * 0.9 + replan * Math.sin(replanLocal * Math.PI) * 0.72 + restored * 0.08,
+      0.06 + hero * 0.84 + incomplete * 0.9 + replan * replanLocal * 0.78 + restored * 0.12,
     ];
     value.labels.forEach((label, index) => {
       const text = labelRefs.current[index];
