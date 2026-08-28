@@ -47,16 +47,48 @@ interface BeatTiming {
  * and a marker, nine is what the five-node impact diagram and the four-step replan
  * ladder need to arrive without feeling rushed. `dwell` is then set so the settled
  * state is comfortably the longest part of the beat.
+ *
+ * Two beats carry more than one story state and are given a longer dwell to hold
+ * a settled plateau for each of them:
+ *
+ *   ACT is really ACT then VERIFY. The action lands, holds, and only then does the
+ *   separate read-back and the independent verification arrive and hold — so the
+ *   viewer sees Reflow check external reality rather than watching a rail label
+ *   change against a static card.
+ *
+ *   REPLAN is REPLANNING, then NEW ACTION, then VERIFY AGAIN — the recovery loop
+ *   running a second time, which is the product's whole argument and cannot be a
+ *   single flash.
+ *
+ * The extra runway is redistributed out of the beats that only carry one state,
+ * so the page grows by about 5% rather than by three new sections.
  */
 const BEATS: readonly BeatTiming[] = [
-  { id: "hero", enter: 0, dwell: 22, exit: 5 },
-  { id: "risk", enter: 8, dwell: 26, exit: 5 },
-  { id: "futures", enter: 7, dwell: 24, exit: 5 },
-  { id: "action", enter: 9, dwell: 26, exit: 5 },
-  { id: "incomplete", enter: 6, dwell: 22, exit: 5 },
-  { id: "replan", enter: 9, dwell: 26, exit: 5 },
-  { id: "restored", enter: 9, dwell: 26, exit: 4 },
+  { id: "hero", enter: 0, dwell: 18, exit: 5 },
+  { id: "risk", enter: 8, dwell: 24, exit: 5 },
+  { id: "futures", enter: 7, dwell: 22, exit: 5 },
+  // ACT + VERIFY
+  { id: "action", enter: 9, dwell: 34, exit: 5 },
+  { id: "incomplete", enter: 6, dwell: 20, exit: 5 },
+  // REPLANNING + NEW ACTION + VERIFY AGAIN
+  { id: "replan", enter: 9, dwell: 40, exit: 5 },
+  { id: "restored", enter: 9, dwell: 28, exit: 4 },
 ] as const;
+
+/**
+ * Where, inside a beat that owns several story states, each later state takes
+ * over — as a fraction of the beat's whole window.
+ *
+ * These are the same moments the timeline uses to bring that state's evidence in,
+ * so the rail changes at the instant the composition does rather than on an even
+ * split that happens to be near it.
+ */
+export const SUB_BEAT_HANDOVER: Partial<Record<StoryStageId, readonly number[]>> = {
+  // Read-back begins 23 units into a 48-unit beat.
+  action: [0, 23 / 48],
+  // New action at 21, verify again at 36, of 54.
+  replan: [0, 21 / 54, 36 / 54],
+};
 
 export interface StoryBeatWindow {
   id: StoryStageId;

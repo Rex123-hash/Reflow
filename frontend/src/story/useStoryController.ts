@@ -322,14 +322,23 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
         timeline.to("[data-beat='futures']", { autoAlpha: 0, y: -16, pointerEvents: "none", duration: futures.exit }, futures.exitAt);
         timeline.to(p, { x: xAction, y: conditions.mobile ? 1.55 : 0.55, scale: riskScale * 0.8, duration: action.settleAt - futures.exitAt, ease: "sine.inOut" }, futures.exitAt);
 
-        // --- ACT ------------------------------------------------------------
+        // --- ACT, then VERIFY -------------------------------------------------
+        //
+        // Two settled plateaus inside one beat. The action arrives and holds with
+        // only its write receipt; the separate Calendar GET and the independent
+        // verification arrive later, on the rail's own handover, and hold again.
+        // The viewer watches Reflow go and check external reality instead of
+        // reading a label change against a card that never moved.
         timeline.addLabel("action", action.start);
         timeline.to("[data-beat='action']", { autoAlpha: 1, pointerEvents: "auto", duration: 2 }, action.start);
         timeline.to("[data-sequence='action-copy']", { autoAlpha: 1, y: 0, duration: 3.4 }, action.start + 0.5);
         timeline.fromTo("[data-sequence='action-receipt']", { autoAlpha: 0, y: 17, scale: 0.985 }, { autoAlpha: 1, y: 0, scale: 1, duration: 3.5, ease: "power3.out" }, action.start + 2.5);
-        timeline.to("[data-proof-step='write']", { autoAlpha: 1, y: 0, duration: 2.6 }, action.start + 4.5);
-        timeline.to("[data-proof-step='read']", { autoAlpha: 1, y: 0, duration: 2.6 }, action.start + 5.8);
-        timeline.to("[data-proof-step='verify']", { autoAlpha: 1, y: 0, duration: 2.1 }, action.start + 6.9);
+        timeline.to("[data-proof-step='write']", { autoAlpha: 1, y: 0, duration: 2.6 }, action.start + 5.5);
+        // ACT plateau: start + 9 → start + 23. Nothing moves.
+        timeline.addLabel("verify", action.start + 23);
+        timeline.to("[data-proof-step='read']", { autoAlpha: 1, y: 0, duration: 2.8 }, action.start + 23);
+        timeline.to("[data-proof-step='verify']", { autoAlpha: 1, y: 0, duration: 2.8 }, action.start + 26.2);
+        // VERIFY plateau: start + 29 → start + 43. Nothing moves.
         timeline.to("[data-beat='action']", { autoAlpha: 0, y: -15, pointerEvents: "none", duration: action.exit }, action.exitAt);
         timeline.to(p, { x: conditions.desktop ? 1.65 : 0, y: conditions.mobile ? 1.5 : 0.75, scale: riskScale * 0.75, alert: 1, ringSpread: 0.8, duration: incomplete.settleAt - action.exitAt, ease: "sine.inOut" }, action.exitAt);
 
@@ -341,12 +350,26 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
         timeline.to("[data-beat='incomplete']", { autoAlpha: 0, y: -16, pointerEvents: "none", duration: incomplete.exit }, incomplete.exitAt);
         timeline.to(p, { x: xReplan, y: conditions.mobile ? 1.5 : 0.35, scale: riskScale * 0.82, alert: 0.05, ringSpread: 1, duration: replan.settleAt - incomplete.exitAt, ease: "sine.inOut" }, incomplete.exitAt);
 
-        // --- REPLAN ----------------------------------------------------------
+        // --- REPLANNING, then NEW ACTION, then VERIFY AGAIN -------------------
+        //
+        // The recovery loop running a second time is the product's whole argument,
+        // so it gets three settled plateaus rather than one. The ladder's four
+        // rungs are dealt out across them: the failure and the replan land first
+        // and hold, the new action lands and holds, the second verification lands
+        // and holds. Each arrival is on the same handover the rail uses.
         timeline.addLabel("replan", replan.start);
         timeline.to("[data-beat='replan']", { autoAlpha: 1, pointerEvents: "auto", duration: 2 }, replan.start);
         timeline.to("[data-sequence='replan-copy']", { autoAlpha: 1, y: 0, duration: 3.4 }, replan.start + 0.6);
         timeline.to("[data-sequence='replan-steps']", { autoAlpha: 1, y: 0, duration: 2.4 }, replan.start + 2.5);
-        [0, 1, 2, 3].forEach((index) => timeline.to(`[data-replan-step='${index}']`, { autoAlpha: 1, y: 0, duration: 2.2 }, replan.start + 3.4 + index * 1.1));
+        timeline.to("[data-replan-step='0']", { autoAlpha: 1, y: 0, duration: 2.2 }, replan.start + 4);
+        timeline.to("[data-replan-step='1']", { autoAlpha: 1, y: 0, duration: 2.2 }, replan.start + 5.8);
+        // REPLANNING plateau: start + 9 → start + 21.
+        timeline.addLabel("new-action", replan.start + 21);
+        timeline.to("[data-replan-step='2']", { autoAlpha: 1, y: 0, duration: 3 }, replan.start + 21);
+        // NEW ACTION plateau: start + 25 → start + 36.
+        timeline.addLabel("verify-again", replan.start + 36);
+        timeline.to("[data-replan-step='3']", { autoAlpha: 1, y: 0, duration: 3 }, replan.start + 36);
+        // VERIFY AGAIN plateau: start + 40 → start + 49.
         timeline.to("[data-beat='replan']", { autoAlpha: 0, y: -14, pointerEvents: "none", duration: replan.exit }, replan.exitAt);
         timeline.to(p, { x: conditions.desktop ? -1.1 : 0, y: conditions.mobile ? 1.5 : 0.3, scale: riskScale * 0.78, alert: 0, verified: 1, ringSpread: 0, duration: restored.settleAt - replan.exitAt, ease: "sine.inOut" }, replan.exitAt);
 

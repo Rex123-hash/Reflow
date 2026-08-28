@@ -1,5 +1,6 @@
 import {
   STORY_BEATS,
+  SUB_BEAT_HANDOVER,
   type StoryStageId,
   type StoryBeatWindow,
 } from "./storySchedule";
@@ -141,15 +142,24 @@ function buildWindows(): readonly RailWindow[] {
   const windows: RailWindow[] = [];
   for (const [beatId, states] of byBeat) {
     const beat: StoryBeatWindow = STORY_BEATS[beatId];
-    // The slice runs from the moment the beat starts arriving to the moment it
-    // has finished leaving, so the last state of a beat stays current right up to
-    // the first state of the next one.
     const span = beat.endP - beat.startP;
+    // Handover points come from the schedule, so the rail changes at exactly the
+    // moment that state's evidence arrives on screen. An even split would put the
+    // label change near the composition change but not on it, which is what made
+    // VERIFY read as a label flashing past a static card.
+    const handover =
+      SUB_BEAT_HANDOVER[beatId] ??
+      states.map((_, index) => index / states.length);
     states.forEach((state, index) => {
       windows.push({
         state,
-        fromP: beat.startP + (span * index) / states.length,
-        toP: beat.startP + (span * (index + 1)) / states.length,
+        fromP: beat.startP + span * handover[index],
+        toP:
+          index + 1 < states.length
+            ? beat.startP + span * handover[index + 1]
+            : // The last state of a beat stays current right up to the first
+              // state of the next one.
+              beat.endP,
       });
     });
   }
