@@ -8,6 +8,10 @@ __pycache__
 .coverage
 deployment
 docs
+!docs/
+docs/*
+!docs/ui-fixtures/
+!docs/ui-fixtures/**
 scripts
 tests
 tmp
