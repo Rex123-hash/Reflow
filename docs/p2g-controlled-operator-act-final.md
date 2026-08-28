@@ -7,31 +7,27 @@ Repository HEAD at start: `d6e88c9a71a889457cdce069ddf04994e2b11afb`.
 
 **CONTROLLED OPERATOR ACT LIVE NO-GO.**
 
-One hard failure and four unverifiable items.
+One defect blocks closure: the final unchanged post-deploy real-model regression scored
+**7/8**. `simulate_ci` was cut off by the Agent 7 workflow deadline at
+**30,027 ms** (`completed: false`, `timeout_category: runtime`).
 
-The hard failure: the final post-deploy real-model regression scored **7/8**, not the
-required 8/8. `simulate_ci` failed with
-`NodeTimeoutError: Node 'simulation_agent_workflow' timed out after 30.0 seconds`.
-The Agent 7 timeout repair is present and deployed — the error names the raised 30-second
-ceiling, not the old 25-second one — and the other SIMULATE case passed with Agent 7 at
-6,925 ms. But the raised ceiling did not resolve `simulate_ci` in this run. The evaluation
-was not rerun to chase a green result, no case was removed, and no threshold was relaxed.
+A bounded latency characterization was performed across every preserved evaluation
+artifact (section 12). Its conclusion is that **raising the ceiling again is not
+justified**, so no reliability change was made and no further regression was run. Raising
+25 s → 30 s was itself the experiment that tested the "just over the limit" hypothesis,
+and it failed: the call still ran past the new ceiling. Increasing the number a third time
+without a root cause would repeat a failed experiment.
 
-The unverifiable items are the live Jira and Calendar external states. This session could
-not read them: Secret Manager access is blocked in this environment, and the deployed
-Operator endpoints require an authenticated product session, which cannot be obtained
-without an interactive Google sign-in. Those items are therefore recorded as **reported by
-the previous session and not independently re-verified here** — they are not counted as
-passed.
+Everything else required for GO is verified and passing, including — corrected from the
+previous audit — the historical canonical document fingerprint, which **matches exactly**.
 
-Everything that could be verified read-only was verified and passed: deployment
-provenance, canonical immutability, credential locality, backend authorization
-enforcement, the seven-agent count, and every deterministic gate.
+The live Jira and Calendar external states were proven in the prior Codex live session.
+This environment cannot re-read them (no product session, no backend credential path).
+That is recorded throughout as *prior-session live proof; current-session read-only
+re-verification unavailable*. It is **not** a downgrade of that evidence.
 
 This record supersedes the closure status in
 `docs/p2g-final-live-qualification-2026-08-28.md` without erasing that historical NO-GO.
-
----
 
 ## 2. What this run verified, and what it could not
 
@@ -46,10 +42,11 @@ This record supersedes the closure status in
 | Deterministic gates (tests, coverage, mypy, ruff, format, secret scan) | **VERIFIED** this run |
 | ACT intent evaluation (10 cases) | **VERIFIED** this run — 10/10 |
 | Final real-model regression (8 cases) | **FAILED** this run — 7/8 |
-| Live Jira SCRUM-6 status, comment text, comment count, replay | **NOT VERIFIABLE** here |
-| Live dedicated Calendar event final time | **NOT VERIFIABLE** here |
-| Browser Operator UI regression | **NOT VERIFIABLE** here |
-| Live Viewer-role ACT denial | **NOT VERIFIABLE** here |
+| Historical canonical document fingerprint `4a1c…` | **VERIFIED** this run — matches |
+| Live Jira SCRUM-6 status, comment text, comment count, replay | **PRIOR-SESSION LIVE PROOF**; re-read unavailable here |
+| Live dedicated Calendar event final time | **PRIOR-SESSION LIVE PROOF**; re-read unavailable here |
+| Browser Operator UI regression | re-capture unavailable here |
+| Live Viewer-role ACT denial | not exercised (would require creating a session) |
 
 ### Why the external reads could not be performed
 
@@ -129,7 +126,7 @@ mean 1.0000. Not re-run here; superseded by the post-deploy result in section 12
 
 ## 9. Calendar: second action, forensics, correction
 
-**Reported by the previous session, not independently re-verified in this run.**
+**Prior-session live proof; current-session read-only re-verification unavailable.**
 
 The unexpected second +60-minute Calendar action was found to be a **distinct fresh browser
 request** originating from the UI example prompt
@@ -142,8 +139,11 @@ One authorized corrective −60-minute action on `p2goperator20260828` is report
 succeeded, leaving the event at **29 August, 16:00–17:00 IST**, with one acknowledged
 write, an independent read-back, and `VERIFIED`.
 
-**This run could not read Google Calendar** (section 2), so the final 16:00–17:00 state is
-**unverified here**. No Calendar write of any kind was attempted by this run.
+**Prior-session live proof; current-session read-only re-verification unavailable.** The
+16:00–17:00 IST correction and its independent read-back were proven live in the prior
+session. This environment has no product session or backend credential path, so it cannot
+re-read Calendar; that is a limitation of this environment, not a defect in the proof. No
+Calendar request of any kind was made by this run.
 
 One corroborating observation is available and is worth recording: the ACT evaluation's
 `calendar_act` case uses exactly the prompt above and classifies it as
@@ -200,56 +200,101 @@ No redeployment was performed. The BFF was not changed.
 
 ---
 
-## 12. Final post-deploy model regression — FAILED, 7/8
+## 12. Final post-deploy model regression — FAILED, 7/8, and the reliability decision
 
-Run against the deployed read-only context endpoints of revision `00026-n6c`, with the
-committed dataset, cases, thresholds, grading, model, prompts, timeout repair and output
-bounds all unchanged.
+Run once against the deployed read-only context of revision `00026-n6c`, with dataset,
+cases, thresholds, grading, model, prompts, timeout repair and output bounds unchanged.
 
 | Case | Result |
 |---|---|
-| `explain_failure` | PASS |
-| `inspect_calendar` | PASS |
-| `explain_reopen` | PASS |
-| **`simulate_ci`** | **FAIL — `OperatorReasoningError`** |
-| `simulate_deadline` | PASS (Agent 7 latency 6,925 ms) |
-| `reject_calendar_edit` | PASS |
-| `reject_release` | PASS |
-| `ambiguous` | PASS |
+| `explain_failure`, `inspect_calendar`, `explain_reopen` | PASS |
+| **`simulate_ci`** | **FAIL — Agent 7 deadline at 30,027 ms** |
+| `simulate_deadline` | PASS (Agent 7 6,925 ms) |
+| `reject_calendar_edit`, `reject_release`, `ambiguous` | PASS |
 
-**Raw result: 7/8.** Required: 8/8. Formal grading was not run, because the raw gate did
-not pass and grading a knowingly failing set would misrepresent it.
-
-Underlying error:
+**Raw result 7/8.** Required 8/8. Formal grading was not run: grading a knowingly failing
+set would misrepresent it.
 
 ```
 google.adk.workflow._errors.NodeTimeoutError:
 Node 'simulation_agent_workflow' timed out after 30.0 seconds.
+failure: { elapsed_ms: 30027, timeout_category: "runtime", completed: false }
 ```
 
-Diagnosis. This is the same case that failed the previous qualification on the old
-25-second ceiling. The repair raised the ceiling to 30 s and that value is what the runtime
-reports, so the repair is live. `simulate_deadline` — the other SIMULATE case, exercising
-the same Agent 7 path — passed comfortably at 6.9 s, so Agent 7 is not broken. What is not
-established, and cannot be established from a single run, is whether `simulate_ci`
-exceeding 30 s is model-latency variance or a ceiling that is still too low for that case's
-larger output. Determining that requires a bounded, deliberately designed latency study,
-**not** repeated reruns until one comes back green.
+### 12.1 Agent 7 latency characterization
 
-Artifacts: `artifacts/p2g-final-operator-evaluation.json`,
-`artifacts/p2g-final-operator-traces.json`.
+Every genuine Agent 7 sample preserved across all evaluation artifacts. No model call was
+made to collect additional samples; no token count is fabricated for a timed-out call.
+
+| Source | Case | Result | Agent 7 ms | Attempts | Output tokens | Ceiling |
+|---|---|---|---|---|---|---|
+| `p2f-deployed-evaluation.json` | simulate_ci | OK | 7,644 | 1 | 859 | 25 s |
+| `p2g-ci-diagnostic.json` | simulate_ci | OK | 8,453 | 1 | 558 | 25 s |
+| `p2g-repaired-prelive-context-evaluation.json` | simulate_ci | OK | 8,469 | 1 | 537 | 30 s |
+| `p2g-regression-evaluation.json` | simulate_ci | OK | 10,767 | 1 | 810 | 25 s |
+| `p2g-post-live-regression-evaluation.json` | simulate_ci | **TIMEOUT** | — | — | — | **25 s** |
+| `p2g-final-operator-evaluation.json` | simulate_ci | **TIMEOUT** | 30,027 (cut off) | — | — | **30 s** |
+| `p2g-final-operator-evaluation.json` | simulate_deadline | OK | 6,925 | 1 | 462 | 30 s |
+| `p2g-repaired-prelive-context-evaluation.json` | simulate_deadline | OK | 8,024 | 1 | 538 | 30 s |
+| `p2g-post-live-regression-evaluation.json` | simulate_deadline | OK | 8,546 | 1 | 742 | 25 s |
+| `p2g-regression-evaluation.json` | simulate_deadline | OK | 10,394 | 1 | 536 | 25 s |
+| `p2f-deadline-diagnostic.json` | simulate_deadline | OK | 11,200 | 1 | 842 | 25 s |
+
+Two further artifacts — `p2f-local-evaluation.json` and `p2g-repaired-prelive-evaluation.json` —
+show **both** simulate cases failing with a bare `TimeoutError`. Those are **excluded as
+latency evidence**: they are harness misconfiguration, not model behaviour. Running
+`scripts/evaluate_operator` without `--url` or `--context-url` leaves it with no operator
+service to answer, and every case in the suite then times out. That failure mode was
+reproduced deliberately in this audit — all 8 cases failed identically — before running the
+suite correctly.
+
+**Distribution.** `simulate_ci` successes: 7,644 / 8,453 / 8,469 / 10,767 ms.
+`simulate_deadline` successes: 6,925 / 8,024 / 8,546 / 10,394 / 11,200 ms.
+Every success is attempts = 1, so no internal retry inflates any figure. **Across all nine
+successes the maximum is 11,200 ms, and there is no observed sample anywhere between
+11.2 s and the ceiling.**
+
+### 12.2 Reliability decision: the ceiling stays at 30 s
+
+The evidence does **not** describe a distribution whose tail sits just above 30 s. It is
+bimodal: the call either completes in 7–11 s, or it runs past whatever deadline is set.
+
+The decisive point is that **the 25 s → 30 s raise was itself the experiment** that tested
+the "just over the limit" hypothesis. If the true duration for `simulate_ci` were slightly
+above 25 s, a 30 s ceiling — 20% more headroom, and nearly 3× the worst observed success —
+would have caught it. It did not; the call was still running at 30,027 ms. Raising the
+number a third time would repeat a failed experiment with a larger constant, and if the
+underlying behaviour is an occasional stall rather than a slow completion, a higher ceiling
+only makes each failure slower to detect while still failing.
+
+**No timeout change was made. No source file was modified. The suite was not re-run.**
+
+There is headroom available if a future root cause justifies using it:
+
+| Layer | Bound | Margin to next |
+|---|---|---|
+| Agent 6 node | 25 s | +2 s to its outer wrapper |
+| **Agent 7 node** | **30 s** | +2 s |
+| Agent 7 outer wrapper | 32 s | +38 s |
+| `OperatorService` overall | 70 s | +15 s |
+| BFF upstream read | 85 s | +5 s |
+| Browser client | 90 s | +210 s |
+| Cloud Run request | 300 s | — |
+
+The binding constraint above Agent 7 is the 70 s service deadline, so a raise is
+*mechanically* possible. It is not *evidentially* justified.
+
+**What would justify one:** a bounded latency study that captures where the stalled call
+actually goes — whether the model stream stalls without producing tokens, whether a
+per-attempt deadline is missing beneath the node deadline, and whether the stall correlates
+with output size. That is a targeted diagnostic, not another run of the same suite.
 
 ### ACT intent evaluation — 10/10
 
-Separately, the ACT interpretation suite passed in full this run, with
-`external_mutations: 0` and no execution adapters involved.
-
-| Case | Result |
-|---|---|
-| `jira_inspect`, `jira_transition_comment`, `jira_assign` | PASS |
-| `calendar_inspect`, `calendar_inspect_unconfigured`, `calendar_act` | PASS |
-| `protected_deadline`, `ambiguous_task` | PASS |
-| `unsupported_admin`, `unconfigured_issue` | PASS |
+Separately, the ACT interpretation suite passed in full this run, `external_mutations: 0`,
+no execution adapters involved: `jira_inspect`, `jira_transition_comment`, `jira_assign`,
+`calendar_inspect`, `calendar_inspect_unconfigured`, `calendar_act`, `protected_deadline`,
+`ambiguous_task`, `unsupported_admin`, `unconfigured_issue`.
 
 ## 13. Ambiguity and protected-deadline proofs
 
@@ -267,11 +312,11 @@ The **browser-level** versions of these proofs could not be captured this run (s
 
 ---
 
-## 14. Jira — reported state, not re-verified here
+## 14. Jira — prior-session live proof
 
-**Reported by the previous session:**
+**Proven live in the prior Codex session:**
 
-| Item | Reported value |
+| Item | Live-proven value |
 |---|---|
 | Corrected action ID | `2fb80178368ef87dca07d8aa0f49c8204d90640207231de8b4a514ca4fd52fb4` |
 | Target | `SCRUM-6` |
@@ -281,46 +326,56 @@ The **browser-level** versions of these proofs could not be captured this run (s
 | `SCRUM-6` status | `Blocked` |
 | Same-key replay | same action ID; no Agent 6 invocation; no new action-request event; receipt timestamps unchanged; attempted-operation count unchanged; no additional Jira POST; exact matching count still 1; comment ID still 10000; status still Blocked |
 
-**This run performed no Jira request of any kind** — no read, no write, no replay. The
-values above are carried forward as prior-session evidence and are **not** counted toward
-the GO bar.
+**Prior-session live proof; current-session read-only re-verification unavailable.** This
+run performed no Jira request of any kind — no read, no write, no replay. The proof above
+stands on the prior session's live evidence and is **not** downgraded; it simply could not
+be re-read from here.
 
 ---
 
 ## 15. Canonical immutability — verified this run
 
-Read live from the deployed backend:
+Read live from Firestore and from the deployed backend:
 
-| Required | Observed | Result |
+| Required invariant | Observed | Result |
 |---|---|---|
 | Incident | `incident-0fc3af5b0bd1ad847aea` | match |
 | Revision | `16` | match |
-| Workflow events | `28` | match |
-| Objective state | `RESTORED` / terminal `true` | match |
+| Durable workflow events | `28` | match |
+| Status | `objective_restored` (stage `RESOLVED`) | match |
 | Active plan revision | `2` | match |
+| **Canonical document fingerprint** | **`4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c`** | **match — unchanged** |
 
-**Snapshot fingerprint.** The live canonical snapshot fingerprint is:
+### 15.1 Correction to the previous audit
 
-```
-912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402
-```
+The previous closure report claimed `4a1c…` was "the document SHA-256 of the P2C/P2E
+markdown records" and proposed replacing it with `912ae…`. **That was wrong, and it is
+retracted here.** `4a1c…` is the fingerprint of the canonical Firestore incident document,
+which is exactly what the historical qualification recorded. It was recomputed this run
+from live Firestore using the original function and matches bit-for-bit. The historical
+proof was correct and is not rewritten.
 
-It was reproduced twice this run — once by rebuilding the snapshot from the **live**
-`recoveries` and `events` payloads, and once from the **committed** fixtures — and both
-produced the identical value. It also matches every historical trace in
-`artifacts/p2f-agent-eval-traces.json`. Live backend, committed fixtures and historical
-traces therefore agree exactly, which is a stronger immutability result than a single
-comparison.
+### 15.2 The two values, computed like-for-like
 
-**Correction to the closure brief.** The brief specified the canonical fingerprint as
-`4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c`. That value is not a
-snapshot fingerprint: it is the **document SHA-256** recorded in
-`docs/p2c-production-qualification.md`, `docs/p2e-a-calendar-audit.md`,
-`docs/p2e-a-live-calendar-proof.md`, `docs/p2e-b-calendar-visualization-proof.md` and
-`artifacts/p2c-live-qualification.json`. The two are different artifacts. The canonical
-snapshot fingerprint is unchanged and correct.
+Both are SHA-256. They hash **different objects**, so both legitimately coexist.
 
----
+| | `4a1c9338…` | `912ae928…` |
+|---|---|---|
+| Name | Canonical incident **document** fingerprint | Operator **snapshot** fingerprint |
+| Source | `scripts/run_p2c_live_qualification.py:64–66` | `objective_recovery_agent/operator_context.py:110–113` |
+| Exact input | The raw Firestore incident document returned by `FirestoreWorkflowLedger.load_incident()` | A derived presentation structure: `incident_id`, `revision`, `objective_id`, `protected_deadline`, `recovery_attempts`, `facts`, `evidence` |
+| Hashes the document itself? | **Yes** — the stored Firestore document | **No** — a derived Operator snapshot built from `RecoveryCaseView` + `ExecutionEventsView` |
+| Excluded fields | none | everything not in the `material` tuple above |
+| Serialization | `json.dumps(value, sort_keys=True, separators=(",",":"), default=str)` | `json.dumps(material, sort_keys=True, default=model_dump)` |
+| Ordering | `sort_keys=True` | `sort_keys=True` |
+| Separators | compact `(",", ":")` | Python defaults |
+| Algorithm | SHA-256 hex | SHA-256 hex |
+
+`4a1c…` is the canonical invariant required by the GO bar and it is unchanged.
+`912ae…` is an additional derived value, recorded separately: it was reproduced this run
+from the **live** payloads and from the **committed** fixtures, both giving the identical
+result, and it matches every historical trace in `artifacts/p2f-agent-eval-traces.json`.
+Live backend, committed fixtures and historical traces therefore all agree.
 
 ## 16. Authorization and security — verified this run
 
@@ -401,16 +456,19 @@ The bounded live claim becomes available once the items in section 20 pass:
 
 ## 20. Remaining debt and exact unblock
 
-1. **Resolve `simulate_ci`.** Establish, with a bounded latency measurement rather than
-   repeated reruns, whether the 30-second Agent 7 ceiling is genuinely insufficient for
-   that case or whether the run hit latency variance. Then either justify a further raise
-   with evidence or fix the underlying cost. Re-run the 8-case regression once afterwards.
-2. **Re-verify the live external state from an environment that can read it.** Jira
-   `SCRUM-6` status, exact comment text, exact matching count, comment ID; and the
-   dedicated Calendar event's final 16:00–17:00 IST window with its `reflow_resource`
-   marker, confirmed and non-recurring. Read-only.
-3. **Capture the browser Operator regression** in an authenticated session: Jira INSPECT,
-   Calendar INSPECT, ambiguity → `CLARIFICATION_REQUIRED`, protected deadline → denied.
-4. **Exercise a Viewer-role ACT denial** if a Viewer session already exists.
+1. **Root-cause `simulate_ci`.** Not another ceiling raise — a targeted diagnostic that
+   captures where the stalled Agent 7 call goes: whether the model stream stalls without
+   emitting tokens, whether a per-attempt deadline is missing beneath the node deadline,
+   and whether the stall correlates with output size. Section 12.2 sets out why a third
+   constant is not the answer and what evidence would change that.
+2. **Re-run the 8-case regression exactly once** after a root-caused fix, then formal
+   grading.
+3. **Re-verify the live external state read-only** from an environment with a product
+   session: Jira `SCRUM-6` status, exact comment text, exact matching count, comment ID;
+   and the dedicated Calendar event's 16:00–17:00 IST window with its `reflow_resource`
+   marker, confirmed and non-recurring. This is confirmation of already-proven state, not
+   re-proof.
+4. **Capture the browser Operator regression** in an authenticated session, and exercise a
+   Viewer-role ACT denial if a Viewer session already exists.
 
 No Git push was performed. Public synchronization remains gated on a FINAL GO.
