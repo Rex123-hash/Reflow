@@ -3,6 +3,9 @@ import { EvidenceBadge } from "./EvidenceBadge";
 import { useAnchorDOM } from "../anchors";
 import { OperationalIcon } from "./OperationalIcon";
 import { ReflowIcon } from "./ReflowIcon";
+import { ReflowRule } from "./ReflowRule";
+import { DisruptionMark } from "./DisruptionMark";
+import { IntegrationMark } from "./IntegrationMark";
 import type { MouseEvent } from "react";
 
 function StatusDot({ tone = "healthy" }: { tone?: "healthy" | "warning" | "failure" }) {
@@ -22,6 +25,7 @@ function HeroBeat() {
       <div className="hero-copy">
         <EvidenceBadge stage="hero" />
         <p className="eyebrow">Autonomous objective recovery</p>
+        <ReflowRule />
         <h1 id="hero-title">When operations break,<br />your objective shouldn’t.</h1>
         <p className="lede">
           Detect disruptions, map what they threaten, execute a safe recovery path,
@@ -62,7 +66,7 @@ function RiskBeat() {
       <div className="disruption-card surface-card" data-sequence="impact-disruption">
         <EvidenceBadge stage="risk" />
         <p className="card-kicker failure-copy disruption-kicker">
-          <span className="disruption-icon" aria-hidden="true"><OperationalIcon name="warning" /></span>
+          <span className="disruption-icon" aria-hidden="true"><DisruptionMark /></span>
           Disruption detected
         </p>
         <h2 id="risk-title">Lead backend engineer unavailable.</h2>
@@ -93,6 +97,7 @@ function FuturesBeat() {
       <div className="beat-heading futures-heading" data-sequence="futures-heading">
         <EvidenceBadge stage="futures" />
         <p className="eyebrow">Three futures</p>
+        <ReflowRule />
         <h2 id="futures-title">One objective.<br />Three possible futures.</h2>
         <p>Different strategies compared under the same deterministic constraints.</p>
       </div>
@@ -134,6 +139,7 @@ function ActionBeat() {
       <div className="action-copy" data-sequence="action-copy">
         <EvidenceBadge stage="action" />
         <p className="eyebrow">Real action. Independent verification.</p>
+        <ReflowRule />
         <h2 id="action-title">A real tool action,<br />read back separately.</h2>
         <p>
           This surface is derived from the frozen Calendar proof. It is a recorded
@@ -145,7 +151,7 @@ function ActionBeat() {
       </div>
       <article className="receipt-card surface-card" aria-label="Recorded Google Calendar action receipt" data-sequence="action-receipt">
         <header>
-          <span className="calendar-placeholder" aria-hidden="true">31</span>
+          <IntegrationMark name="google_calendar" label="Google Calendar" />
           <div><small>Recorded tool proof</small><h3>{proof.tool}</h3></div>
           <span className="status-pill verified">✓ {proof.status}</span>
         </header>
@@ -175,6 +181,7 @@ function IncompleteBeat() {
       <div className="beat-heading" data-sequence="incomplete-heading">
         <EvidenceBadge stage="incomplete" />
         <p className="eyebrow">Objective verification</p>
+        <ReflowRule />
         <h2 id="incomplete-title">An action can succeed<br />while recovery remains incomplete.</h2>
         <p>The verified Calendar receipt does not give the model authority to restore the objective.</p>
       </div>
@@ -193,6 +200,7 @@ function ReplanBeat() {
       <div className="replan-copy" data-sequence="replan-copy">
         <EvidenceBadge stage="replan" />
         <p className="eyebrow">Reopen → Replan → Act → Verify</p>
+        <ReflowRule />
         <h2 id="replan-title">The system reorganizes<br />around the objective.</h2>
         <p>This preview shows the intended recovery sequence without claiming current live execution.</p>
       </div>
@@ -210,6 +218,7 @@ function RestoredBeat() {
       <div className="restored-copy" data-sequence="restored-copy">
         <EvidenceBadge stage="restored" />
         <p className="eyebrow">Future verified outcome</p>
+        <ReflowRule />
         <h2 id="restored-title">Objective restored.</h2>
         <p>Reserved for a later milestone with fresh, sufficient invariant evidence.</p>
       </div>

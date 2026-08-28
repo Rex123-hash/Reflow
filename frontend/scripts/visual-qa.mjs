@@ -59,6 +59,9 @@ const value = (name, fallback) => {
 const reduced = flag("reduced");
 const tag = value("tag", "current");
 const only = value("only", null);
+// `--frame <stage>` holds a deterministic story beat (hero|risk|futures|action|
+// incomplete|replan|restored) so each marketing section can be captured.
+const frame = value("frame", null);
 const READY_TIMEOUT_MS = Number(value("timeout", "120000"));
 
 mkdirSync(OUT, { recursive: true });
@@ -78,7 +81,8 @@ async function capture(browser, viewport) {
   page.on("pageerror", (error) => consoleErrors.push(String(error)));
 
   const started = Date.now();
-  await page.goto(BASE, { waitUntil: "domcontentloaded" });
+  const url = frame ? `${BASE}/?frame=${frame}` : BASE;
+  await page.goto(url, { waitUntil: "domcontentloaded" });
 
   // The product's own definition of ready: the renderer drew the instrument.
   // Deliberately no mouse movement, click or scroll before this resolves — that
@@ -126,7 +130,7 @@ async function capture(browser, viewport) {
   await page.waitForTimeout(600);
 
   const suffix = reduced ? "reduced" : "normal";
-  const file = join(OUT, `${tag}-${suffix}-${viewport.name}.png`);
+  const file = join(OUT, `${tag}-${frame ?? suffix}-${viewport.name}.png`);
   await page.screenshot({ path: file });
 
   await context.close();

@@ -1002,15 +1002,22 @@ a {
   gap: 8px;
 }
 
+/* The reference sets the warning mark in a soft, borderless blush disc roughly
+   44px across (crop: visual-qa/ref-disruption-icon.png). At 28px with a hard
+   ring it read as a form control rather than an alert. */
 .disruption-icon {
   display: inline-grid;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   place-items: center;
-  border: 1px solid rgba(166, 93, 72, 0.24);
   border-radius: 50%;
   color: var(--failure);
-  background: rgba(166, 93, 72, 0.09);
+  background: rgba(167, 102, 88, 0.13);
+}
+
+.disruption-icon .operational-icon {
+  width: 21px;
+  height: 21px;
 }
 
 .disruption-card h2 {
@@ -2168,3 +2175,38 @@ a {
 .convergence-layer.grayscale { filter: grayscale(1); }
 .convergence-metrics { position: fixed; z-index: 12; right: 22px; bottom: 18px; display: grid; gap: 4px; max-width: 680px; padding: 9px 12px; border: 1px solid rgba(23,33,28,.12); background: rgba(255,253,249,.88); font: 600 10px/1.35 system-ui; letter-spacing: .02em; }
 .convergence-lab.hide-ui { cursor: none; }
+
+/* Eyebrow ornament. The reference sets a small brass rule under every section
+   eyebrow; without it the small-caps label floats. Centred in centred beats,
+   left-aligned where the beat's copy is left-aligned. */
+.reflow-rule {
+  display: block;
+  margin: 10px 0 18px;
+  max-width: 100%;
+  height: auto;
+}
+
+.hero-copy .reflow-rule,
+.beat-heading .reflow-rule,
+.trust-section .reflow-rule,
+.final-cta .reflow-rule {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Real integration mark on the action-receipt card, replacing a forest square
+   that contained the literal text "31" as a stand-in for the Calendar logo.
+   Official geometry, drawn monochrome so a four-colour vendor lockup does not
+   break the page's ivory/forest palette. The mark identifies the authority; the
+   VERIFIED pill beside it carries the state. */
+.integration-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: var(--surface-elevated);
+  color: rgba(23, 33, 28, 0.84);
+  flex: 0 0 auto;
+}
