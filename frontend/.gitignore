@@ -2,6 +2,11 @@ node_modules/
 dist/
 
 # Blender authoring scratch: .blend/.blend1 working files, intermediate GLBs and
-# capture videos. Nothing in src/ references these; the runtime assets the app
-# actually loads live in public/.
-orb-authored-experiment/
+# capture videos (~107 MB). Nothing in src/ references these; the runtime assets
+# the app actually loads live in public/.
+#
+# The build scripts themselves ARE tracked — they are the provenance for the
+# shipped GLB and the hero poster, and they are small text files.
+orb-authored-experiment/*
+!orb-authored-experiment/*.py
+!orb-authored-experiment/README.md

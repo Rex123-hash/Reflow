@@ -14,7 +14,8 @@ export interface AuthoredReflowInstrumentProps {
   progress: MutableRefObject<number>;
   activeStage: StoryStageId;
   motionEnabled: boolean;
-  onReady: () => void;
+  /** The GLB parsed and materials were tuned. NOT the same as a drawn frame. */
+  onModelReady: () => void;
 }
 
 interface SatelliteOrbit {
@@ -110,7 +111,7 @@ function AuthoredSatellite({
   </mesh>;
 }
 
-export function AuthoredReflowInstrument({ rootRef, progress, activeStage, motionEnabled, onReady }: AuthoredReflowInstrumentProps) {
+export function AuthoredReflowInstrument({ rootRef, progress, activeStage, motionEnabled, onModelReady }: AuthoredReflowInstrumentProps) {
   const gltf = useLoader(GLTFLoader, AUTHORED_REFLOW_GLB);
   const maps = useAuthoredMicroMaps();
   const model = useMemo(() => {
@@ -166,10 +167,12 @@ export function AuthoredReflowInstrument({ rootRef, progress, activeStage, motio
     });
   });
 
+  // Signals only that the model exists. Whether anything was *drawn* is decided
+  // by SceneReadyGate, from the renderer's own frame statistics.
   useLayoutEffect(() => {
     model.scene.updateMatrixWorld(true);
-    onReady();
-  }, [model, onReady]);
+    onModelReady();
+  }, [model, onModelReady]);
 
   useEffect(() => () => {
     model.materials.forEach((material) => material.dispose());

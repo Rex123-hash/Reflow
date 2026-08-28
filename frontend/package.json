@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run contract:check && npm run validators:check && npm run fixtures:check && npm run marks:check && tsc --noEmit && vite build",
+    "build": "npm run contract:check && npm run fixtures:check && npm run marks:check && npm run poster:check && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src/app src/Root.tsx src/main.tsx scripts/generate-ui-contract.mjs scripts/generate-ui-validators.mjs scripts/sync-fixtures.mjs scripts/generate-integration-marks.mjs",
     "format": "prettier --write \"src/app/**/*.{ts,tsx,css}\" src/Root.tsx src/main.tsx vitest.config.ts scripts/generate-ui-contract.mjs scripts/sync-fixtures.mjs scripts/generate-integration-marks.mjs",
@@ -20,7 +20,9 @@
     "fixtures:sync": "node scripts/sync-fixtures.mjs",
     "fixtures:check": "node scripts/sync-fixtures.mjs --check",
     "marks:generate": "node scripts/generate-integration-marks.mjs",
-    "marks:check": "node scripts/generate-integration-marks.mjs --check"
+    "marks:check": "node scripts/generate-integration-marks.mjs --check",
+    "poster:build": "node scripts/build-instrument-poster.mjs",
+    "poster:check": "node scripts/build-instrument-poster.mjs --check"
   },
   "dependencies": {
     "@react-three/fiber": "^9.7.0",

@@ -163,20 +163,40 @@ function addReflectionPanel(
   scene.add(panel);
 }
 
+/**
+ * Renderer state, aligned to the authored Blender reference.
+ *
+ * The reference renders with view transform AgX and `view_settings.exposure = 0`,
+ * which is a linear multiplier of 2^0 = 1.0. The browser was running
+ * `toneMappingExposure = 1.1` — about +0.14 stops — which lifted every material
+ * and is a large part of why the browser reads brighter and flatter than the
+ * reference. Matching the reference exposure is the correct baseline; lighting is
+ * tuned from there rather than compensated for here.
+ *
+ * Still unmatched: Blender's look is "AgX - Medium High Contrast", while three's
+ * `AgXToneMapping` implements base AgX with no look variant. The browser is
+ * therefore slightly lower in contrast than the reference by construction.
+ */
 export function AuthoredRendererSetup() {
   const gl = useThree((state) => state.gl);
   useLayoutEffect(() => {
     gl.outputColorSpace = THREE.SRGBColorSpace;
     gl.toneMapping = THREE.AgXToneMapping;
-    gl.toneMappingExposure = 1.1;
+    gl.toneMappingExposure = 1;
     gl.shadowMap.enabled = true;
     gl.shadowMap.type = THREE.VSMShadowMap;
   }, [gl]);
   return null;
 }
 
-export function AuthoredStudioEnvironment() {
-  const { gl, scene } = useThree();
+export function AuthoredStudioEnvironment({
+  onReady,
+}: {
+  /** Fires once the PMREM environment is on the scene, so a demand-mode
+   *  renderer can be woken and readiness can wait for it. */
+  onReady?: () => void;
+} = {}) {
+  const { gl, scene, invalidate } = useThree();
   useEffect(() => {
     const generator = new THREE.PMREMGenerator(gl);
     const studio = new RoomEnvironment();
@@ -187,6 +207,8 @@ export function AuthoredStudioEnvironment() {
     const environment = generator.fromScene(studio, 0.04).texture;
     scene.environment = environment;
     scene.environmentIntensity = 0.48;
+    onReady?.();
+    invalidate();
     return () => {
       scene.environment = null;
       environment.dispose();
@@ -199,7 +221,7 @@ export function AuthoredStudioEnvironment() {
       studio.dispose();
       generator.dispose();
     };
-  }, [gl, scene]);
+  }, [gl, scene, invalidate, onReady]);
   return null;
 }
 

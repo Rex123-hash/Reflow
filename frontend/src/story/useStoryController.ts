@@ -121,8 +121,13 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
 
     if (reducedMotion) {
       resetPose(pose.current);
-      pose.current.y = 0.2;
-      pose.current.scale = 0.7;
+      // Hold the designed desktop hero composition rather than a separate, larger
+      // framing. Reduced motion should be the hero without movement — and it is
+      // what lets the authored poster line up with the first WebGL frame in this
+      // mode too, so the crossfade does not jump.
+      pose.current.y = 2.7;
+      pose.current.scale = 0.38;
+      pose.current.yaw = (-8.6 * Math.PI) / 180;
       root.dataset.motion = "reduced";
       root.style.setProperty("--story-progress", "0");
       invalidator.current?.();

@@ -34,6 +34,8 @@ import {
 import type { StoryStageId } from "../data/proofManifest";
 import type { OrbPose } from "../story/storyTypes";
 import { CinematicOrbLayer, type CinematicOrbBounds } from "./CinematicOrbLayer";
+import { InstrumentPoster } from "./InstrumentPoster";
+import { SceneReadyGate } from "../orb/SceneReadyGate";
 
 class WebGLBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -87,14 +89,14 @@ function InstrumentBody({
   progress,
   activeStage,
   onProjection,
-  onReady,
+  onModelReady,
   motionEnabled,
 }: {
   pose: MutableRefObject<OrbPose>;
   progress: MutableRefObject<number>;
   activeStage: StoryStageId;
   onProjection: (value: InstrumentProjection) => void;
-  onReady: () => void;
+  onModelReady: () => void;
   motionEnabled: boolean;
 }) {
   const root = useRef<THREE.Group>(null);
@@ -196,13 +198,16 @@ function InstrumentBody({
       progress={progress}
       activeStage={activeStage}
       motionEnabled={motionEnabled}
-      onReady={onReady}
+      onModelReady={onModelReady}
     />
   );
 }
 
 export function ReflowInstrument({ pose, progress, activeStage, reducedMotion, registerInvalidator }: ReflowInstrumentProps) {
   const [cinematicBounds, setCinematicBounds] = useState<CinematicOrbBounds | null>(null);
+  const [modelReady, setModelReady] = useState(false);
+  const [environmentReady, setEnvironmentReady] = useState(false);
+  // `ready` now means a frame containing the instrument was actually presented.
   const [ready, setReady] = useState(false);
   const railRefs = useRef<Array<SVGPathElement | null>>([]);
   const labelRefs = useRef<Array<SVGTextElement | null>>([]);
@@ -262,14 +267,23 @@ export function ReflowInstrument({ pose, progress, activeStage, reducedMotion, r
     });
     if (experiment) setCinematicBounds(value.cinematicBounds);
   }, [experiment, progress]);
-  const handleReady = useCallback(() => {
-    document.documentElement.dataset.storyReadyMs = performance.now().toFixed(1);
+  const handleModelReady = useCallback(() => {
+    document.documentElement.dataset.storyModelReadyMs = performance.now().toFixed(1);
     const resource = performance.getEntriesByName(new URL(AUTHORED_REFLOW_GLB, window.location.href).href).at(-1) as PerformanceResourceTiming | undefined;
     if (resource) {
       document.documentElement.dataset.storyGlbDurationMs = resource.duration.toFixed(1);
       document.documentElement.dataset.storyGlbTransferBytes = String(resource.transferSize);
       document.documentElement.dataset.storyGlbDecodedBytes = String(resource.decodedBodySize);
     }
+    setModelReady(true);
+  }, []);
+
+  const handleEnvironmentReady = useCallback(() => setEnvironmentReady(true), []);
+
+  /** The crossfade trigger: the renderer confirmed it drew the instrument. */
+  const handleFirstFrame = useCallback(() => {
+    document.documentElement.dataset.storyFirstFrameMs = performance.now().toFixed(1);
+    document.documentElement.dataset.storyReadyMs = performance.now().toFixed(1);
     setReady(true);
   }, []);
 
@@ -331,12 +345,7 @@ export function ReflowInstrument({ pose, progress, activeStage, reducedMotion, r
       data-authored-instrument="persistent"
       aria-hidden="true"
     >
-      <div className="authored-orb-placeholder">
-        <i className="authored-placeholder-disc" />
-        <i className="authored-placeholder-track authored-placeholder-track-outer" />
-        <i className="authored-placeholder-track authored-placeholder-track-inner" />
-        <i className="authored-placeholder-hub" />
-      </div>
+      <InstrumentPoster hidden={ready} />
       <svg className="production-story-rails">
         {RAILS.map(([name], index) => (
           <path key={name} ref={(node) => { railRefs.current[index] = node; }} />
@@ -356,7 +365,7 @@ export function ReflowInstrument({ pose, progress, activeStage, reducedMotion, r
         >
           <CameraSetup />
           <AuthoredRendererSetup />
-          <AuthoredStudioEnvironment />
+          <AuthoredStudioEnvironment onReady={handleEnvironmentReady} />
           <AuthoredStudioLights />
           <AuthoredGroundShadow />
           <Suspense fallback={null}>
@@ -365,10 +374,15 @@ export function ReflowInstrument({ pose, progress, activeStage, reducedMotion, r
               progress={progress}
               activeStage={activeStage}
               onProjection={handleProjection}
-              onReady={handleReady}
+              onModelReady={handleModelReady}
               motionEnabled={!reducedMotion}
             />
           </Suspense>
+          <SceneReadyGate
+            modelReady={modelReady}
+            environmentReady={environmentReady}
+            onFirstFrame={handleFirstFrame}
+          />
           <SceneInvalidator register={registerInvalidator} />
           <StoryProfiler />
         </Canvas>
