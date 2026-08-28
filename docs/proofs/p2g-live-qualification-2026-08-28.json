@@ -1,0 +1,237 @@
+{
+  "observed_at": "2026-08-28T18:29:47.559456+00:00",
+  "jira": {
+    "issue": {
+      "issue_key": "SCRUM-6",
+      "summary": "Summary: Validate release coordination",
+      "status": "Blocked",
+      "priority": "Medium",
+      "assignee_account_id": null,
+      "assignee_display_name": null,
+      "due_date": null,
+      "description": "Demo work item for testing Reflow Operator actions and independently verified Jira read-back."
+    },
+    "comments_http_status": 200,
+    "comment_total": 0,
+    "comments_read": 0,
+    "exact_comment_matches": [],
+    "assignment_enabled": false
+  },
+  "calendar": {
+    "operator": {
+      "id": "p2goperator20260828",
+      "summary": "Reflow Operator Demo — Coordination",
+      "start": {
+        "dateTime": "2026-08-29T16:00:00+05:30",
+        "timeZone": "UTC"
+      },
+      "end": {
+        "dateTime": "2026-08-29T17:00:00+05:30",
+        "timeZone": "UTC"
+      },
+      "status": "confirmed",
+      "etag": "\"3575883038489950\"",
+      "extendedProperties": {
+        "private": {
+          "reflow_resource": "operator_demo"
+        }
+      },
+      "attendees": null,
+      "recurrence": null
+    },
+    "canonical": {
+      "id": "p1b9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+      "summary": "Objective Recovery: Ship Release V2 by Friday 5 PM coordination",
+      "start": {
+        "dateTime": "2026-08-28T18:30:00+05:30",
+        "timeZone": "UTC"
+      },
+      "end": {
+        "dateTime": "2026-08-28T19:30:00+05:30",
+        "timeZone": "UTC"
+      },
+      "status": "confirmed",
+      "etag": "\"3575715330720542\"",
+      "extendedProperties": {
+        "private": {
+          "or_desired": "245bc5758bd6ccb5c52951ebf68da85835aadb627a9db6537ca39406125b4152",
+          "or_action": "recovery_coordination",
+          "or_incident": "incident-0fc3af5b0bd1ad847aea",
+          "or_plan": "plan-resource-balance-first"
+        }
+      },
+      "attendees": null,
+      "recurrence": null
+    }
+  },
+  "canonical": {
+    "revision": 16,
+    "event_count": 28,
+    "fingerprint": "4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c"
+  },
+  "actions": [
+    {
+      "operator_action_id": "0d25dfd97c7bff80e10ef4a0becc96724ae9e96a92b197ce102e6a91937d5e42",
+      "request_id": "8285f084-c482-4036-b766-ab941325ac74",
+      "authenticated_subject_hash": "399fbbd1cdc158f928c8ac1f29ac0160665580bc8db38fc24de5a53ddcead1d7",
+      "authority": "JIRA",
+      "resource_identifier": "SCRUM-6",
+      "operations": [
+        {
+          "operation": "JIRA_TRANSITION",
+          "value": "Blocked",
+          "comment": null
+        }
+      ],
+      "expected_state": {
+        "status": "Blocked"
+      },
+      "authorization_result": "AUTO_EXECUTABLE",
+      "lifecycle": "VERIFIED",
+      "execution_acknowledgement": {
+        "issue_key": "SCRUM-6",
+        "transition": "accepted"
+      },
+      "observed_state": {
+        "summary": "Summary: Validate release coordination",
+        "assignee_display_name": null,
+        "priority": "Medium",
+        "issue_key": "SCRUM-6",
+        "due_date": null,
+        "description": "Demo work item for testing Reflow Operator actions and independently verified Jira read-back.",
+        "status": "Blocked",
+        "assignee_account_id": null
+      },
+      "verification_result": "PASSED",
+      "adapter_proof": {
+        "executed_at": "2026-08-28T18:23:04.139936+00:00",
+        "read_back_at": "2026-08-28T18:23:04.694184+00:00",
+        "executing_at": "2026-08-28T18:23:03.308501+00:00",
+        "policy_reason": "bounded_demo_issue_change",
+        "difference_count": "0",
+        "attempted_operations": "1",
+        "comparison": "PASSED",
+        "transition_id": "41",
+        "verified_at": "2026-08-28T18:23:04.864263+00:00",
+        "baseline": "{\"assignee_account_id\": null, \"assignee_display_name\": null, \"description\": \"Demo work item for testing Reflow Operator actions and independently verified Jira read-back.\", \"due_date\": null, \"issue_key\": \"SCRUM-6\", \"priority\": \"Medium\", \"status\": \"To Do\", \"summary\": \"Summary: Validate release coordination\"}",
+        "authorized_at": "2026-08-28T18:23:02.291220+00:00",
+        "transition_destination": "Blocked"
+      },
+      "created_at": "2026-08-28T18:23:01.011063+00:00",
+      "updated_at": "2026-08-28T18:23:04.864263+00:00",
+      "external_effects_possible": true,
+      "error_category": null
+    },
+    {
+      "operator_action_id": "5e305e82756408744817f2ed4967407ccb06ca28dd7760dc82165651205c0df3",
+      "request_id": "dcc6f5d5-bc79-4e7a-b6d2-1a3acc27233f",
+      "authenticated_subject_hash": "399fbbd1cdc158f928c8ac1f29ac0160665580bc8db38fc24de5a53ddcead1d7",
+      "authority": "GOOGLE_CALENDAR",
+      "resource_identifier": "p2goperator20260828",
+      "operations": [
+        {
+          "operation": "CALENDAR_RESCHEDULE",
+          "value": "60",
+          "comment": null
+        }
+      ],
+      "expected_state": {
+        "start": "2026-08-29T16:00:00+05:30",
+        "end": "2026-08-29T17:00:00+05:30"
+      },
+      "authorization_result": "AUTO_EXECUTABLE",
+      "lifecycle": "VERIFIED",
+      "execution_acknowledgement": {
+        "event_id": "p2goperator20260828",
+        "etag": "\"3575883038489950\"",
+        "write": "acknowledged"
+      },
+      "observed_state": {
+        "description": "Dedicated safe resource for verified human-directed Operator actions.",
+        "status": "confirmed",
+        "start": "2026-08-29T16:00:00+05:30",
+        "title": "Reflow Operator Demo — Coordination",
+        "event_id": "p2goperator20260828",
+        "etag": "\"3575883038489950\"",
+        "end": "2026-08-29T17:00:00+05:30"
+      },
+      "verification_result": "PASSED",
+      "adapter_proof": {
+        "executed_at": "2026-08-28T18:25:19.382445+00:00",
+        "read_back_at": "2026-08-28T18:25:19.739642+00:00",
+        "executing_at": "2026-08-28T18:25:18.386029+00:00",
+        "policy_reason": "bounded_operator_demo_event_change",
+        "difference_count": "0",
+        "attempted_operations": "1",
+        "comparison": "PASSED",
+        "verified_at": "2026-08-28T18:25:19.899221+00:00",
+        "baseline": "{\"description\": \"Dedicated safe resource for verified human-directed Operator actions.\", \"end\": \"2026-08-29T16:00:00+05:30\", \"etag\": \"\\\"3575880174509918\\\"\", \"event_id\": \"p2goperator20260828\", \"start\": \"2026-08-29T15:00:00+05:30\", \"status\": \"confirmed\", \"title\": \"Reflow Operator Demo \\u2014 Coordination\"}",
+        "authorized_at": "2026-08-28T18:25:18.027021+00:00"
+      },
+      "created_at": "2026-08-28T18:25:17.722435+00:00",
+      "updated_at": "2026-08-28T18:25:19.899221+00:00",
+      "external_effects_possible": true,
+      "error_category": null
+    },
+    {
+      "operator_action_id": "cb931a1ebbd93b5f97f184cacb3135f45baff39b53d6547aef6936e2796aab9e",
+      "request_id": "56baa3a1-d603-4fa8-b9e0-c329e9eb3744",
+      "authenticated_subject_hash": "399fbbd1cdc158f928c8ac1f29ac0160665580bc8db38fc24de5a53ddcead1d7",
+      "authority": "REFLOW",
+      "resource_identifier": "protected-objective-deadline",
+      "operations": [
+        {
+          "operation": "MOVE_PROTECTED_DEADLINE",
+          "value": "120",
+          "comment": null
+        }
+      ],
+      "expected_state": {},
+      "authorization_result": "DENIED",
+      "lifecycle": "DENIED",
+      "execution_acknowledgement": {},
+      "observed_state": {},
+      "verification_result": "NOT_RUN",
+      "adapter_proof": {
+        "denied_at": "2026-08-28T18:19:30.684249+00:00",
+        "policy_reason": "protected_objective_deadline"
+      },
+      "created_at": "2026-08-28T18:19:30.510733+00:00",
+      "updated_at": "2026-08-28T18:19:30.684249+00:00",
+      "external_effects_possible": false,
+      "error_category": null
+    },
+    {
+      "operator_action_id": "d24818fa4b13ad8bd1195ecac9fd253d76b854047e67b0b65882ba8029d11b1d",
+      "request_id": "dab0d9fb-c66e-4179-904d-08fa0a1cb62d",
+      "authenticated_subject_hash": "399fbbd1cdc158f928c8ac1f29ac0160665580bc8db38fc24de5a53ddcead1d7",
+      "authority": "JIRA",
+      "resource_identifier": "SCRUM-6",
+      "operations": [
+        {
+          "operation": "JIRA_ADD_COMMENT",
+          "value": null,
+          "comment": "Backend engineer unavailable."
+        }
+      ],
+      "expected_state": {},
+      "authorization_result": "AUTO_EXECUTABLE",
+      "lifecycle": "FAILED",
+      "execution_acknowledgement": {},
+      "observed_state": {},
+      "verification_result": "NOT_RUN",
+      "adapter_proof": {
+        "executing_at": "2026-08-28T18:24:04.917672+00:00",
+        "attempted_operations": "1",
+        "baseline": "{\"assignee_account_id\": null, \"assignee_display_name\": null, \"description\": \"Demo work item for testing Reflow Operator actions and independently verified Jira read-back.\", \"due_date\": null, \"issue_key\": \"SCRUM-6\", \"priority\": \"Medium\", \"status\": \"Blocked\", \"summary\": \"Summary: Validate release coordination\"}",
+        "failed_at": "2026-08-28T18:24:05.321853+00:00",
+        "authorized_at": "2026-08-28T18:24:04.319858+00:00",
+        "policy_reason": "bounded_demo_issue_change"
+      },
+      "created_at": "2026-08-28T18:24:03.726939+00:00",
+      "updated_at": "2026-08-28T18:24:05.321853+00:00",
+      "external_effects_possible": true,
+      "error_category": "jira_invalid_request"
+    }
+  ]
+}

@@ -1,0 +1,512 @@
+{
+  "pre_deploy_act": {
+    "source_file": "artifacts/p2g-act-evaluation.json",
+    "total": 10,
+    "passed": 10,
+    "cases": [
+      {
+        "case": "jira_inspect",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "813c7865-45ea-4492-9663-1f7afd4f6592",
+            "latency_ms": 5100,
+            "attempts": 1,
+            "input_tokens": 7722,
+            "output_tokens": 164,
+            "total_tokens": 7886,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "jira_transition_comment",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "9978797a-74cf-4e75-b11b-94c71612a998",
+            "latency_ms": 5402,
+            "attempts": 1,
+            "input_tokens": 7726,
+            "output_tokens": 239,
+            "total_tokens": 7965,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "jira_assign",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "5ac9912d-e85a-4fbb-9a6b-533a4c37198a",
+            "latency_ms": 6577,
+            "attempts": 1,
+            "input_tokens": 7721,
+            "output_tokens": 448,
+            "total_tokens": 8169,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "calendar_inspect",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "dbd60acd-06bf-463e-aee1-00ae62a19195",
+            "latency_ms": 6216,
+            "attempts": 1,
+            "input_tokens": 7721,
+            "output_tokens": 358,
+            "total_tokens": 8079,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "calendar_inspect_unconfigured",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "f8b0ea77-7b7c-4351-8e44-bcb680b914f8",
+            "latency_ms": 7608,
+            "attempts": 1,
+            "input_tokens": 7658,
+            "output_tokens": 391,
+            "total_tokens": 8049,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "calendar_act",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "b5b851c3-26fd-4625-b623-9fc307ee67bb",
+            "latency_ms": 6159,
+            "attempts": 1,
+            "input_tokens": 7721,
+            "output_tokens": 391,
+            "total_tokens": 8112,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "protected_deadline",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "8b6c2eee-ba62-4691-a469-7495fc206fac",
+            "latency_ms": 5244,
+            "attempts": 1,
+            "input_tokens": 7722,
+            "output_tokens": 221,
+            "total_tokens": 7943,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "ambiguous_task",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "5376349e-9bce-46df-b17d-ac831041e41c",
+            "latency_ms": 6746,
+            "attempts": 1,
+            "input_tokens": 7715,
+            "output_tokens": 161,
+            "total_tokens": 7876,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "unsupported_admin",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "402e7ca4-a870-4041-b0fe-4352b8826d91",
+            "latency_ms": 6901,
+            "attempts": 1,
+            "input_tokens": 7721,
+            "output_tokens": 423,
+            "total_tokens": 8144,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "unconfigured_issue",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "c41e09ef-bece-4669-8b8f-5608b7a558a3",
+            "latency_ms": 5252,
+            "attempts": 1,
+            "input_tokens": 7719,
+            "output_tokens": 99,
+            "total_tokens": 7818,
+            "validation": "PASSED"
+          }
+        ]
+      }
+    ]
+  },
+  "pre_deploy_regression": {
+    "source_file": "artifacts/p2g-regression-evaluation.json",
+    "total": 8,
+    "passed": 8,
+    "cases": [
+      {
+        "case": "explain_failure",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "1d2f947a-ef45-4316-967f-491d38e15357",
+            "latency_ms": 8144,
+            "attempts": 1,
+            "input_tokens": 7585,
+            "output_tokens": 585,
+            "total_tokens": 8170,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "inspect_calendar",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "0a815315-54d2-48ec-b268-48039cd6fa4c",
+            "latency_ms": 7932,
+            "attempts": 1,
+            "input_tokens": 7587,
+            "output_tokens": 649,
+            "total_tokens": 8236,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "explain_reopen",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "c9a60876-e1a2-4313-9014-86832d016c04",
+            "latency_ms": 5837,
+            "attempts": 1,
+            "input_tokens": 7586,
+            "output_tokens": 310,
+            "total_tokens": 7896,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "simulate_ci",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "8018903d-8e42-4c5a-a4c6-59adaf400fb9",
+            "latency_ms": 5500,
+            "attempts": 1,
+            "input_tokens": 7586,
+            "output_tokens": 229,
+            "total_tokens": 7815,
+            "validation": "PASSED"
+          },
+          {
+            "agent_id": "simulation_agent",
+            "model": "gemini-3.7-flash",
+            "request_id": "8018903d-8e42-4c5a-a4c6-59adaf400fb9",
+            "latency_ms": 10767,
+            "attempts": 1,
+            "input_tokens": 6831,
+            "output_tokens": 810,
+            "total_tokens": 7641,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "simulate_deadline",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "115dff43-9486-4f6b-bb54-54a8ab3f2d90",
+            "latency_ms": 5936,
+            "attempts": 1,
+            "input_tokens": 7587,
+            "output_tokens": 211,
+            "total_tokens": 7798,
+            "validation": "PASSED"
+          },
+          {
+            "agent_id": "simulation_agent",
+            "model": "gemini-3.7-flash",
+            "request_id": "115dff43-9486-4f6b-bb54-54a8ab3f2d90",
+            "latency_ms": 10394,
+            "attempts": 1,
+            "input_tokens": 6840,
+            "output_tokens": 536,
+            "total_tokens": 7376,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "reject_calendar_edit",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "38f507b0-561e-4ae5-888d-ac7766d2d401",
+            "latency_ms": 5074,
+            "attempts": 1,
+            "input_tokens": 7583,
+            "output_tokens": 93,
+            "total_tokens": 7676,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "reject_release",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "966f8221-59ef-444d-bfde-52b5e55e97e3",
+            "latency_ms": 6677,
+            "attempts": 1,
+            "input_tokens": 7582,
+            "output_tokens": 99,
+            "total_tokens": 7681,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "ambiguous",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "202a9e97-1ebc-4cae-9183-5de2e079f71e",
+            "latency_ms": 8694,
+            "attempts": 1,
+            "input_tokens": 7582,
+            "output_tokens": 547,
+            "total_tokens": 8129,
+            "validation": "PASSED"
+          }
+        ]
+      }
+    ]
+  },
+  "post_live_regression": {
+    "source_file": "artifacts/p2g-post-live-regression-evaluation.json",
+    "total": 8,
+    "passed": 7,
+    "cases": [
+      {
+        "case": "explain_failure",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "2e704d4c-dca5-4544-843a-129f71be2bc6",
+            "latency_ms": 8027,
+            "attempts": 1,
+            "input_tokens": 7585,
+            "output_tokens": 657,
+            "total_tokens": 8242,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "inspect_calendar",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "eb9c9201-2feb-452e-992d-4fe9a65d26c7",
+            "latency_ms": 7165,
+            "attempts": 1,
+            "input_tokens": 7587,
+            "output_tokens": 681,
+            "total_tokens": 8268,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "explain_reopen",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "5916a4df-52df-4ffc-ae37-e564407e702e",
+            "latency_ms": 5387,
+            "attempts": 1,
+            "input_tokens": 7586,
+            "output_tokens": 285,
+            "total_tokens": 7871,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "simulate_ci",
+        "passed": false,
+        "error": "OperatorReasoningError",
+        "agents": []
+      },
+      {
+        "case": "simulate_deadline",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "a77b8abc-fc33-416d-adb8-4394a7fa2b3d",
+            "latency_ms": 5350,
+            "attempts": 1,
+            "input_tokens": 7587,
+            "output_tokens": 199,
+            "total_tokens": 7786,
+            "validation": "PASSED"
+          },
+          {
+            "agent_id": "simulation_agent",
+            "model": "gemini-3.7-flash",
+            "request_id": "a77b8abc-fc33-416d-adb8-4394a7fa2b3d",
+            "latency_ms": 8546,
+            "attempts": 1,
+            "input_tokens": 6830,
+            "output_tokens": 742,
+            "total_tokens": 7572,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "reject_calendar_edit",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "5cd93f38-6c08-494b-b9ef-1e963be22cea",
+            "latency_ms": 6312,
+            "attempts": 1,
+            "input_tokens": 7583,
+            "output_tokens": 153,
+            "total_tokens": 7736,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "reject_release",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "aabcd2e6-17fa-4588-b8dd-0d8d60022d6b",
+            "latency_ms": 5040,
+            "attempts": 1,
+            "input_tokens": 7582,
+            "output_tokens": 132,
+            "total_tokens": 7714,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      {
+        "case": "ambiguous",
+        "passed": true,
+        "error": null,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "24f689cd-326d-47ef-aa6d-4ca25d19e39e",
+            "latency_ms": 6204,
+            "attempts": 1,
+            "input_tokens": 7582,
+            "output_tokens": 415,
+            "total_tokens": 7997,
+            "validation": "PASSED"
+          }
+        ]
+      }
+    ]
+  }
+}
