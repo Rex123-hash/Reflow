@@ -2,14 +2,15 @@
 
 Qualification date: 2026-08-28. Source: `ec9004ba5ce0befbfc220d3865a521083396b644`.
 
-**LIVE CALENDAR DASHBOARD NO-GO — pending authenticated browser proof.**
+**LIVE CALENDAR DASHBOARD GO.**
 
 Implementation, local gates, deployment, real fresh Calendar GET, exact evidence join,
-guest API isolation, and incident immutability passed. The current proof browser lacks
-a Google product session: its first sign-in attempt returned
-`Firebase: Error (auth/network-request-failed)`; a fresh-shell retry remained at
-`Connecting…`. No Google identity was fabricated and no authentication/IAM change was
-made to bypass this. Complete Google sign-in and the live UI walkthrough before GO.
+guest API isolation, and incident immutability passed. After the user completed genuine
+Google sign-in, the authenticated Live Overview, Recovery 01 Calendar ladder, and exact
+Evidence record were verified and captured on 2026-08-28 around 11:35–11:38 UTC.
+Both BFF and private backend returned `200` for the live UI requests. No Google identity
+was fabricated and no authentication/IAM change was made to bypass the earlier browser
+sign-in delay. No source or deployment change was necessary to complete this final gate.
 
 ## A. Existing Calendar implementation audited
 
@@ -90,9 +91,10 @@ styles, 3D, and its accepted visual debt were not modified.
   sign-out `204`. Guest serves only the static bounded sanitized export. Tests prove
   no private-backend invocation and therefore no Calendar API invocation.
 - **N:** Authenticated live mode is wired through validated BFF responses to real backend
-  authority; tests cover this. Production private-service real Calendar proof passed.
-  **Current Google product-session BFF → backend walkthrough is still pending**;
-  previous P2D proof is not counted as proof of this deployment.
+  authority. The genuine Google product session displayed `Live workspace`, fresh
+  independent read-back and current comparison `Passed`. Overview observed Calendar
+  at 11:35:28 UTC; Recovery observed it again at 11:36:24 UTC. Current-deployment
+  BFF → private backend requests returned `200`; previous P2D proof is not substituted.
 - **O:** Presentation has a GET-only reader interface. Tests compare all in-memory store
   state before/after and prohibit mutation methods. The endpoint's POST returns `405`.
   Production requests were GETs and the canonical Firestore hash/event count remained
@@ -107,14 +109,15 @@ styles, 3D, and its accepted visual debt were not modified.
   auth/session implementation, Firebase Google scopes, Gmail OAuth, or secrets changed.
   Browser bundle scan found zero service-account/private backend/private calendar IDs
   or tested Google/private-key credential patterns. Firebase identity tokens are part
-  of the unchanged product login, not Calendar credentials. Current authenticated
-  browser/BFF security proof remains pending with N.
+  of the unchanged product login, not Calendar credentials. The authenticated
+  browser/BFF/private-backend chain passed. After the UI walkthrough, unauthenticated
+  probes again returned private backend `403` and BFF `401`.
 
 ## R–S. Canonical incident immutability
 
 Incident: `incident-0fc3af5b0bd1ad847aea`.
 
-| Field | Before | After real deployed reads |
+| Field | Before | After authenticated UI reads |
 | --- | --- | --- |
 | Revision | 16 | 16 |
 | Durable workflow events | 28 | 28 |
@@ -123,6 +126,8 @@ Incident: `incident-0fc3af5b0bd1ad847aea`.
 Fingerprint method: remove presentation-only `_document_id`; SHA-256 over
 `json.dumps(document, sort_keys=True, separators=(",", ":"), default=str)`.
 The previous restoration-margin calculation and its historical timestamps are untouched.
+The final fingerprint/event-count check ran after the authenticated Overview → Recovery
+→ exact Evidence → Overview walkthrough and matched the original baseline.
 
 ## T–U. Qualification gates
 
@@ -155,18 +160,47 @@ Image names: `app` and `reflow-web-bff`, deployed by the digests above.
 Successful Cloud Builds: backend `00ff224e-95af-4abb-8036-22f86209a52c`,
 BFF `e7d5b832-a576-42c6-9175-fb748f2bc999`.
 
-## Y. Browser proof status
+## Y. Completed authenticated browser proof
 
 The deployed [live dashboard](https://reflow-objective-recovery.web.app/app/overview)
-is ready for a genuine Google sign-in. This capture documents the blocker, not a completed
-authenticated dashboard proof:
+was inspected under the user's genuine Google product session, visibly `Live workspace`.
 
-![Google sign-in pending](p2e-a-signin-pending.png)
+1. Overview showed the actual confirmed 13:00–14:00 UTC commitment, fresh independent
+   read-back, current comparison `Passed`, actual observation time and existing restored
+   objective/deadline margin.
+2. `Inspect Calendar action` selected Recovery 01 / Act / Actions. The intended values,
+   real API acknowledgement at 19:07:44 UTC, original independent read-back at 19:07:45
+   UTC, historical receipt `Verified`, and fresh expected/observed comparison were visible.
+3. The same Calendar panel explicitly displayed: `Action verified does not imply objective
+   restored. Selected recovery objective verification: Failed.` The Recovery 01 spine
+   independently showed failed CI/objective verification and the branch to Recovery 02.
+4. Clicking `Open exact Calendar evidence` focused the existing Calendar receipt record,
+   with the exact evidence/event IDs, Recovery attempt 1, confirmed status and original
+   observation timestamp. This is the historical evidence, not a newly created receipt.
+5. BFF/backend Cloud Run logs corroborated the authenticated requests, all `GET`/`200`.
+   Initial Overview request: BFF 0.608 seconds, private backend 0.421 seconds. Initial
+   Calendar read-through: BFF 0.664 seconds, private backend 0.575 seconds. Subsequent
+   Calendar/Evidence reads also returned `200` in both services. These timings measure
+   HTTP requests, not the earlier interactive Google popup/browser delay.
+6. Post-walkthrough incident revision, fingerprint and event count remained unchanged;
+   private anonymous `403` and public unauthenticated `401` were re-proven.
 
-Still required: signed-in Overview screenshot; Recovery 01 expected/observed ladder and
-failed-objective screenshot; click through to exact Evidence and capture it; confirm live
-BFF/backend `200` logs; repeat immutability after those UI reads. No screenshots from a
-fixture or guest session are misrepresented as authenticated Live proof.
+![Authenticated live Overview](p2e-a-live-overview.png)
+
+![Authenticated Recovery 01 failed objective spine](p2e-a-live-recovery.png)
+
+![Authenticated Calendar intended/acknowledged/read-back ladder](p2e-a-live-calendar-ladder.png)
+
+![Authenticated verified receipt, expected/observed comparison and separate objective failure](p2e-a-live-calendar-detail.png)
+
+![Authenticated exact Calendar evidence](p2e-a-live-evidence.png)
+
+### Earlier access attempts (resolved)
+
+The first browser attempt returned `auth/network-request-failed`; another stayed at
+`Connecting…`. The user subsequently reported embedded-browser lag. No UI/authentication
+code was changed in response, and final Google sign-in succeeded. The earlier capture
+`p2e-a-signin-pending.png` remains an access-history artifact, not the current verdict.
 
 Follow-up after the user reported sign-in complete: the visible product session was
 `Demo workspace · Read only`, not Google Live. The deployed guest Overview accurately
@@ -175,8 +209,8 @@ and the actual persisted timestamp. Its Calendar action link opened Recovery 01 
 historical receipt `Verified` and selected objective verification `Failed`; clicking
 `Open exact Calendar evidence` focused the exact existing Calendar record above.
 The canonical incident still had revision 16, the same document fingerprint and 28
-events. These are additional guest UI checks, **not authenticated Live qualification**.
-Google sign-in remains the only pending access step.
+events. Those were additional guest UI checks, **not authenticated Live qualification**.
+They are now supplemented by the genuine Live proof above.
 
 ![Deployed guest Overview — not Live proof](p2e-a-guest-overview.png)
 
@@ -213,7 +247,9 @@ tests/test_external_reality.py
 ```
 
 Post-deployment evidence adds this report, `docs/p2e-a-signin-pending.png`, and
-`docs/p2e-a-guest-overview.png`.
+`docs/p2e-a-guest-overview.png`, plus `docs/p2e-a-live-overview.png`,
+`docs/p2e-a-live-recovery.png`, `docs/p2e-a-live-calendar-ladder.png`,
+`docs/p2e-a-live-calendar-detail.png`, and `docs/p2e-a-live-evidence.png`.
 
 ## AA–AD. Scope, source, debt and verdict
 
@@ -224,9 +260,10 @@ Post-deployment evidence adds this report, `docs/p2e-a-signin-pending.png`, and
   idempotency, policy, selection, invariants, state machine or reasoning agent changed.
 - **AB:** Deployed source commit `ec9004ba5ce0befbfc220d3865a521083396b644`, descended from
   frozen marketing/proof `24a4219`. This evidence report is a separate documentation commit.
-- **AC:** Blocking debt: genuine Google product sign-in and live browser proof described
-  in Y. No remote is configured for fetching/pushing. Existing broader runtime typing and
+- **AC:** No remaining blocking Calendar qualification debt. No remote is configured for
+  fetching/pushing. Existing broader runtime typing and
   marketing visual/build debt remain outside scope. No new Calendar OAuth or IAM work
-  is required for the proven fresh runtime read.
-- **AD:** **LIVE CALENDAR DASHBOARD NO-GO — authenticated UI qualification pending.**
-  Do not begin Agents 6/7 or another milestone. Resume only the pending proof after sign-in.
+  was required for the proven fresh runtime read. The earlier embedded-browser sign-in
+  delay is not claimed to have been diagnosed or fixed by a Reflow source change.
+- **AD:** **LIVE CALENDAR DASHBOARD GO.**
+  Milestone complete. Stop; do not begin Agents 6/7 or another milestone automatically.
