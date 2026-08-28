@@ -1,5 +1,20 @@
 # P2H — bounded Slack Operator capability
 
+## Current checkpoint — model qualification repair, 29 August 2026
+
+**P2H MODEL QUALIFICATION READY.** The one authorized final expanded run passed **24/24 raw**;
+the one authorized frozen recovery run passed **8/8 raw**. Both unchanged formal graders report
+all cases valid, zero errors and mean **1.0**. Exactly seven agents and all reliability bounds
+remain unchanged. No external write, Slack API call, secret-version creation/access, build,
+deployment or push was performed by this repair. Slack setup and authorized live proof remain
+separate work; a final audit observed an externally added secret version, left untouched (§17.7).
+
+Section 17 records the repair and its evidence limits. **Sections 1–16 below are the preserved
+implementation checkpoint**, including its genuine 23/24 and 7/8 failures and then-current NO-GO.
+Their historical verdicts and incomplete diagnostic conclusions are not the current model verdict.
+The original DM timeout's underlying provider/ADK cause remains unproven; it is not retroactively
+declared fixed by a successful run. This qualification is not a live Slack GO claim.
+
 ## 1. Verdict and boundaries
 
 **P2H SLACK OPERATOR CAPABILITY NO-GO.** Source implementation and deterministic qualification
@@ -426,3 +441,290 @@ uv run python scripts/scan_p2h_secrets.py
 ```
 
 For a future run, choose new evaluation output names; do not overwrite these preserved failures.
+
+## 17. Authorized model qualification repair — 29 August 2026
+
+### 17.1 Scope, history and freeze
+
+Started at `b2ee95f4e7c87bdb6fb0b086bed49824617336af`, following source
+`ac57ab3d3614f6baadeb65e70a49465b86c86277`. Repository status/history/diff were inspected first.
+The pre-existing untracked `frontend/op-input.mjs` is untouched and excluded from both commits.
+No push occurred. The user explicitly authorized small semantics-preserving model/eval repairs,
+not new capabilities, weaker criteria, more time or retries, or external writes.
+
+Only two runtime instruction strings changed: Agent 6's Slack appendix and Agent 7's existing
+evidence-citation invariant. An AST comparison against `b2ee95f` is identical after excluding
+those two assignments. No runtime schema, validator, model, tool, agent factory, retry policy,
+authorization, ACT lifecycle, adapter, Jira/Calendar behavior or canonical transition changed.
+Agent 7 remains hypothetical-only, no tools/persistence, `external_effects_executed=false`,
+`gemini-3.7-flash`, ADK 2.7.1. Bounds remain 14 seconds per attempt, Agent 6 25-second node / 27-second
+outer allowance, Agent 7 30-second node / 32-second outer allowance, existing retry ceiling and
+70-second service bound. The five recovery agents are unchanged; the total remains exactly seven.
+
+The ADK workflow/code/eval skills guided minimal changes, explicit reference-validation tests,
+preservation of every diagnostic, unchanged formal grading and baseline/candidate comparison.
+
+### 17.2 DM timeout: observed layer versus unknown underlying cause
+
+Preserved failure: `artifacts/p2h-act-final-evaluation.json`, request
+`4dcd1d23-f8e5-4f92-afb6-f350cc1e51e1`, `slack_dm`, **14,008 ms**, timeout, no completed response.
+The elapsed time and frozen code identify the **application's 14-second `asyncio.wait_for`
+around `run_workflow`**, not the 25-second node, 27-second outer allowance, service deadline or
+grader. The final `_invoke` schema validation following that await was not reached.
+
+The original artifact does not retain absolute start/end timestamps, SDK request/response
+events, attempts or token usage for this failure. Targeted inspection of the retained operational
+tool output found no additional DM-stage evidence. Thus whether the SDK returned anything or
+internal ADK validation began before cancellation is **unknown**. It cannot be established
+whether the underlying delay was provider/network, ADK processing, or another stage inside that
+await. No incorrect DM classification was captured. A provider stall, instruction-complexity
+root cause, schema stall, prompt ambiguity, harness defect or deterministic post-processing
+defect is **not proven**. The wrapper timeout is concrete; its deeper cause is unresolved.
+
+Successful comparisons from the same preserved 23/24 run (all one attempt, typed validation passed):
+
+| Case | Agent 6 ms | Input / output tokens |
+|---|---:|---:|
+| Configured channel inspect | 4,811 | 8,062 / 161 |
+| Configured channel post | 6,556 | 8,067 / 533 |
+| Missing-message clarification | 4,444 | 8,063 / 141 |
+| Other-channel refusal | 5,022 | 8,071 / 167 |
+| Mass mention typed ACT → deterministic denial | 4,840 | 8,070 / 210 |
+| Unsupported admin | 8,494 | 8,066 / 435 |
+| Unsupported history edit | 4,216 | 8,068 / 141 |
+| Exact qualification text | 12,118 | 8,073 / 430 |
+
+The DM also passed in prior initial/confirmation runs (5,675 / 5,753 ms). Those successes do not
+erase the timeout or prove a causal latency repair. With 25 seconds total, a timed-out 14-second
+attempt cannot fit another full 14-second attempt plus the existing margin; this policy is unchanged.
+
+### 17.3 Prompt comparison and narrow repair
+
+| Agent 6 instruction | Characters | Whitespace words | Provider input-token impact |
+|---|---:|---:|---|
+| Pre-P2H | 4,526 | 576 | Baseline |
+| Committed P2H at repair start | 5,677 | 734 | +269 tokens in preserved same-case prompt probes |
+| Repaired | 5,327 | 679 | −91 tokens versus committed P2H on the same DM input: 8,068 → 7,977 |
+
+Thus the repair removes 350 characters / 55 words; +178 tokens versus pre-P2H is a derived
+difference, not an independent new inference run. Counts above concern instructions or total
+provider input as labeled, not interchangeable tokenization estimates.
+
+The original appendix repeated its Slack-only scope, included adapter read-window behavior
+irrelevant to classification, and used case-specific examples. No contradictory instruction was
+demonstrated. It was shortened into general mappings: explicit DM/member or other channel is
+UNSUPPORTED before considering missing parameters; ambiguous recipient or missing message
+clarifies; configured inspect/post remains supported; quoted mass mentions remain in typed ACT
+for deterministic policy to deny. The general supplied-message-clause rule replaces an exact
+evaluation-message example. No keyword classifier, hardcoded result, permission judgment, new
+authority or broader Slack action was added. This is the user-authorized precision/redundancy
+cleanup, **not a claimed proven cure for provider stalls**.
+
+### 17.4 Every targeted diagnostic
+
+Exactly **three** DM diagnostics were used. No fourth DM diagnostic or additional full-suite
+attempt was made. Three separate non-mutating CI diagnostics investigated the service rejection;
+CI-3 reproduced it before the instruction repair. Every request, including the failure, is retained.
+Tokens below are existing agent-trace input/output counts; trace output includes thinking-token
+counts when provided, but **no thought content is persisted** by the observer.
+
+| Artifact prefix (`artifacts/`) | Prompt | Request ID | Result | Relevant agent ms / attempts | Input / output |
+|---|---|---|---|---|---|
+| `p2h-repair-dm-1` | Original | `b1f3fa08-e664-474c-8f0b-567bc33e2135` | PASS | A6 6,235 / 1 | 8,068 / 380 |
+| `p2h-repair-dm-2` | Original | `962e9913-50a8-4fd2-8c9a-b06b896ba0f0` | PASS | A6 5,856 / 1 | 8,068 / 419 |
+| `p2h-repair-dm-3` | Repaired | `f9621966-e69d-4fbc-9d6a-f5b1064a89bc` | PASS | A6 6,038 / 1 | 7,977 / 412 |
+| `p2h-repair-ci-1` | Original | `71447f67-4bd2-4455-bd36-01387cc227dd` | PASS | A7 9,686 / 1 | 6,828 / 784 |
+| `p2h-repair-ci-2` | Original | `93a34a29-7c9e-4e8f-a3fe-91a707050630` | PASS | A7 5,951 / 1 | 6,841 / 384 |
+| `p2h-repair-ci-3` | Original | `99941892-dbcc-4ccf-8582-624e5a4d2db5` | FAIL | A7 13,405 / 1 | 6,855 / 706 |
+
+Each prefix has `-evaluation.json`, `-traces.json`, `-forensics.json` and a formal grade JSON in
+its `-grades` directory. Each passing diagnostic grades 1/1 valid, mean 1.0. CI-3 grades no
+completed response: the authoritative raw result remains **0/1**, not a successful empty grade.
+
+SDK/validation timestamps from the corrected observer, all **UTC on 2026-08-28**:
+
+| Probe | SDK start | SDK response | Typed validation |
+|---|---|---|---|
+| DM-2 | 22:18:45.115038 | 22:18:50.846597 | 22:18:50.848598 |
+| DM-3 | 22:21:41.623804 | 22:21:47.542394 | 22:21:47.544400 |
+| CI-3 Agent 7 | 22:19:43.810119 | 22:19:57.139812 | 22:19:57.141811 |
+
+The first observer used ADK node callbacks that were not invoked through the compiled workflow.
+DM-1/CI-1 retain agent metadata/reference checks but **lack SDK-stage capture**; this is not zero
+provider calls. It was corrected to observe `AsyncModels.generate_content` directly before DM-2/
+CI-2 and both final suites. The local-only wrapper delegates the original evaluators and SDK,
+never replaces responses, and adds no retries, timeouts, schema/metric changes or agent tools.
+It records only allowlisted bounded/redacted non-thought JSON, usage, safe exception categories
+and exact reference comparisons. Tests confirm cancellation and validation errors propagate and
+patches are restored. Historical missing output cannot be reconstructed by this later observer.
+
+### 17.5 CI service-validation cause and exact reproduced references
+
+Original failed full-regression request: `c3f88453-4692-46a4-9b5e-39ddee4248a8`, total **15,060 ms**.
+Retained operational output gives Agent 6 start `2026-08-28T22:03:00.467995+00:00`, completion
+`22:03:07.556356+00:00` (7,089 ms, one attempt, 7,883/208 input/output); Agent 7 started at that
+completion and finished `22:03:15.527676+00:00` (7,971 ms, one attempt, 6,812/612), typed validation
+**PASSED**. The safe harness error is `OperatorReasoningError`.
+
+In the unchanged service, after schema-valid Agent 7 completion, the explicit reasoning rejection
+checks `SimulationResult.evidence_ids` is a subset of `snapshot.evidence[].evidence_id`. It raises
+`Simulation cited unavailable evidence`. Wrong provenance/effect flags or malformed structured
+output would fail typed validation earlier. This narrows the original rejection to reference
+validation, **not a model timeout or malformed hypothetical schema**. The original raw result and
+exact rejected IDs were not retained; their values must not be retroactively invented.
+
+CI-3 then reproduced that precise service category and captured the wrong field and values:
+
+```text
+SimulationResult.evidence_ids:
+  action:calendar-9899dba7a849a328a49d
+  action:validate-release-v2
+```
+
+Both are **context fact IDs**, not evidence IDs. The same returned array also contained valid
+`github-run:33106938744`, `gmail-message:1a0449e8567caa43` and `objective-verification:1`.
+The snapshot's allowed evidence IDs were:
+
+```text
+calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c
+github-promotion:378060699
+github-run:33106938744
+github-run:33106995963
+gmail-message:1a0449e8567caa43
+objective-verification:1
+objective-verification:2
+```
+
+The model selected the wrong identifier namespace; the validator was correct and remains strict.
+Nothing was silently dropped, mapped, accepted, or overwritten. The IDs above belong to the
+**reproduction**, not an asserted reconstruction of the original failed output.
+
+Compared with the qualified `artifacts/p2g-closure-operator-evaluation.json` (8/8), the read-only
+context URL is still `https://objective-recovery-2gbnbjfvkq-uc.a.run.app`, snapshot fingerprint
+`912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402`, 61 facts / 7 evidence items,
+no dangling fact-to-evidence references. The eight-case evaluator, fixtures, expectations and
+grading function are unchanged. P2H added Slack vocabulary to the shared intent schema but did
+not alter simulation invariants/validators. Agent 7's instruction was unchanged until this repair.
+The first meaningful behavioral difference is the generated reference selection, not context drift,
+missing expected evidence, stale deployment, wrong endpoint or looser grading. P2H's Agent 6
+input grew (same explain case 7,585 → 7,882 tokens); this is observed size growth, not proof that
+Slack caused the stochastic Agent 7 error.
+
+Repair: clarify the existing instruction to cite **only exact `snapshot.evidence[].evidence_id`
+values**, also linked through `facts[].evidence_ids`; `facts[].fact_id` is a row identifier, never
+a citation. This restores the already-enforced invariant without changing simulation semantics.
+Agent 7 instruction changed from 1,219 to 1,342 characters. No hypothetical conclusion, evidence
+requirement, provenance or effect flag changed. Tests reproduce both exact invalid fact IDs and
+an invented ID, assert rejection, and verify valid references retain hypothetical/no-effect output.
+
+### 17.6 Single final model gates and formal comparisons
+
+After focused deterministic checks, **one full expanded run**, then its formal grade, then
+**one full frozen recovery run**, then its formal grade. No full run was repeated on this repair.
+
+| Gate | Raw | Formal metric | Valid / total / errors | Mean / stdev |
+|---|---|---|---|---|
+| Expanded P2H | **24/24** | `p2g_act_behavior` | **24 / 24 / 0** | **1.0 / 0.0** |
+| Frozen recovery | **8/8** | `p2f_operator_behavior` | **8 / 8 / 0** | **1.0 / 0.0** |
+
+Authoritative evidence:
+
+- `artifacts/p2h-repair-final-intent-evaluation.json`, `-traces.json`, `-forensics.json`;
+  formal `artifacts/p2h-repair-final-intent-grades/results_20260829_035516.json`.
+- `artifacts/p2h-repair-final-recovery-evaluation.json`, `-traces.json`, `-forensics.json`;
+  formal `artifacts/p2h-repair-final-recovery-grades/results_20260829_040002.json`.
+
+Expanded: 24 observed SDK calls, one attempt each, no provider failure. Final DM request
+`02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557`, **4,418 ms**, 7,977 input / 149 trace-output tokens,
+UNSUPPORTED. Recovery: eight Agent 6 calls plus two Agent 7 calls, all one attempt, zero unknown
+simulation references. Final CI request `be3c7617-9749-4732-9149-652fea7d0a54`: Agent 6 4,294 ms;
+Agent 7 **8,417 ms**, 6,843 input / 391 output, service accepted. Deadline simulation Agent 7
+8,224 ms. No external effects or executor calls occurred.
+
+`agents-cli eval compare` was run against the preserved failed final grades. Completed valid cases
+increased **23 → 24** and **7 → 8**, with unchanged mean 1.0. Earlier means omit no-response
+failures; only the new full raw denominators establish the restored gates. No cases, expected
+results, pass thresholds, fixture references or custom graders were edited.
+
+### 17.7 Deterministic, canonical and security gates
+
+| Gate | Repair result |
+|---|---|
+| Slack | **77 passed**, adapter/policy coverage **100%**, 187 statements |
+| Combined Slack + Operator actions/runtime/API + new forensic tests | **190 passed** |
+| New forensic tests | **7 passed**, including exact invalid references and cancellation |
+| Full backend, exact final source | **398 passed, 1 existing cloud test skipped** |
+| Configured core coverage | **96.01%**, unchanged 95% threshold |
+| Strict mypy | **47 configured files** + explicit forensic script passed |
+| Ruff / format | `src tests scripts/operator_eval_forensics.py` passed; **49 formatted files** |
+| Frozen agent lint debt | Existing RUF001 / line-wrap debt retained as documented in §10; no new finding |
+| Generated Operator contract consistency | Passed; no shared contract change in this repair |
+| Terraform fmt / validate | Passed; no Terraform change or apply |
+| Frontend | Not rerun: no shared contract/frontend changes; prior 87 tests/typecheck/build remain historical evidence |
+| Git whitespace / secret scan | Passed; scan evidence `artifacts/p2h-repair-secret-scan.json` |
+
+`artifacts/p2h-repair-readonly-audit.json` and the post-qualification
+`artifacts/p2h-repair-final-readonly-audit.json` preserve read-only observations. Canonical incident
+`incident-0fc3af5b0bd1ad847aea` remains revision **16**, **28** durable events,
+**objective_restored / RESOLVED**, active plan **2**, document fingerprint
+**`4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c`**. Exactly **7** agents.
+Backend/BFF revisions, traffic, IAM and environment are unchanged. The first audit saw **zero
+Slack secret versions**; the final audit observed **one version**. This is an external-state change
+outside this repair: no version was created or accessed by this workflow, and the actor/content
+was not investigated. The version is left untouched. The same backend-only secret accessor and
+no BFF Slack secret reference remain. No secret payload access, token-version creation, Slack
+request, external write, build, deployment or push was performed by this repair. Qualification
+did not consume or require a Slack token.
+
+### 17.8 Final A–Z repair report and commits
+
+| Item | Result |
+|---|---|
+| A — DM root cause | 14-second workflow-attempt timeout established; underlying provider/ADK cause not recoverable from original telemetry, §17.2 |
+| B — DM stage/latency | Original 14,008 ms; original absolute timestamps/SDK response/attempts/tokens unavailable; corrected probes give exact SDK/typed stages, §17.4 |
+| C — Prompt impact | Original P2H +269 measured input tokens; repair −91, 8,068 → 7,977 on DM; −350 characters / 55 words |
+| D — Diagnostics | Exactly 3 DM, 3 CI; every artifact retained, including CI-3 failure |
+| E — Slack repair | Shorter Slack-only mappings; explicit unsupported target precedence; authorization remains deterministic |
+| F — CI cause | Schema-valid output rejected by strict service evidence-subset validation |
+| G — Invalid references | Reproduction used `action:calendar-9899dba7a849a328a49d` and `action:validate-release-v2` in `SimulationResult.evidence_ids`; original exact IDs unavailable |
+| H — P2G/P2H difference | Same snapshot/URL/evaluator/criteria; observed wrong generated identifier namespace, not proven Agent 7 code regression |
+| I — Recovery repair | Clarify evidence IDs versus fact IDs; no simulation semantics/validator/reliability change |
+| J — Focused tests | 77 Slack; 190 combined; 7 new forensic tests |
+| K — Expanded raw | **24/24**, one full run |
+| L — Expanded formal | **24 valid, 0 errors, mean 1.0** |
+| M — Frozen raw | **8/8**, one full run |
+| N — Frozen formal | **8 valid, 0 errors, mean 1.0** |
+| O — Agents | Exactly **7** |
+| P — Backend | **398 passed, 1 skipped** |
+| Q — Coverage | **96.01% core; 100% Slack** |
+| R — Frontend | No contract/frontend changes; not rerun; contract consistency passed |
+| S — Canonical | Revision **16**, **28** events, **objective_restored**, plan **2** |
+| T — Fingerprint | `4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c` |
+| U — Security | Zero scan findings; no external writes, Slack calls or secret-version creation/access by this repair; audit observed an external version-count change 0 → 1, left untouched; backend-only accessor unchanged |
+| V — Files | Three repair source/test files below; this document and new `p2h-repair-*` proof JSON; original failure artifacts unchanged |
+| W — Repair commit | `113a307a7867e29751137b1fef0b61be50c4a562` |
+| X — Proof/docs commit | Immediately following local commit; exact hash in handoff (cannot self-embed final hash) |
+| Y — Push | **NOT PUSHED** |
+| Z — Debt | Historical DM deep cause unresolved; no guarantee of future zero timeouts; separate human Slack setup, authorized deployment/live/read-back/replay proof; prior lint/bundle debt |
+
+Repair source/test inventory:
+
+```text
+objective_recovery_agent/operator_agents.py
+scripts/operator_eval_forensics.py
+tests/test_operator_eval_forensics.py
+```
+
+Qualification commands already executed (record only, not an instruction to rerun):
+
+```text
+uv run python -m scripts.operator_eval_forensics --suite intent --prefix p2h-repair-final-intent
+uv run agents-cli eval grade --traces artifacts/p2h-repair-final-intent-traces.json --config tests/eval/operator_act_eval_config.yaml --output artifacts/p2h-repair-final-intent-grades
+uv run python -m scripts.operator_eval_forensics --suite recovery --prefix p2h-repair-final-recovery
+uv run agents-cli eval grade --traces artifacts/p2h-repair-final-recovery-traces.json --config tests/eval/operator_eval_config.yaml --output artifacts/p2h-repair-final-recovery-grades
+```
+
+Safe current claim: “The bounded Slack Operator implementation is model-qualified locally with
+24/24 expanded and 8/8 frozen regression cases under unchanged criteria. Authorized live Slack
+proof and deployment have not occurred.” Human Slack setup was **not** required for this model
+qualification. **FINAL VERDICT: P2H MODEL QUALIFICATION READY. STOP.**

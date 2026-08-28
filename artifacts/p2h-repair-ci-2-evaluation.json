@@ -1,0 +1,172 @@
+{
+  "runtime": "local-vertex",
+  "passed": 1,
+  "total": 1,
+  "records": [
+    {
+      "case": {
+        "id": "simulate_ci",
+        "message": "What if Candidate A had passed CI?",
+        "intent": "SIMULATE",
+        "disposition": "SUPPORTED",
+        "required_fact_prefixes": []
+      },
+      "response": {
+        "request_id": "93a34a29-7c9e-4e8f-a3fe-91a707050630",
+        "incident_id": "incident-0fc3af5b0bd1ad847aea",
+        "revision": 16,
+        "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+        "generated_at": "2026-08-28T22:18:30.029659+00:00",
+        "disposition": "SUPPORTED",
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "SIMULATE",
+          "subject": "RECOVERY",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": 1,
+          "question": "What if Candidate A had passed CI?",
+          "hypothetical_changes": [
+            {
+              "kind": "CI_PASSED",
+              "target": "Candidate A",
+              "value": "true"
+            }
+          ],
+          "constraints": [
+            "Simulate objective restoration if Candidate A validation run succeeded in Recovery 1"
+          ],
+          "fact_ids": [
+            "action:calendar-9899dba7a849a328a49d",
+            "action:validate-release-v2",
+            "invariant:1:release-validation-green"
+          ],
+          "target": null,
+          "requested_operations": [],
+          "clarification": null
+        },
+        "answer": "Hypothetical only \u2014 no external action occurred. Hypothetically evaluating Recovery 1 if Candidate A CI validation had passed (conclusion success instead of failure) during the initial attempt to ship Release V2 before the protected deadline.",
+        "facts": [
+          {
+            "fact_id": "action:calendar-9899dba7a849a328a49d",
+            "text": "Recovery 1, Google Calendar: Create a private recovery coordination block. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:07:45.772017+00:00; action comparison PASSED. Action verified does not imply objective restored.",
+            "evidence_ids": [
+              "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c"
+            ]
+          },
+          {
+            "fact_id": "action:validate-release-v2",
+            "text": "Recovery 1, GitHub: Create/adopt Candidate A prerelease and validate its exact workflow run. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:04.820939+00:00; action comparison FAILED. Action verified does not imply objective restored.",
+            "evidence_ids": [
+              "github-run:33106938744"
+            ]
+          },
+          {
+            "fact_id": "invariant:1:release-validation-green",
+            "text": "Recovery 1: release-validation-green FAILED; expected true, observed false. external state violates the invariant",
+            "evidence_ids": [
+              "objective-verification:1"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "evidence_id": "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+            "title": "Recovery coordination preserved",
+            "observed_at": "2026-08-27T19:07:45.772017+00:00"
+          },
+          {
+            "evidence_id": "github-run:33106938744",
+            "title": "Candidate validation run 33106938744",
+            "observed_at": "2026-08-27T19:08:04.820939+00:00"
+          },
+          {
+            "evidence_id": "objective-verification:1",
+            "title": "Recovery 01 objective verification",
+            "observed_at": "2026-08-27T19:08:04.820939+00:00"
+          }
+        ],
+        "simulation": {
+          "provenance": "HYPOTHETICAL_NO_ACTION",
+          "scenario_summary": "Hypothetically evaluating Recovery 1 if Candidate A CI validation had passed (conclusion success instead of failure) during the initial attempt to ship Release V2 before the protected deadline.",
+          "assumptions": [
+            "Candidate A CI validation workflow run completes with status success instead of failing",
+            "Recovery 1 coordination block remains verified and intact as recorded"
+          ],
+          "threatened_invariants": [
+            "shipped-full-release",
+            "protected-release-deadline-satisfied"
+          ],
+          "candidate_futures": [
+            {
+              "title": "Immediate Promotion in Recovery 1",
+              "consequence": "With Candidate A CI passing, Recovery 1 could proceed directly to release promotion without triggering Recovery 2 replanning.",
+              "tradeoffs": [
+                "Avoids the delay and resource overhead of creating Candidate B in Recovery 2",
+                "Candidate A may carry unverified edge-case behaviors compared to Candidate B"
+              ],
+              "required_verification": [
+                "Verification of Candidate A promotion action receipt",
+                "Deterministic objective invariant verification for Recovery 1"
+              ]
+            }
+          ],
+          "risk_critique": [
+            "A hypothetical CI pass for Candidate A does not automatically guarantee full-release promotion succeeded or that all invariant checks passed.",
+            "Historical failed verification in Recovery 1 remains recorded in the actual observed timeline."
+          ],
+          "likely_objective_outcome": "MAY_IMPROVE",
+          "unsupported_assumptions": [
+            "Assuming Candidate A artifact promotion would succeed without execution errors",
+            "Assuming Candidate A satisfies all production release requirements beyond the CI check"
+          ],
+          "evidence_ids": [
+            "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+            "github-run:33106938744",
+            "objective-verification:1"
+          ],
+          "external_effects_executed": false
+        },
+        "inspection": null,
+        "action": null,
+        "hypothetical_deadline": null,
+        "provenance": "HYPOTHETICAL_NO_ACTION",
+        "external_effects_executed": false,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "93a34a29-7c9e-4e8f-a3fe-91a707050630",
+            "latency_ms": 7194,
+            "attempts": 1,
+            "input_tokens": 7883,
+            "output_tokens": 241,
+            "total_tokens": 8124,
+            "validation": "PASSED"
+          },
+          {
+            "agent_id": "simulation_agent",
+            "model": "gemini-3.7-flash",
+            "request_id": "93a34a29-7c9e-4e8f-a3fe-91a707050630",
+            "latency_ms": 5951,
+            "attempts": 1,
+            "input_tokens": 6841,
+            "output_tokens": 384,
+            "total_tokens": 7225,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "no_effect": true,
+        "grounded_facts": true,
+        "agent6": true,
+        "agent7": true,
+        "hypothetical": true,
+        "verification_needed": true
+      },
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "local_observer_only": true,
+  "events": [
+    {
+      "at": "2026-08-28T22:17:05.302078+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "e90b659e412b9ed9add090dc64a123c85e8960925b711277e17b2c801122faf1",
+      "instruction_sha256": "6a32ca08908aa95a29c5bf6eaf35a89579ec9175c0787311518c736fb7c57e07"
+    },
+    {
+      "at": "2026-08-28T22:17:05.303081+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:17:10.178975+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:17:10.178975+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+        "latency_ms": 4877,
+        "attempts": 1,
+        "input_tokens": 7883,
+        "output_tokens": 230,
+        "total_tokens": 8113,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:17:10.179974+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "simulation_agent",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "4b56add0b3abc533de394004f16f09d5a503d3365ecfad317d7a990f1bd5647f",
+      "instruction_sha256": "42be6051fd1e8584386dc2aa34361355bcde6525793f16b1c93f9e2c2eef3b9e"
+    },
+    {
+      "at": "2026-08-28T22:17:10.180976+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "simulation_agent",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:17:19.866614+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "simulation_agent",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:17:19.866614+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "simulation_agent",
+      "stage": "simulation_reference_check",
+      "allowed_ids": [
+        "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+        "github-promotion:378060699",
+        "github-run:33106938744",
+        "github-run:33106995963",
+        "gmail-message:1a0449e8567caa43",
+        "objective-verification:1",
+        "objective-verification:2"
+      ],
+      "returned_ids": [
+        "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+        "github-promotion:378060699",
+        "github-run:33106938744",
+        "github-run:33106995963",
+        "objective-verification:1",
+        "objective-verification:2"
+      ],
+      "unknown_ids": []
+    },
+    {
+      "at": "2026-08-28T22:17:19.867120+00:00",
+      "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+      "agent": "simulation_agent",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "simulation_agent",
+        "model": "gemini-3.7-flash",
+        "request_id": "71447f67-4bd2-4455-bd36-01387cc227dd",
+        "latency_ms": 9686,
+        "attempts": 1,
+        "input_tokens": 6828,
+        "output_tokens": 784,
+        "total_tokens": 7612,
+        "validation": "PASSED"
+      }
+    }
+  ]
+}

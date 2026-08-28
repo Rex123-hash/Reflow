@@ -1,0 +1,1287 @@
+{
+  "runtime": "real-local-vertex-adk",
+  "external_mutations": 0,
+  "records": [
+    {
+      "case": {
+        "id": "jira_inspect",
+        "message": "What is the status of API-42?",
+        "intent": "INSPECT",
+        "disposition": "SUPPORTED",
+        "target": "API-42",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "INSPECT",
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "What is the status of API-42?",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "JIRA",
+            "resource_type": "ISSUE",
+            "resource_identifier": "API-42"
+          },
+          "requested_operations": [],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "994dd21a-d8bd-48e4-84e6-e5c2081148f3",
+            "latency_ms": 5626,
+            "attempts": 1,
+            "input_tokens": 7975,
+            "output_tokens": 384,
+            "total_tokens": 8359,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "jira_transition_comment",
+        "message": "Mark API-42 blocked and add a comment: Backend engineer unavailable.",
+        "intent": "ACT",
+        "disposition": "SUPPORTED",
+        "target": "API-42",
+        "operations": [
+          "JIRA_TRANSITION",
+          "JIRA_ADD_COMMENT"
+        ]
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Mark API-42 blocked and add a comment: Backend engineer unavailable.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Transition Jira issue API-42 to blocked status",
+            "Add comment to Jira issue API-42"
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "JIRA",
+            "resource_type": "ISSUE",
+            "resource_identifier": "API-42"
+          },
+          "requested_operations": [
+            {
+              "operation": "JIRA_TRANSITION",
+              "value": "blocked",
+              "comment": null
+            },
+            {
+              "operation": "JIRA_ADD_COMMENT",
+              "value": null,
+              "comment": "Backend engineer unavailable."
+            }
+          ],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "af360bc2-39f3-49c9-8646-5f3d0d61e51d",
+            "latency_ms": 6728,
+            "attempts": 1,
+            "input_tokens": 7979,
+            "output_tokens": 585,
+            "total_tokens": 8564,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "jira_assign",
+        "message": "Assign API-42 to Srishti.",
+        "intent": "ACT",
+        "disposition": "SUPPORTED",
+        "target": "API-42",
+        "operations": [
+          "JIRA_ASSIGN"
+        ]
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Assign API-42 to Srishti.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Assign Jira issue API-42 to Srishti"
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "JIRA",
+            "resource_type": "ISSUE",
+            "resource_identifier": "API-42"
+          },
+          "requested_operations": [
+            {
+              "operation": "JIRA_ASSIGN",
+              "value": "Srishti",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "2a3be334-f535-4c9a-8f34-1d03a6edea16",
+            "latency_ms": 5488,
+            "attempts": 1,
+            "input_tokens": 7974,
+            "output_tokens": 211,
+            "total_tokens": 8185,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "calendar_inspect",
+        "message": "What time is the Operator demo coordination event?",
+        "intent": "INSPECT",
+        "disposition": "SUPPORTED",
+        "target": "p2goperator20260828",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "INSPECT",
+          "subject": "CALENDAR",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "What time is the Operator demo coordination event?",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "GOOGLE_CALENDAR",
+            "resource_type": "EVENT",
+            "resource_identifier": "p2goperator20260828"
+          },
+          "requested_operations": [],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "97a34f39-75e8-49cb-b5a8-577d36aaec0e",
+            "latency_ms": 5715,
+            "attempts": 1,
+            "input_tokens": 7974,
+            "output_tokens": 456,
+            "total_tokens": 8430,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "calendar_inspect_unconfigured",
+        "message": "What time is the Operator demo coordination event?",
+        "intent": null,
+        "disposition": "CLARIFICATION_REQUIRED",
+        "operations": [],
+        "without_calendar": true
+      },
+      "response": {
+        "intent": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "CALENDAR",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "What time is the Operator demo coordination event?",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "The dedicated Operator demo coordination event is not configured in the available Calendar capabilities."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "580c9af6-6919-44f7-87ac-6384a537c9ab",
+            "latency_ms": 5849,
+            "attempts": 1,
+            "input_tokens": 7911,
+            "output_tokens": 411,
+            "total_tokens": 8322,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "calendar_act",
+        "message": "Move the Operator demo coordination event by one hour.",
+        "intent": "ACT",
+        "disposition": "SUPPORTED",
+        "target": "p2goperator20260828",
+        "operations": [
+          "CALENDAR_RESCHEDULE"
+        ],
+        "value": "60"
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "CALENDAR",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Move the Operator demo coordination event by one hour.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Reschedule the Operator demo coordination event by 60 minutes"
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "GOOGLE_CALENDAR",
+            "resource_type": "EVENT",
+            "resource_identifier": "p2goperator20260828"
+          },
+          "requested_operations": [
+            {
+              "operation": "CALENDAR_RESCHEDULE",
+              "value": "60",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "08ab7530-0310-46ec-a295-e7385b93b61e",
+            "latency_ms": 8713,
+            "attempts": 1,
+            "input_tokens": 7974,
+            "output_tokens": 358,
+            "total_tokens": 8332,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "protected_deadline",
+        "message": "Move the protected Release V2 deadline two hours later.",
+        "intent": "ACT",
+        "disposition": "SUPPORTED",
+        "target": "protected-objective-deadline",
+        "operations": [
+          "MOVE_PROTECTED_DEADLINE"
+        ]
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "OBJECTIVE",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Move the protected Release V2 deadline two hours later.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Moving the protected objective deadline is evaluated by deterministic policy."
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "REFLOW",
+            "resource_type": "OBJECTIVE",
+            "resource_identifier": "protected-objective-deadline"
+          },
+          "requested_operations": [
+            {
+              "operation": "MOVE_PROTECTED_DEADLINE",
+              "value": "120",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "a383bb4a-293e-44d2-a0d6-ea2b46d8e9ea",
+            "latency_ms": 7199,
+            "attempts": 1,
+            "input_tokens": 7975,
+            "output_tokens": 676,
+            "total_tokens": 8651,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "ambiguous_task",
+        "message": "Update that task.",
+        "intent": null,
+        "disposition": "CLARIFICATION_REQUIRED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Update that task.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Please specify the exact Jira issue key and the specific update fields or values to apply."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "63ad14a0-de20-4871-9fb0-d3c3e4e37ded",
+            "latency_ms": 8231,
+            "attempts": 1,
+            "input_tokens": 7968,
+            "output_tokens": 428,
+            "total_tokens": 8396,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "unsupported_admin",
+        "message": "Delete the Jira project and change the API token.",
+        "intent": null,
+        "disposition": "UNSUPPORTED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Delete the Jira project and change the API token.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Deleting a Jira project and changing API tokens are not supported operations."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "038da7d1-a7c2-4e9b-af83-381deeee27f3",
+            "latency_ms": 5748,
+            "attempts": 1,
+            "input_tokens": 7974,
+            "output_tokens": 406,
+            "total_tokens": 8380,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "unconfigured_issue",
+        "message": "Mark OTHER-999 blocked.",
+        "intent": null,
+        "disposition": "UNSUPPORTED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Mark OTHER-999 blocked.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Issue OTHER-999 is outside the configured Jira resource identifiers."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "0b00fdf5-f486-4d0e-ad7d-6cd23490308d",
+            "latency_ms": 5162,
+            "attempts": 1,
+            "input_tokens": 7972,
+            "output_tokens": 140,
+            "total_tokens": 8112,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_inspect",
+        "message": "Show me the configured release channel.",
+        "intent": "INSPECT",
+        "disposition": "SUPPORTED",
+        "target": "configured-release-channel",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "INSPECT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Show me the configured release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "e88e3e80-9eaa-44a1-9fcc-be6f1a29dade",
+            "latency_ms": 7394,
+            "attempts": 1,
+            "input_tokens": 7971,
+            "output_tokens": 405,
+            "total_tokens": 8376,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_latest",
+        "message": "What's the latest Reflow message in the release channel?",
+        "intent": "INSPECT",
+        "disposition": "SUPPORTED",
+        "target": "configured-release-channel",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "INSPECT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "What's the latest Reflow message in the release channel?",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "f781556e-9600-4bd9-b0d0-4363bebf83c8",
+            "latency_ms": 5290,
+            "attempts": 1,
+            "input_tokens": 7978,
+            "output_tokens": 167,
+            "total_tokens": 8145,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_act",
+        "message": "Tell the release channel that SCRUM-6 is blocked.",
+        "intent": "ACT",
+        "disposition": "SUPPORTED",
+        "target": "configured-release-channel",
+        "operations": [
+          "SLACK_POST_MESSAGE"
+        ],
+        "value": "SCRUM-6 is blocked."
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Tell the release channel that SCRUM-6 is blocked.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Post message to configured release channel"
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [
+            {
+              "operation": "SLACK_POST_MESSAGE",
+              "value": "SCRUM-6 is blocked.",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "e93d5361-470c-44e5-aef7-ff701e86ac85",
+            "latency_ms": 9445,
+            "attempts": 1,
+            "input_tokens": 7976,
+            "output_tokens": 525,
+            "total_tokens": 8501,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_exact_text",
+        "message": "Post 'Backend engineer unavailable.' to the release channel.",
+        "intent": "ACT",
+        "disposition": "SUPPORTED",
+        "target": "configured-release-channel",
+        "operations": [
+          "SLACK_POST_MESSAGE"
+        ],
+        "value": "Backend engineer unavailable."
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post 'Backend engineer unavailable.' to the release channel.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Post exact message 'Backend engineer unavailable.' to configured release Slack channel."
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [
+            {
+              "operation": "SLACK_POST_MESSAGE",
+              "value": "Backend engineer unavailable.",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "42de94d4-d387-4324-9247-f3dec1601369",
+            "latency_ms": 4835,
+            "attempts": 1,
+            "input_tokens": 7975,
+            "output_tokens": 216,
+            "total_tokens": 8191,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_live_qualification_text",
+        "message": "Post 'Backend engineer unavailable. SCRUM-6 is blocked.' to the release channel.",
+        "intent": "ACT",
+        "disposition": "SUPPORTED",
+        "target": "configured-release-channel",
+        "operations": [
+          "SLACK_POST_MESSAGE"
+        ],
+        "value": "Backend engineer unavailable. SCRUM-6 is blocked."
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post the specified status message to the release channel.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Post exact plain text to configured release Slack channel."
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [
+            {
+              "operation": "SLACK_POST_MESSAGE",
+              "value": "Backend engineer unavailable. SCRUM-6 is blocked.",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "2a234526-66fb-4ec8-9be3-e7496aa00fea",
+            "latency_ms": 4470,
+            "attempts": 1,
+            "input_tokens": 7982,
+            "output_tokens": 218,
+            "total_tokens": 8200,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_ambiguous",
+        "message": "Tell them we're blocked.",
+        "intent": null,
+        "disposition": "CLARIFICATION_REQUIRED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Tell them we're blocked.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Please specify the destination channel or confirm if the message should be posted to the configured release channel."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "35741b10-3108-434f-b33a-3ba07404ae78",
+            "latency_ms": 8453,
+            "attempts": 1,
+            "input_tokens": 7971,
+            "output_tokens": 527,
+            "total_tokens": 8498,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_empty",
+        "message": "Post a message to the release channel.",
+        "intent": null,
+        "disposition": "CLARIFICATION_REQUIRED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post a message to the release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Please provide the text of the message to post to the release channel."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "62f53990-da12-441b-a245-0c084fe3f934",
+            "latency_ms": 6106,
+            "attempts": 1,
+            "input_tokens": 7972,
+            "output_tokens": 142,
+            "total_tokens": 8114,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_unknown_channel",
+        "message": "Post 'blocked' to Slack channel C999ABC456.",
+        "intent": null,
+        "disposition": "UNSUPPORTED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post 'blocked' to Slack channel C999ABC456.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Raw channel ID C999ABC456 is not supported; operations are restricted to the configured release channel."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "646275e8-79e1-45d2-906d-b1a2eab6832d",
+            "latency_ms": 6537,
+            "attempts": 1,
+            "input_tokens": 7980,
+            "output_tokens": 375,
+            "total_tokens": 8355,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_dm",
+        "message": "Send a Slack DM to the backend engineer: we are blocked.",
+        "intent": null,
+        "disposition": "UNSUPPORTED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Send a Slack DM to the backend engineer: we are blocked.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Sending Slack direct messages is not supported; only posting to the configured release channel is available."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557",
+            "latency_ms": 4418,
+            "attempts": 1,
+            "input_tokens": 7977,
+            "output_tokens": 149,
+            "total_tokens": 8126,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_admin",
+        "message": "Delete the Slack release channel and rotate the bot token.",
+        "intent": null,
+        "disposition": "UNSUPPORTED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Delete the Slack release channel and rotate the bot token.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Deleting Slack channels and rotating bot tokens are administrative operations not supported by the available Slack capabilities."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "aa285b9f-48ad-4a90-b5bf-293bcded54c5",
+            "latency_ms": 4972,
+            "attempts": 1,
+            "input_tokens": 7975,
+            "output_tokens": 302,
+            "total_tokens": 8277,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_history_edit",
+        "message": "Edit yesterday's message in the release channel to say fixed.",
+        "intent": null,
+        "disposition": "UNSUPPORTED",
+        "operations": []
+      },
+      "response": {
+        "intent": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Edit yesterday's message in the release channel to say fixed.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Editing or deleting existing Slack messages is not supported."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "7db2ee4c-94ac-4b16-bb58-14b9ac246172",
+            "latency_ms": 4249,
+            "attempts": 1,
+            "input_tokens": 7977,
+            "output_tokens": 141,
+            "total_tokens": 8118,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_mass_mention_policy",
+        "message": "Post '@channel SCRUM-6 is blocked.' to the release channel.",
+        "intent": "ACT",
+        "disposition": "SUPPORTED",
+        "target": "configured-release-channel",
+        "operations": [
+          "SLACK_POST_MESSAGE"
+        ],
+        "value": "@channel SCRUM-6 is blocked."
+      },
+      "response": {
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post '@channel SCRUM-6 is blocked.' to the release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [
+            {
+              "operation": "SLACK_POST_MESSAGE",
+              "value": "@channel SCRUM-6 is blocked.",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "90f8a629-9967-4e91-8381-2e99bf297d62",
+            "latency_ms": 9229,
+            "attempts": 1,
+            "input_tokens": 7979,
+            "output_tokens": 210,
+            "total_tokens": 8189,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_inspect_unconfigured",
+        "message": "Show me the configured Slack release channel.",
+        "intent": null,
+        "disposition": "CLARIFICATION_REQUIRED",
+        "operations": [],
+        "without_slack": true
+      },
+      "response": {
+        "intent": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Show me the configured Slack release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "No Slack channel capability is currently configured."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "fc454b1f-43c6-4330-b356-fe089e5f1e22",
+            "latency_ms": 5978,
+            "attempts": 1,
+            "input_tokens": 7925,
+            "output_tokens": 406,
+            "total_tokens": 8331,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    },
+    {
+      "case": {
+        "id": "slack_act_unconfigured",
+        "message": "Post 'Blocked.' to the Slack release channel.",
+        "intent": null,
+        "disposition": "UNSUPPORTED",
+        "operations": [],
+        "without_slack": true
+      },
+      "response": {
+        "intent": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post 'Blocked.' to the Slack release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Slack posting capabilities are not configured."
+        },
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "11810074-fc8f-4c97-873a-1c489b5d082b",
+            "latency_ms": 5128,
+            "attempts": 1,
+            "input_tokens": 7927,
+            "output_tokens": 311,
+            "total_tokens": 8238,
+            "validation": "PASSED"
+          }
+        ],
+        "external_effects_executed": false
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "target": true,
+        "operations": true,
+        "value": true
+      },
+      "passed": true
+    }
+  ]
+}

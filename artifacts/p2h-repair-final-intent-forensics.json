@@ -1,0 +1,1870 @@
+{
+  "local_observer_only": true,
+  "events": [
+    {
+      "at": "2026-08-28T22:22:14.231929+00:00",
+      "request_id": "994dd21a-d8bd-48e4-84e6-e5c2081148f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "a40fdfaa02a9585cdea2a05bc1831a6fcf60876e43635c30e2cdd38bbf86ae5e",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:22:14.232927+00:00",
+      "request_id": "994dd21a-d8bd-48e4-84e6-e5c2081148f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:22:14.343997+00:00",
+      "request_id": "994dd21a-d8bd-48e4-84e6-e5c2081148f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:22:19.857934+00:00",
+      "request_id": "994dd21a-d8bd-48e4-84e6-e5c2081148f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "INSPECT",
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "What is the status of API-42?",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "JIRA",
+            "resource_type": "ISSUE",
+            "resource_identifier": "API-42"
+          },
+          "requested_operations": [],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7975,
+      "output_tokens": 164,
+      "thinking_tokens": 220
+    },
+    {
+      "at": "2026-08-28T22:22:19.858933+00:00",
+      "request_id": "994dd21a-d8bd-48e4-84e6-e5c2081148f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:22:19.858933+00:00",
+      "request_id": "994dd21a-d8bd-48e4-84e6-e5c2081148f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "994dd21a-d8bd-48e4-84e6-e5c2081148f3",
+        "latency_ms": 5626,
+        "attempts": 1,
+        "input_tokens": 7975,
+        "output_tokens": 384,
+        "total_tokens": 8359,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:22:19.859932+00:00",
+      "request_id": "af360bc2-39f3-49c9-8646-5f3d0d61e51d",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "3f0685ee827ef2ada5269231c09548ce17545036722e1d0be5124d787bd240e5",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:22:19.859932+00:00",
+      "request_id": "af360bc2-39f3-49c9-8646-5f3d0d61e51d",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:22:19.920933+00:00",
+      "request_id": "af360bc2-39f3-49c9-8646-5f3d0d61e51d",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:22:26.587296+00:00",
+      "request_id": "af360bc2-39f3-49c9-8646-5f3d0d61e51d",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Mark API-42 blocked and add a comment: Backend engineer unavailable.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Transition Jira issue API-42 to blocked status",
+            "Add comment to Jira issue API-42"
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "JIRA",
+            "resource_type": "ISSUE",
+            "resource_identifier": "API-42"
+          },
+          "requested_operations": [
+            {
+              "operation": "JIRA_TRANSITION",
+              "value": "blocked",
+              "comment": null
+            },
+            {
+              "operation": "JIRA_ADD_COMMENT",
+              "value": null,
+              "comment": "Backend engineer unavailable."
+            }
+          ],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7979,
+      "output_tokens": 261,
+      "thinking_tokens": 324
+    },
+    {
+      "at": "2026-08-28T22:22:26.588299+00:00",
+      "request_id": "af360bc2-39f3-49c9-8646-5f3d0d61e51d",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:22:26.588299+00:00",
+      "request_id": "af360bc2-39f3-49c9-8646-5f3d0d61e51d",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "af360bc2-39f3-49c9-8646-5f3d0d61e51d",
+        "latency_ms": 6728,
+        "attempts": 1,
+        "input_tokens": 7979,
+        "output_tokens": 585,
+        "total_tokens": 8564,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:22:26.589297+00:00",
+      "request_id": "2a3be334-f535-4c9a-8f34-1d03a6edea16",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "a24d78415c25902a13eebd298cd47cc4f20a0eadaf27bcdb925b72c800e0ac86",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:22:26.589297+00:00",
+      "request_id": "2a3be334-f535-4c9a-8f34-1d03a6edea16",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:22:26.663499+00:00",
+      "request_id": "2a3be334-f535-4c9a-8f34-1d03a6edea16",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:22:32.075638+00:00",
+      "request_id": "2a3be334-f535-4c9a-8f34-1d03a6edea16",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Assign API-42 to Srishti.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Assign Jira issue API-42 to Srishti"
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "JIRA",
+            "resource_type": "ISSUE",
+            "resource_identifier": "API-42"
+          },
+          "requested_operations": [
+            {
+              "operation": "JIRA_ASSIGN",
+              "value": "Srishti",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7974,
+      "output_tokens": 211,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:22:32.077146+00:00",
+      "request_id": "2a3be334-f535-4c9a-8f34-1d03a6edea16",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:22:32.077146+00:00",
+      "request_id": "2a3be334-f535-4c9a-8f34-1d03a6edea16",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "2a3be334-f535-4c9a-8f34-1d03a6edea16",
+        "latency_ms": 5488,
+        "attempts": 1,
+        "input_tokens": 7974,
+        "output_tokens": 211,
+        "total_tokens": 8185,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:22:32.078155+00:00",
+      "request_id": "97a34f39-75e8-49cb-b5a8-577d36aaec0e",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "1e4b628eaa86507589df9c46143a44497c0094f590e63b33d40f613d6a7ac966",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:22:32.079157+00:00",
+      "request_id": "97a34f39-75e8-49cb-b5a8-577d36aaec0e",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:22:32.149404+00:00",
+      "request_id": "97a34f39-75e8-49cb-b5a8-577d36aaec0e",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:22:37.793438+00:00",
+      "request_id": "97a34f39-75e8-49cb-b5a8-577d36aaec0e",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "INSPECT",
+          "subject": "CALENDAR",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "What time is the Operator demo coordination event?",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "GOOGLE_CALENDAR",
+            "resource_type": "EVENT",
+            "resource_identifier": "p2goperator20260828"
+          },
+          "requested_operations": [],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7974,
+      "output_tokens": 172,
+      "thinking_tokens": 284
+    },
+    {
+      "at": "2026-08-28T22:22:37.793438+00:00",
+      "request_id": "97a34f39-75e8-49cb-b5a8-577d36aaec0e",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:22:37.793438+00:00",
+      "request_id": "97a34f39-75e8-49cb-b5a8-577d36aaec0e",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "97a34f39-75e8-49cb-b5a8-577d36aaec0e",
+        "latency_ms": 5715,
+        "attempts": 1,
+        "input_tokens": 7974,
+        "output_tokens": 456,
+        "total_tokens": 8430,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:22:37.794946+00:00",
+      "request_id": "580c9af6-6919-44f7-87ac-6384a537c9ab",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "ff06c8b062892b77fc4e0b0fb6ab3c3ed0f21537abde84b84867912a460feac0",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:22:37.794946+00:00",
+      "request_id": "580c9af6-6919-44f7-87ac-6384a537c9ab",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:22:37.843159+00:00",
+      "request_id": "580c9af6-6919-44f7-87ac-6384a537c9ab",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:22:43.642722+00:00",
+      "request_id": "580c9af6-6919-44f7-87ac-6384a537c9ab",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "CALENDAR",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "What time is the Operator demo coordination event?",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "The dedicated Operator demo coordination event is not configured in the available Calendar capabilities."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7911,
+      "output_tokens": 144,
+      "thinking_tokens": 267
+    },
+    {
+      "at": "2026-08-28T22:22:43.643723+00:00",
+      "request_id": "580c9af6-6919-44f7-87ac-6384a537c9ab",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:22:43.643723+00:00",
+      "request_id": "580c9af6-6919-44f7-87ac-6384a537c9ab",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "580c9af6-6919-44f7-87ac-6384a537c9ab",
+        "latency_ms": 5849,
+        "attempts": 1,
+        "input_tokens": 7911,
+        "output_tokens": 411,
+        "total_tokens": 8322,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:22:43.644722+00:00",
+      "request_id": "08ab7530-0310-46ec-a295-e7385b93b61e",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "e294bc23618775dd62e014d53600530ffd05d00adf6060d158df042c103d4b9a",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:22:43.644722+00:00",
+      "request_id": "08ab7530-0310-46ec-a295-e7385b93b61e",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:22:43.707910+00:00",
+      "request_id": "08ab7530-0310-46ec-a295-e7385b93b61e",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:22:52.356423+00:00",
+      "request_id": "08ab7530-0310-46ec-a295-e7385b93b61e",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "CALENDAR",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Move the Operator demo coordination event by one hour.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Reschedule the Operator demo coordination event by 60 minutes"
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "GOOGLE_CALENDAR",
+            "resource_type": "EVENT",
+            "resource_identifier": "p2goperator20260828"
+          },
+          "requested_operations": [
+            {
+              "operation": "CALENDAR_RESCHEDULE",
+              "value": "60",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7974,
+      "output_tokens": 228,
+      "thinking_tokens": 130
+    },
+    {
+      "at": "2026-08-28T22:22:52.357423+00:00",
+      "request_id": "08ab7530-0310-46ec-a295-e7385b93b61e",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:22:52.357423+00:00",
+      "request_id": "08ab7530-0310-46ec-a295-e7385b93b61e",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "08ab7530-0310-46ec-a295-e7385b93b61e",
+        "latency_ms": 8713,
+        "attempts": 1,
+        "input_tokens": 7974,
+        "output_tokens": 358,
+        "total_tokens": 8332,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:22:52.358422+00:00",
+      "request_id": "a383bb4a-293e-44d2-a0d6-ea2b46d8e9ea",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "1e83c7a1abfe212220d73d9d7112b075fa6d4b5406d584b402d90c819318a02b",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:22:52.358422+00:00",
+      "request_id": "a383bb4a-293e-44d2-a0d6-ea2b46d8e9ea",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:22:52.414548+00:00",
+      "request_id": "a383bb4a-293e-44d2-a0d6-ea2b46d8e9ea",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:22:59.557005+00:00",
+      "request_id": "a383bb4a-293e-44d2-a0d6-ea2b46d8e9ea",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "OBJECTIVE",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Move the protected Release V2 deadline two hours later.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Moving the protected objective deadline is evaluated by deterministic policy."
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "REFLOW",
+            "resource_type": "OBJECTIVE",
+            "resource_identifier": "protected-objective-deadline"
+          },
+          "requested_operations": [
+            {
+              "operation": "MOVE_PROTECTED_DEADLINE",
+              "value": "120",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7975,
+      "output_tokens": 221,
+      "thinking_tokens": 455
+    },
+    {
+      "at": "2026-08-28T22:22:59.557512+00:00",
+      "request_id": "a383bb4a-293e-44d2-a0d6-ea2b46d8e9ea",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:22:59.557512+00:00",
+      "request_id": "a383bb4a-293e-44d2-a0d6-ea2b46d8e9ea",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "a383bb4a-293e-44d2-a0d6-ea2b46d8e9ea",
+        "latency_ms": 7199,
+        "attempts": 1,
+        "input_tokens": 7975,
+        "output_tokens": 676,
+        "total_tokens": 8651,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:22:59.558522+00:00",
+      "request_id": "63ad14a0-de20-4871-9fb0-d3c3e4e37ded",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "43f5cfeaf6fe8762ffa6245ee57a025745e95d0c164fee65f9305ca9af529250",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:22:59.558522+00:00",
+      "request_id": "63ad14a0-de20-4871-9fb0-d3c3e4e37ded",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:22:59.615346+00:00",
+      "request_id": "63ad14a0-de20-4871-9fb0-d3c3e4e37ded",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:07.788890+00:00",
+      "request_id": "63ad14a0-de20-4871-9fb0-d3c3e4e37ded",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Update that task.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "clarification": "Please specify the exact Jira issue key and the specific update fields or values to apply."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7968,
+      "output_tokens": 133,
+      "thinking_tokens": 295
+    },
+    {
+      "at": "2026-08-28T22:23:07.789891+00:00",
+      "request_id": "63ad14a0-de20-4871-9fb0-d3c3e4e37ded",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:07.789891+00:00",
+      "request_id": "63ad14a0-de20-4871-9fb0-d3c3e4e37ded",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "63ad14a0-de20-4871-9fb0-d3c3e4e37ded",
+        "latency_ms": 8231,
+        "attempts": 1,
+        "input_tokens": 7968,
+        "output_tokens": 428,
+        "total_tokens": 8396,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:07.790396+00:00",
+      "request_id": "038da7d1-a7c2-4e9b-af83-381deeee27f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "82d37409d054623459383031ec3066f8e76d402fc1cb84d4b89f1ecaf20dfe4f",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:07.790396+00:00",
+      "request_id": "038da7d1-a7c2-4e9b-af83-381deeee27f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:07.866136+00:00",
+      "request_id": "038da7d1-a7c2-4e9b-af83-381deeee27f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:13.537761+00:00",
+      "request_id": "038da7d1-a7c2-4e9b-af83-381deeee27f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Delete the Jira project and change the API token.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "clarification": "Deleting a Jira project and changing API tokens are not supported operations."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7974,
+      "output_tokens": 133,
+      "thinking_tokens": 273
+    },
+    {
+      "at": "2026-08-28T22:23:13.539398+00:00",
+      "request_id": "038da7d1-a7c2-4e9b-af83-381deeee27f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:13.539398+00:00",
+      "request_id": "038da7d1-a7c2-4e9b-af83-381deeee27f3",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "038da7d1-a7c2-4e9b-af83-381deeee27f3",
+        "latency_ms": 5748,
+        "attempts": 1,
+        "input_tokens": 7974,
+        "output_tokens": 406,
+        "total_tokens": 8380,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:13.539398+00:00",
+      "request_id": "0b00fdf5-f486-4d0e-ad7d-6cd23490308d",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "dc701f4bcba6a1f7e41879f9a9f72f6346114d220dfc832f8cd086c2e23c8fb7",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:13.540419+00:00",
+      "request_id": "0b00fdf5-f486-4d0e-ad7d-6cd23490308d",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:13.602055+00:00",
+      "request_id": "0b00fdf5-f486-4d0e-ad7d-6cd23490308d",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:18.700838+00:00",
+      "request_id": "0b00fdf5-f486-4d0e-ad7d-6cd23490308d",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "JIRA",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Mark OTHER-999 blocked.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Issue OTHER-999 is outside the configured Jira resource identifiers."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7972,
+      "output_tokens": 140,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:23:18.701844+00:00",
+      "request_id": "0b00fdf5-f486-4d0e-ad7d-6cd23490308d",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:18.702840+00:00",
+      "request_id": "0b00fdf5-f486-4d0e-ad7d-6cd23490308d",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "0b00fdf5-f486-4d0e-ad7d-6cd23490308d",
+        "latency_ms": 5162,
+        "attempts": 1,
+        "input_tokens": 7972,
+        "output_tokens": 140,
+        "total_tokens": 8112,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:18.702840+00:00",
+      "request_id": "e88e3e80-9eaa-44a1-9fcc-be6f1a29dade",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "6aa7be51011cf6b3df78b5d267614e5553d341cee65ad454acf2846fb33072fe",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:18.702840+00:00",
+      "request_id": "e88e3e80-9eaa-44a1-9fcc-be6f1a29dade",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:18.761920+00:00",
+      "request_id": "e88e3e80-9eaa-44a1-9fcc-be6f1a29dade",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:26.096163+00:00",
+      "request_id": "e88e3e80-9eaa-44a1-9fcc-be6f1a29dade",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "INSPECT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Show me the configured release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7971,
+      "output_tokens": 161,
+      "thinking_tokens": 244
+    },
+    {
+      "at": "2026-08-28T22:23:26.097160+00:00",
+      "request_id": "e88e3e80-9eaa-44a1-9fcc-be6f1a29dade",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:26.097160+00:00",
+      "request_id": "e88e3e80-9eaa-44a1-9fcc-be6f1a29dade",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "e88e3e80-9eaa-44a1-9fcc-be6f1a29dade",
+        "latency_ms": 7394,
+        "attempts": 1,
+        "input_tokens": 7971,
+        "output_tokens": 405,
+        "total_tokens": 8376,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:26.098164+00:00",
+      "request_id": "f781556e-9600-4bd9-b0d0-4363bebf83c8",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "68f640f5e8f25a1a7eabc8b58ff791f544b11b98cd4036e1df0769c7ca8f73f4",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:26.098164+00:00",
+      "request_id": "f781556e-9600-4bd9-b0d0-4363bebf83c8",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:26.153380+00:00",
+      "request_id": "f781556e-9600-4bd9-b0d0-4363bebf83c8",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:31.387467+00:00",
+      "request_id": "f781556e-9600-4bd9-b0d0-4363bebf83c8",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "INSPECT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "What's the latest Reflow message in the release channel?",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7978,
+      "output_tokens": 167,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:23:31.388466+00:00",
+      "request_id": "f781556e-9600-4bd9-b0d0-4363bebf83c8",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:31.388466+00:00",
+      "request_id": "f781556e-9600-4bd9-b0d0-4363bebf83c8",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "f781556e-9600-4bd9-b0d0-4363bebf83c8",
+        "latency_ms": 5290,
+        "attempts": 1,
+        "input_tokens": 7978,
+        "output_tokens": 167,
+        "total_tokens": 8145,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:31.388466+00:00",
+      "request_id": "e93d5361-470c-44e5-aef7-ff701e86ac85",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "f92d3202f17abd81a59ec5ef9fe58cebbe769c5aacb217a9ab022844dea2839f",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:31.389466+00:00",
+      "request_id": "e93d5361-470c-44e5-aef7-ff701e86ac85",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:31.442540+00:00",
+      "request_id": "e93d5361-470c-44e5-aef7-ff701e86ac85",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:40.833086+00:00",
+      "request_id": "e93d5361-470c-44e5-aef7-ff701e86ac85",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Tell the release channel that SCRUM-6 is blocked.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Post message to configured release channel"
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [
+            {
+              "operation": "SLACK_POST_MESSAGE",
+              "value": "SCRUM-6 is blocked.",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7976,
+      "output_tokens": 219,
+      "thinking_tokens": 306
+    },
+    {
+      "at": "2026-08-28T22:23:40.834087+00:00",
+      "request_id": "e93d5361-470c-44e5-aef7-ff701e86ac85",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:40.834087+00:00",
+      "request_id": "e93d5361-470c-44e5-aef7-ff701e86ac85",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "e93d5361-470c-44e5-aef7-ff701e86ac85",
+        "latency_ms": 9445,
+        "attempts": 1,
+        "input_tokens": 7976,
+        "output_tokens": 525,
+        "total_tokens": 8501,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:40.835084+00:00",
+      "request_id": "42de94d4-d387-4324-9247-f3dec1601369",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "6186cb290e1b96f23970e4cfbf2798774698d3a265fe3f3a750c39d77bd96441",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:40.835084+00:00",
+      "request_id": "42de94d4-d387-4324-9247-f3dec1601369",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:40.888893+00:00",
+      "request_id": "42de94d4-d387-4324-9247-f3dec1601369",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:45.668904+00:00",
+      "request_id": "42de94d4-d387-4324-9247-f3dec1601369",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post 'Backend engineer unavailable.' to the release channel.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Post exact message 'Backend engineer unavailable.' to configured release Slack channel."
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [
+            {
+              "operation": "SLACK_POST_MESSAGE",
+              "value": "Backend engineer unavailable.",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7975,
+      "output_tokens": 216,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:23:45.669908+00:00",
+      "request_id": "42de94d4-d387-4324-9247-f3dec1601369",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:45.670909+00:00",
+      "request_id": "42de94d4-d387-4324-9247-f3dec1601369",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "42de94d4-d387-4324-9247-f3dec1601369",
+        "latency_ms": 4835,
+        "attempts": 1,
+        "input_tokens": 7975,
+        "output_tokens": 216,
+        "total_tokens": 8191,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:45.670909+00:00",
+      "request_id": "2a234526-66fb-4ec8-9be3-e7496aa00fea",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "56ffce51ede2e0eb6d5b0f27f27fc9a0d15e8437c8add5f276eaaeeadc78bab3",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:45.671914+00:00",
+      "request_id": "2a234526-66fb-4ec8-9be3-e7496aa00fea",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:45.725163+00:00",
+      "request_id": "2a234526-66fb-4ec8-9be3-e7496aa00fea",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:50.140312+00:00",
+      "request_id": "2a234526-66fb-4ec8-9be3-e7496aa00fea",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post the specified status message to the release channel.",
+          "hypothetical_changes": [],
+          "constraints": [
+            "Post exact plain text to configured release Slack channel."
+          ],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [
+            {
+              "operation": "SLACK_POST_MESSAGE",
+              "value": "Backend engineer unavailable. SCRUM-6 is blocked.",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7982,
+      "output_tokens": 218,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:23:50.142313+00:00",
+      "request_id": "2a234526-66fb-4ec8-9be3-e7496aa00fea",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:50.142313+00:00",
+      "request_id": "2a234526-66fb-4ec8-9be3-e7496aa00fea",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "2a234526-66fb-4ec8-9be3-e7496aa00fea",
+        "latency_ms": 4470,
+        "attempts": 1,
+        "input_tokens": 7982,
+        "output_tokens": 218,
+        "total_tokens": 8200,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:50.142313+00:00",
+      "request_id": "35741b10-3108-434f-b33a-3ba07404ae78",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "4c874cebf971944dc0b59ada143cef2f014dfa0899dd9b3976d540d0a670e7bc",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:50.143313+00:00",
+      "request_id": "35741b10-3108-434f-b33a-3ba07404ae78",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:50.200385+00:00",
+      "request_id": "35741b10-3108-434f-b33a-3ba07404ae78",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:23:58.593916+00:00",
+      "request_id": "35741b10-3108-434f-b33a-3ba07404ae78",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Tell them we're blocked.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Please specify the destination channel or confirm if the message should be posted to the configured release channel."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7971,
+      "output_tokens": 146,
+      "thinking_tokens": 381
+    },
+    {
+      "at": "2026-08-28T22:23:58.595917+00:00",
+      "request_id": "35741b10-3108-434f-b33a-3ba07404ae78",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:23:58.595917+00:00",
+      "request_id": "35741b10-3108-434f-b33a-3ba07404ae78",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "35741b10-3108-434f-b33a-3ba07404ae78",
+        "latency_ms": 8453,
+        "attempts": 1,
+        "input_tokens": 7971,
+        "output_tokens": 527,
+        "total_tokens": 8498,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:23:58.596917+00:00",
+      "request_id": "62f53990-da12-441b-a245-0c084fe3f934",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "171e7d1e9aa7d71e5114a79f7eedacd791c53cfec9c72fdf0ddc575f87966fb1",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:23:58.597916+00:00",
+      "request_id": "62f53990-da12-441b-a245-0c084fe3f934",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:23:58.666037+00:00",
+      "request_id": "62f53990-da12-441b-a245-0c084fe3f934",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:24:04.703041+00:00",
+      "request_id": "62f53990-da12-441b-a245-0c084fe3f934",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post a message to the release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Please provide the text of the message to post to the release channel."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7972,
+      "output_tokens": 142,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:24:04.704038+00:00",
+      "request_id": "62f53990-da12-441b-a245-0c084fe3f934",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:24:04.704038+00:00",
+      "request_id": "62f53990-da12-441b-a245-0c084fe3f934",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "62f53990-da12-441b-a245-0c084fe3f934",
+        "latency_ms": 6106,
+        "attempts": 1,
+        "input_tokens": 7972,
+        "output_tokens": 142,
+        "total_tokens": 8114,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:24:04.704038+00:00",
+      "request_id": "646275e8-79e1-45d2-906d-b1a2eab6832d",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "04bfbf781cb0cbaa4c2ad52a27922ee035640828926c507cef1d4122065fe065",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:24:04.705039+00:00",
+      "request_id": "646275e8-79e1-45d2-906d-b1a2eab6832d",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:24:04.764717+00:00",
+      "request_id": "646275e8-79e1-45d2-906d-b1a2eab6832d",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:24:11.241093+00:00",
+      "request_id": "646275e8-79e1-45d2-906d-b1a2eab6832d",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post 'blocked' to Slack channel C999ABC456.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Raw channel ID C999ABC456 is not supported; operations are restricted to the configured release channel."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7980,
+      "output_tokens": 158,
+      "thinking_tokens": 217
+    },
+    {
+      "at": "2026-08-28T22:24:11.242090+00:00",
+      "request_id": "646275e8-79e1-45d2-906d-b1a2eab6832d",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:24:11.242090+00:00",
+      "request_id": "646275e8-79e1-45d2-906d-b1a2eab6832d",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "646275e8-79e1-45d2-906d-b1a2eab6832d",
+        "latency_ms": 6537,
+        "attempts": 1,
+        "input_tokens": 7980,
+        "output_tokens": 375,
+        "total_tokens": 8355,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:24:11.243090+00:00",
+      "request_id": "02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "bd4a72d43042fa8d302227f8320ddddf8e2d87c4f4552f75f73264891f14747d",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:24:11.243090+00:00",
+      "request_id": "02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:24:11.298752+00:00",
+      "request_id": "02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:24:15.660809+00:00",
+      "request_id": "02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Send a Slack DM to the backend engineer: we are blocked.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Sending Slack direct messages is not supported; only posting to the configured release channel is available."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7977,
+      "output_tokens": 149,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:24:15.661811+00:00",
+      "request_id": "02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:24:15.661811+00:00",
+      "request_id": "02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "02d74eeb-c1fe-46e9-a6ea-82d9d5b7f557",
+        "latency_ms": 4418,
+        "attempts": 1,
+        "input_tokens": 7977,
+        "output_tokens": 149,
+        "total_tokens": 8126,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:24:15.662811+00:00",
+      "request_id": "aa285b9f-48ad-4a90-b5bf-293bcded54c5",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "0bb3991ec14ad34dc7e3057287d54a1dd13098d0b3e1e0d63c70a9a3585ef9cf",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:24:15.662811+00:00",
+      "request_id": "aa285b9f-48ad-4a90-b5bf-293bcded54c5",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:24:15.716950+00:00",
+      "request_id": "aa285b9f-48ad-4a90-b5bf-293bcded54c5",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:24:20.633965+00:00",
+      "request_id": "aa285b9f-48ad-4a90-b5bf-293bcded54c5",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Delete the Slack release channel and rotate the bot token.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Deleting Slack channels and rotating bot tokens are administrative operations not supported by the available Slack capabilities."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7975,
+      "output_tokens": 147,
+      "thinking_tokens": 155
+    },
+    {
+      "at": "2026-08-28T22:24:20.634966+00:00",
+      "request_id": "aa285b9f-48ad-4a90-b5bf-293bcded54c5",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:24:20.634966+00:00",
+      "request_id": "aa285b9f-48ad-4a90-b5bf-293bcded54c5",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "aa285b9f-48ad-4a90-b5bf-293bcded54c5",
+        "latency_ms": 4972,
+        "attempts": 1,
+        "input_tokens": 7975,
+        "output_tokens": 302,
+        "total_tokens": 8277,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:24:20.635965+00:00",
+      "request_id": "7db2ee4c-94ac-4b16-bb58-14b9ac246172",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "e102640bf6c1d0b554d86185db199a1ec486281011054fb3925b615b9a41fc56",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:24:20.635965+00:00",
+      "request_id": "7db2ee4c-94ac-4b16-bb58-14b9ac246172",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:24:20.696769+00:00",
+      "request_id": "7db2ee4c-94ac-4b16-bb58-14b9ac246172",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:24:24.884594+00:00",
+      "request_id": "7db2ee4c-94ac-4b16-bb58-14b9ac246172",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Edit yesterday's message in the release channel to say fixed.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "Editing or deleting existing Slack messages is not supported."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7977,
+      "output_tokens": 141,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:24:24.885595+00:00",
+      "request_id": "7db2ee4c-94ac-4b16-bb58-14b9ac246172",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:24:24.885595+00:00",
+      "request_id": "7db2ee4c-94ac-4b16-bb58-14b9ac246172",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "7db2ee4c-94ac-4b16-bb58-14b9ac246172",
+        "latency_ms": 4249,
+        "attempts": 1,
+        "input_tokens": 7977,
+        "output_tokens": 141,
+        "total_tokens": 8118,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:24:24.886593+00:00",
+      "request_id": "90f8a629-9967-4e91-8381-2e99bf297d62",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "154dd5567c554caf4a3c77fdbf6500d2741a822f808d941a7bd69bdc670c4be9",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:24:24.886593+00:00",
+      "request_id": "90f8a629-9967-4e91-8381-2e99bf297d62",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:24:24.944155+00:00",
+      "request_id": "90f8a629-9967-4e91-8381-2e99bf297d62",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:24:34.114516+00:00",
+      "request_id": "90f8a629-9967-4e91-8381-2e99bf297d62",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "SUPPORTED",
+          "intent_type": "ACT",
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post '@channel SCRUM-6 is blocked.' to the release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": {
+            "authority": "SLACK",
+            "resource_type": "CHANNEL",
+            "resource_identifier": "configured-release-channel"
+          },
+          "requested_operations": [
+            {
+              "operation": "SLACK_POST_MESSAGE",
+              "value": "@channel SCRUM-6 is blocked.",
+              "comment": null
+            }
+          ],
+          "clarification": null
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7979,
+      "output_tokens": 210,
+      "thinking_tokens": null
+    },
+    {
+      "at": "2026-08-28T22:24:34.115517+00:00",
+      "request_id": "90f8a629-9967-4e91-8381-2e99bf297d62",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:24:34.115517+00:00",
+      "request_id": "90f8a629-9967-4e91-8381-2e99bf297d62",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "90f8a629-9967-4e91-8381-2e99bf297d62",
+        "latency_ms": 9229,
+        "attempts": 1,
+        "input_tokens": 7979,
+        "output_tokens": 210,
+        "total_tokens": 8189,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:24:34.115517+00:00",
+      "request_id": "fc454b1f-43c6-4330-b356-fe089e5f1e22",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "f7327caa823e83771140a479795132773aeb4e0eba83ccbe7300755c26e5e9dd",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:24:34.116518+00:00",
+      "request_id": "fc454b1f-43c6-4330-b356-fe089e5f1e22",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:24:34.173052+00:00",
+      "request_id": "fc454b1f-43c6-4330-b356-fe089e5f1e22",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:24:40.093331+00:00",
+      "request_id": "fc454b1f-43c6-4330-b356-fe089e5f1e22",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "CLARIFICATION_REQUIRED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Show me the configured Slack release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "requested_operations": [],
+          "clarification": "No Slack channel capability is currently configured."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7925,
+      "output_tokens": 136,
+      "thinking_tokens": 270
+    },
+    {
+      "at": "2026-08-28T22:24:40.094341+00:00",
+      "request_id": "fc454b1f-43c6-4330-b356-fe089e5f1e22",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:24:40.094341+00:00",
+      "request_id": "fc454b1f-43c6-4330-b356-fe089e5f1e22",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "fc454b1f-43c6-4330-b356-fe089e5f1e22",
+        "latency_ms": 5978,
+        "attempts": 1,
+        "input_tokens": 7925,
+        "output_tokens": 406,
+        "total_tokens": 8331,
+        "validation": "PASSED"
+      }
+    },
+    {
+      "at": "2026-08-28T22:24:40.095341+00:00",
+      "request_id": "11810074-fc8f-4c97-873a-1c489b5d082b",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "38dfcddf7bec4be26684da09c034f2c1328531f8290b4d5e0ea7d451d79a83e5",
+      "instruction_sha256": "7e34be711c4f84c3d8f95878ca5a21a05174fa95648609c2a5756a0c74925e0f"
+    },
+    {
+      "at": "2026-08-28T22:24:40.095341+00:00",
+      "request_id": "11810074-fc8f-4c97-873a-1c489b5d082b",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:24:40.167903+00:00",
+      "request_id": "11810074-fc8f-4c97-873a-1c489b5d082b",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_request_started",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "at": "2026-08-28T22:24:45.222226+00:00",
+      "request_id": "11810074-fc8f-4c97-873a-1c489b5d082b",
+      "agent": "operator_intent_interpreter",
+      "stage": "provider_response",
+      "output": {
+        "state": "json_object",
+        "value": {
+          "disposition": "UNSUPPORTED",
+          "intent_type": null,
+          "subject": "SLACK",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": null,
+          "question": "Post 'Blocked.' to the Slack release channel.",
+          "hypothetical_changes": [],
+          "constraints": [],
+          "fact_ids": [],
+          "target": null,
+          "clarification": "Slack posting capabilities are not configured."
+        },
+        "unexpected_field_count": 0
+      },
+      "finish_reason": "FinishReason.STOP",
+      "input_tokens": 7927,
+      "output_tokens": 89,
+      "thinking_tokens": 222
+    },
+    {
+      "at": "2026-08-28T22:24:45.223225+00:00",
+      "request_id": "11810074-fc8f-4c97-873a-1c489b5d082b",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:24:45.223225+00:00",
+      "request_id": "11810074-fc8f-4c97-873a-1c489b5d082b",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "11810074-fc8f-4c97-873a-1c489b5d082b",
+        "latency_ms": 5128,
+        "attempts": 1,
+        "input_tokens": 7927,
+        "output_tokens": 311,
+        "total_tokens": 8238,
+        "validation": "PASSED"
+      }
+    }
+  ]
+}

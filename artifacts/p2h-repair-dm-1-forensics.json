@@ -1,0 +1,43 @@
+{
+  "local_observer_only": true,
+  "events": [
+    {
+      "at": "2026-08-28T22:16:40.668423+00:00",
+      "request_id": "b1f3fa08-e664-474c-8f0b-567bc33e2135",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_started",
+      "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+      "payload_sha256": "bd4a72d43042fa8d302227f8320ddddf8e2d87c4f4552f75f73264891f14747d",
+      "instruction_sha256": "6a32ca08908aa95a29c5bf6eaf35a89579ec9175c0787311518c736fb7c57e07"
+    },
+    {
+      "at": "2026-08-28T22:16:40.669424+00:00",
+      "request_id": "b1f3fa08-e664-474c-8f0b-567bc33e2135",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_attempt_started"
+    },
+    {
+      "at": "2026-08-28T22:16:46.903842+00:00",
+      "request_id": "b1f3fa08-e664-474c-8f0b-567bc33e2135",
+      "agent": "operator_intent_interpreter",
+      "stage": "workflow_typed_validation_passed"
+    },
+    {
+      "at": "2026-08-28T22:16:46.903842+00:00",
+      "request_id": "b1f3fa08-e664-474c-8f0b-567bc33e2135",
+      "agent": "operator_intent_interpreter",
+      "stage": "agent_typed_validation_passed",
+      "trace": {
+        "agent_id": "operator_intent_interpreter",
+        "model": "gemini-3.7-flash",
+        "request_id": "b1f3fa08-e664-474c-8f0b-567bc33e2135",
+        "latency_ms": 6235,
+        "attempts": 1,
+        "input_tokens": 8068,
+        "output_tokens": 380,
+        "total_tokens": 8448,
+        "validation": "PASSED"
+      }
+    }
+  ]
+}

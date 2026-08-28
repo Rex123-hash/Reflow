@@ -1,0 +1,35 @@
+{
+  "candidateName": "reflow-p2f-operator",
+  "evalCases": [
+    {
+      "evalCaseId": "simulate_ci",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What if Candidate A had passed CI?"
+          }
+        ]
+      },
+      "responses": [],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"simulate_ci\", \"message\": \"What if Candidate A had passed CI?\", \"intent\": \"SIMULATE\", \"disposition\": \"SUPPORTED\", \"required_fact_prefixes\": []}"
+            }
+          ]
+        }
+      },
+      "failureMetadata": {
+        "case_id": "simulate_ci",
+        "agent_name": "simulation_agent",
+        "request_correlation_id": "99941892-dbcc-4ccf-8582-624e5a4d2db5",
+        "elapsed_ms": 21584,
+        "timeout_category": "OperatorReasoningError",
+        "completed": false
+      }
+    }
+  ]
+}

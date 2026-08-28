@@ -1,0 +1,99 @@
+{
+  "eval_case_results": [],
+  "summary_metrics": [],
+  "win_rates": null,
+  "evaluation_dataset": [
+    {
+      "bigquery_source": null,
+      "gcs_source": null,
+      "eval_cases": [
+        {
+          "prompt": {
+            "parts": [
+              {
+                "media_resolution": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "file_data": null,
+                "function_call": null,
+                "function_response": null,
+                "inline_data": null,
+                "text": "What if Candidate A had passed CI?",
+                "thought": null,
+                "thought_signature": null,
+                "video_metadata": null,
+                "tool_call": null,
+                "tool_response": null,
+                "part_metadata": null
+              }
+            ],
+            "role": "user"
+          },
+          "responses": [],
+          "reference": {
+            "response": {
+              "parts": [
+                {
+                  "media_resolution": null,
+                  "code_execution_result": null,
+                  "executable_code": null,
+                  "file_data": null,
+                  "function_call": null,
+                  "function_response": null,
+                  "inline_data": null,
+                  "text": "{\"id\": \"simulate_ci\", \"message\": \"What if Candidate A had passed CI?\", \"intent\": \"SIMULATE\", \"disposition\": \"SUPPORTED\", \"required_fact_prefixes\": []}",
+                  "thought": null,
+                  "thought_signature": null,
+                  "video_metadata": null,
+                  "tool_call": null,
+                  "tool_response": null,
+                  "part_metadata": null
+                }
+              ],
+              "role": "model"
+            }
+          },
+          "system_instruction": null,
+          "conversation_history": null,
+          "rubric_groups": null,
+          "eval_case_id": "simulate_ci",
+          "intermediate_events": null,
+          "agent_info": null,
+          "agent_data": null,
+          "user_scenario": null,
+          "failureMetadata": {
+            "case_id": "simulate_ci",
+            "agent_name": "simulation_agent",
+            "request_correlation_id": "99941892-dbcc-4ccf-8582-624e5a4d2db5",
+            "elapsed_ms": 21584,
+            "timeout_category": "OperatorReasoningError",
+            "completed": false
+          }
+        }
+      ],
+      "eval_dataset_df": null,
+      "candidate_name": null
+    }
+  ],
+  "metadata": {
+    "candidate_names": [
+      "candidate_1"
+    ],
+    "dataset_name": null,
+    "dataset_id": null,
+    "creation_timestamp": "2026-08-28T22:22:01.686287Z",
+    "dataset": [
+      {
+        "prompt_display_text": "What if Candidate A had passed CI?",
+        "prompt_raw_json": "{\n  \"parts\": [\n    {\n      \"text\": \"What if Candidate A had passed CI?\"\n    }\n  ],\n  \"role\": \"user\"\n}",
+        "reference": "{\"id\": \"simulate_ci\", \"message\": \"What if Candidate A had passed CI?\", \"intent\": \"SIMULATE\", \"disposition\": \"SUPPORTED\", \"required_fact_prefixes\": []}",
+        "reference_raw_json": "{\n  \"parts\": [\n    {\n      \"text\": \"{\\\"id\\\": \\\"simulate_ci\\\", \\\"message\\\": \\\"What if Candidate A had passed CI?\\\", \\\"intent\\\": \\\"SIMULATE\\\", \\\"disposition\\\": \\\"SUPPORTED\\\", \\\"required_fact_prefixes\\\": []}\"\n    }\n  ],\n  \"role\": \"model\"\n}",
+        "response_display_text": "",
+        "response_raw_json": "",
+        "intermediate_events": null,
+        "agent_data": null
+      }
+    ]
+  },
+  "agent_info": null
+}
