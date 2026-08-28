@@ -1,0 +1,194 @@
+{
+  "runtime": "local-vertex",
+  "passed": 1,
+  "total": 1,
+  "records": [
+    {
+      "case": {
+        "id": "simulate_ci",
+        "message": "What if Candidate A had passed CI?",
+        "intent": "SIMULATE",
+        "disposition": "SUPPORTED",
+        "required_fact_prefixes": []
+      },
+      "response": {
+        "request_id": "2033da67-018e-496e-9c6a-c69faa15f213",
+        "incident_id": "incident-0fc3af5b0bd1ad847aea",
+        "revision": 16,
+        "snapshot_fingerprint": "912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402",
+        "generated_at": "2026-08-28T22:05:23.469374+00:00",
+        "disposition": "SUPPORTED",
+        "intent": {
+          "disposition": "SUPPORTED",
+          "intent_type": "SIMULATE",
+          "subject": "RECOVERY",
+          "incident_id": "incident-0fc3af5b0bd1ad847aea",
+          "recovery_attempt": 1,
+          "question": "What if Candidate A had passed CI?",
+          "hypothetical_changes": [
+            {
+              "kind": "CI_PASSED",
+              "target": "Candidate A",
+              "value": "true"
+            }
+          ],
+          "constraints": [],
+          "fact_ids": [
+            "action:validate-release-v2",
+            "invariant:1:release-validation-green",
+            "verification:1",
+            "recovery:1"
+          ],
+          "target": null,
+          "requested_operations": [],
+          "clarification": null
+        },
+        "answer": "Hypothetical only \u2014 no external action occurred. Simulating a counterfactual where Candidate A passed its CI validation run in Recovery 1 instead of failing (run 33106938744). In historical reality, Candidate A failed validation, causing Recovery 1 to fail on the invariant release-validation-green before Candidate B was validated and promoted in Recovery 2.",
+        "facts": [
+          {
+            "fact_id": "action:validate-release-v2",
+            "text": "Recovery 1, GitHub: Create/adopt Candidate A prerelease and validate its exact workflow run. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:04.820939+00:00; action comparison FAILED. Action verified does not imply objective restored.",
+            "evidence_ids": [
+              "github-run:33106938744"
+            ]
+          },
+          {
+            "fact_id": "invariant:1:release-validation-green",
+            "text": "Recovery 1: release-validation-green FAILED; expected true, observed false. external state violates the invariant",
+            "evidence_ids": [
+              "objective-verification:1"
+            ]
+          },
+          {
+            "fact_id": "verification:1",
+            "text": "Recovery 1 objective verification FAILED at 2026-08-27T19:08:04.820939+00:00.",
+            "evidence_ids": [
+              "objective-verification:1"
+            ]
+          },
+          {
+            "fact_id": "recovery:1",
+            "text": "Recovery 1: FAILED.",
+            "evidence_ids": []
+          }
+        ],
+        "evidence": [
+          {
+            "evidence_id": "gmail-message:1a0449e8567caa43",
+            "title": "Gmail disruption source",
+            "observed_at": "2026-08-27T19:07:03+00:00"
+          },
+          {
+            "evidence_id": "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+            "title": "Recovery coordination preserved",
+            "observed_at": "2026-08-27T19:07:45.772017+00:00"
+          },
+          {
+            "evidence_id": "github-run:33106938744",
+            "title": "Candidate validation run 33106938744",
+            "observed_at": "2026-08-27T19:08:04.820939+00:00"
+          },
+          {
+            "evidence_id": "objective-verification:1",
+            "title": "Recovery 01 objective verification",
+            "observed_at": "2026-08-27T19:08:04.820939+00:00"
+          }
+        ],
+        "simulation": {
+          "provenance": "HYPOTHETICAL_NO_ACTION",
+          "scenario_summary": "Simulating a counterfactual where Candidate A passed its CI validation run in Recovery 1 instead of failing (run 33106938744). In historical reality, Candidate A failed validation, causing Recovery 1 to fail on the invariant release-validation-green before Candidate B was validated and promoted in Recovery 2.",
+          "assumptions": [
+            "Candidate A's pinned GitHub Actions run completes with status success instead of failure.",
+            "Recovery 1 invariant release-validation-green evaluates to true upon CI completion.",
+            "The real protected deadline (2026-08-28T17:00:00+00:00) and historical evidence records remain structurally unchanged."
+          ],
+          "threatened_invariants": [
+            "shipped-full-release",
+            "external-correlation-fresh"
+          ],
+          "candidate_futures": [
+            {
+              "title": "Direct Promotion of Candidate A in Recovery 1",
+              "consequence": "With Candidate A CI passing, Recovery 1 attempts full release promotion immediately, potentially avoiding the need for Recovery 2 replanning and Candidate B adoption.",
+              "tradeoffs": [
+                "Saves execution time and replanning overhead from Recovery 2.",
+                "Candidate A code path is released rather than Candidate B, which may carry unverified scope differences regarding the backend lead disruption."
+              ],
+              "required_verification": [
+                "github-promotion verification receipt for Candidate A",
+                "Full objective verification for Recovery 1 across all required release invariants"
+              ]
+            },
+            {
+              "title": "Recovery 1 Promotion Blocked by Subsequent Invariant Failure",
+              "consequence": "Even though CI passes for Candidate A, full release promotion or post-release correlation could encounter separate verification hurdles, requiring subsequent recovery action.",
+              "tradeoffs": [
+                "Exposes whether CI green was the sole blocker or if coordination/deadline invariants required additional verification."
+              ],
+              "required_verification": [
+                "Post-promotion read-back verification on GitHub latest release endpoint",
+                "Deterministic evaluation of protected-release-deadline-satisfied invariant"
+              ]
+            }
+          ],
+          "risk_critique": [
+            "A green CI run alone does not confirm that full release promotion would succeed without execution errors.",
+            "Candidate A was created during a lead engineer outage; functional adequacy of Candidate A vs Candidate B remains unverified beyond CI test execution."
+          ],
+          "likely_objective_outcome": "MAY_IMPROVE",
+          "unsupported_assumptions": [
+            "Assuming Candidate A promotion steps would have succeeded without error solely because CI passed.",
+            "Assuming Candidate A contents fully satisfied staging/QA criteria without further modifications."
+          ],
+          "evidence_ids": [
+            "github-run:33106938744",
+            "objective-verification:1",
+            "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+            "gmail-message:1a0449e8567caa43"
+          ],
+          "external_effects_executed": false
+        },
+        "inspection": null,
+        "action": null,
+        "hypothetical_deadline": null,
+        "provenance": "HYPOTHETICAL_NO_ACTION",
+        "external_effects_executed": false,
+        "agents": [
+          {
+            "agent_id": "operator_intent_interpreter",
+            "model": "gemini-3.7-flash",
+            "request_id": "2033da67-018e-496e-9c6a-c69faa15f213",
+            "latency_ms": 6860,
+            "attempts": 1,
+            "input_tokens": 7883,
+            "output_tokens": 208,
+            "total_tokens": 8091,
+            "validation": "PASSED"
+          },
+          {
+            "agent_id": "simulation_agent",
+            "model": "gemini-3.7-flash",
+            "request_id": "2033da67-018e-496e-9c6a-c69faa15f213",
+            "latency_ms": 24152,
+            "attempts": 2,
+            "input_tokens": 6812,
+            "output_tokens": 778,
+            "total_tokens": 7590,
+            "validation": "PASSED"
+          }
+        ]
+      },
+      "checks": {
+        "intent": true,
+        "disposition": true,
+        "no_effect": true,
+        "grounded_facts": true,
+        "agent6": true,
+        "agent7": true,
+        "hypothetical": true,
+        "verification_needed": true
+      },
+      "passed": true
+    }
+  ]
+}

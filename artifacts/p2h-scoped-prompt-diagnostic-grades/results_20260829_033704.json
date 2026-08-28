@@ -1,0 +1,251 @@
+{
+  "eval_case_results": [
+    {
+      "eval_case_index": 0,
+      "response_candidate_results": [
+        {
+          "response_index": 0,
+          "metric_results": {
+            "p2g_act_behavior": {
+              "metric_name": "p2g_act_behavior",
+              "score": 1.0,
+              "explanation": null,
+              "rubric_verdicts": null,
+              "raw_output": null,
+              "error_message": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "eval_case_index": 1,
+      "response_candidate_results": [
+        {
+          "response_index": 0,
+          "metric_results": {
+            "p2g_act_behavior": {
+              "metric_name": "p2g_act_behavior",
+              "score": 1.0,
+              "explanation": null,
+              "rubric_verdicts": null,
+              "raw_output": null,
+              "error_message": null
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "summary_metrics": [
+    {
+      "metric_name": "p2g_act_behavior",
+      "num_cases_total": 2,
+      "num_cases_valid": 2,
+      "num_cases_error": 0,
+      "mean_score": 1.0,
+      "stdev_score": 0.0,
+      "pass_rate": null
+    }
+  ],
+  "win_rates": null,
+  "evaluation_dataset": [
+    {
+      "bigquery_source": null,
+      "gcs_source": null,
+      "eval_cases": [
+        {
+          "prompt": {
+            "parts": [
+              {
+                "media_resolution": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "file_data": null,
+                "function_call": null,
+                "function_response": null,
+                "inline_data": null,
+                "text": "Move the protected Release V2 deadline two hours later.",
+                "thought": null,
+                "thought_signature": null,
+                "video_metadata": null,
+                "tool_call": null,
+                "tool_response": null,
+                "part_metadata": null
+              }
+            ],
+            "role": "user"
+          },
+          "responses": [
+            {
+              "response": {
+                "parts": [
+                  {
+                    "media_resolution": null,
+                    "code_execution_result": null,
+                    "executable_code": null,
+                    "file_data": null,
+                    "function_call": null,
+                    "function_response": null,
+                    "inline_data": null,
+                    "text": "{\"intent\": {\"disposition\": \"SUPPORTED\", \"intent_type\": \"ACT\", \"subject\": \"OBJECTIVE\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": null, \"question\": \"Move the protected Release V2 deadline two hours later.\", \"hypothetical_changes\": [], \"constraints\": [\"Move protected objective deadline by 120 minutes\"], \"fact_ids\": [], \"target\": {\"authority\": \"REFLOW\", \"resource_type\": \"OBJECTIVE\", \"resource_identifier\": \"protected-objective-deadline\"}, \"requested_operations\": [{\"operation\": \"MOVE_PROTECTED_DEADLINE\", \"value\": \"120\", \"comment\": null}], \"clarification\": null}, \"agents\": [{\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"4720e8d6-cd23-4e9e-8e58-b40867110941\", \"latency_ms\": 9798, \"attempts\": 1, \"input_tokens\": 8066, \"output_tokens\": 838, \"total_tokens\": 8904, \"validation\": \"PASSED\"}], \"external_effects_executed\": false}",
+                    "thought": null,
+                    "thought_signature": null,
+                    "video_metadata": null,
+                    "tool_call": null,
+                    "tool_response": null,
+                    "part_metadata": null
+                  }
+                ],
+                "role": "model"
+              }
+            }
+          ],
+          "reference": {
+            "response": {
+              "parts": [
+                {
+                  "media_resolution": null,
+                  "code_execution_result": null,
+                  "executable_code": null,
+                  "file_data": null,
+                  "function_call": null,
+                  "function_response": null,
+                  "inline_data": null,
+                  "text": "{\"id\": \"protected_deadline\", \"message\": \"Move the protected Release V2 deadline two hours later.\", \"intent\": \"ACT\", \"disposition\": \"SUPPORTED\", \"target\": \"protected-objective-deadline\", \"operations\": [\"MOVE_PROTECTED_DEADLINE\"]}",
+                  "thought": null,
+                  "thought_signature": null,
+                  "video_metadata": null,
+                  "tool_call": null,
+                  "tool_response": null,
+                  "part_metadata": null
+                }
+              ],
+              "role": "model"
+            }
+          },
+          "system_instruction": null,
+          "conversation_history": null,
+          "rubric_groups": null,
+          "eval_case_id": "protected_deadline",
+          "intermediate_events": null,
+          "agent_info": null,
+          "agent_data": null,
+          "user_scenario": null
+        },
+        {
+          "prompt": {
+            "parts": [
+              {
+                "media_resolution": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "file_data": null,
+                "function_call": null,
+                "function_response": null,
+                "inline_data": null,
+                "text": "Post a message to the release channel.",
+                "thought": null,
+                "thought_signature": null,
+                "video_metadata": null,
+                "tool_call": null,
+                "tool_response": null,
+                "part_metadata": null
+              }
+            ],
+            "role": "user"
+          },
+          "responses": [
+            {
+              "response": {
+                "parts": [
+                  {
+                    "media_resolution": null,
+                    "code_execution_result": null,
+                    "executable_code": null,
+                    "file_data": null,
+                    "function_call": null,
+                    "function_response": null,
+                    "inline_data": null,
+                    "text": "{\"intent\": {\"disposition\": \"CLARIFICATION_REQUIRED\", \"intent_type\": null, \"subject\": \"SLACK\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": null, \"question\": \"Post a message to the release channel.\", \"hypothetical_changes\": [], \"constraints\": [], \"fact_ids\": [], \"target\": null, \"requested_operations\": [], \"clarification\": \"Please provide the exact text of the message you would like to post to the release channel.\"}, \"agents\": [{\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"eb1374a8-7819-4f52-97d5-99bc2caf65ed\", \"latency_ms\": 9130, \"attempts\": 1, \"input_tokens\": 8063, \"output_tokens\": 146, \"total_tokens\": 8209, \"validation\": \"PASSED\"}], \"external_effects_executed\": false}",
+                    "thought": null,
+                    "thought_signature": null,
+                    "video_metadata": null,
+                    "tool_call": null,
+                    "tool_response": null,
+                    "part_metadata": null
+                  }
+                ],
+                "role": "model"
+              }
+            }
+          ],
+          "reference": {
+            "response": {
+              "parts": [
+                {
+                  "media_resolution": null,
+                  "code_execution_result": null,
+                  "executable_code": null,
+                  "file_data": null,
+                  "function_call": null,
+                  "function_response": null,
+                  "inline_data": null,
+                  "text": "{\"id\": \"slack_empty\", \"message\": \"Post a message to the release channel.\", \"intent\": null, \"disposition\": \"CLARIFICATION_REQUIRED\", \"operations\": []}",
+                  "thought": null,
+                  "thought_signature": null,
+                  "video_metadata": null,
+                  "tool_call": null,
+                  "tool_response": null,
+                  "part_metadata": null
+                }
+              ],
+              "role": "model"
+            }
+          },
+          "system_instruction": null,
+          "conversation_history": null,
+          "rubric_groups": null,
+          "eval_case_id": "slack_empty",
+          "intermediate_events": null,
+          "agent_info": null,
+          "agent_data": null,
+          "user_scenario": null
+        }
+      ],
+      "eval_dataset_df": null,
+      "candidate_name": null
+    }
+  ],
+  "metadata": {
+    "candidate_names": [
+      "candidate_1"
+    ],
+    "dataset_name": null,
+    "dataset_id": null,
+    "creation_timestamp": "2026-08-28T22:07:04.285549Z",
+    "dataset": [
+      {
+        "prompt_display_text": "Move the protected Release V2 deadline two hours later.",
+        "prompt_raw_json": "{\n  \"parts\": [\n    {\n      \"text\": \"Move the protected Release V2 deadline two hours later.\"\n    }\n  ],\n  \"role\": \"user\"\n}",
+        "reference": "{\"id\": \"protected_deadline\", \"message\": \"Move the protected Release V2 deadline two hours later.\", \"intent\": \"ACT\", \"disposition\": \"SUPPORTED\", \"target\": \"protected-objective-deadline\", \"operations\": [\"MOVE_PROTECTED_DEADLINE\"]}",
+        "reference_raw_json": "{\n  \"parts\": [\n    {\n      \"text\": \"{\\\"id\\\": \\\"protected_deadline\\\", \\\"message\\\": \\\"Move the protected Release V2 deadline two hours later.\\\", \\\"intent\\\": \\\"ACT\\\", \\\"disposition\\\": \\\"SUPPORTED\\\", \\\"target\\\": \\\"protected-objective-deadline\\\", \\\"operations\\\": [\\\"MOVE_PROTECTED_DEADLINE\\\"]}\"\n    }\n  ],\n  \"role\": \"model\"\n}",
+        "response_display_text": "{\"intent\": {\"disposition\": \"SUPPORTED\", \"intent_type\": \"ACT\", \"subject\": \"OBJECTIVE\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": null, \"question\": \"Move the protected Release V2 deadline two hours later.\", \"hypothetical_changes\": [], \"constraints\": [\"Move protected objective deadline by 120 minutes\"], \"fact_ids\": [], \"target\": {\"authority\": \"REFLOW\", \"resource_type\": \"OBJECTIVE\", \"resource_identifier\": \"protected-objective-deadline\"}, \"requested_operations\": [{\"operation\": \"MOVE_PROTECTED_DEADLINE\", \"value\": \"120\", \"comment\": null}], \"clarification\": null}, \"agents\": [{\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"4720e8d6-cd23-4e9e-8e58-b40867110941\", \"latency_ms\": 9798, \"attempts\": 1, \"input_tokens\": 8066, \"output_tokens\": 838, \"total_tokens\": 8904, \"validation\": \"PASSED\"}], \"external_effects_executed\": false}",
+        "response_raw_json": "{\n  \"parts\": [\n    {\n      \"text\": \"{\\\"intent\\\": {\\\"disposition\\\": \\\"SUPPORTED\\\", \\\"intent_type\\\": \\\"ACT\\\", \\\"subject\\\": \\\"OBJECTIVE\\\", \\\"incident_id\\\": \\\"incident-0fc3af5b0bd1ad847aea\\\", \\\"recovery_attempt\\\": null, \\\"question\\\": \\\"Move the protected Release V2 deadline two hours later.\\\", \\\"hypothetical_changes\\\": [], \\\"constraints\\\": [\\\"Move protected objective deadline by 120 minutes\\\"], \\\"fact_ids\\\": [], \\\"target\\\": {\\\"authority\\\": \\\"REFLOW\\\", \\\"resource_type\\\": \\\"OBJECTIVE\\\", \\\"resource_identifier\\\": \\\"protected-objective-deadline\\\"}, \\\"requested_operations\\\": [{\\\"operation\\\": \\\"MOVE_PROTECTED_DEADLINE\\\", \\\"value\\\": \\\"120\\\", \\\"comment\\\": null}], \\\"clarification\\\": null}, \\\"agents\\\": [{\\\"agent_id\\\": \\\"operator_intent_interpreter\\\", \\\"model\\\": \\\"gemini-3.7-flash\\\", \\\"request_id\\\": \\\"4720e8d6-cd23-4e9e-8e58-b40867110941\\\", \\\"latency_ms\\\": 9798, \\\"attempts\\\": 1, \\\"input_tokens\\\": 8066, \\\"output_tokens\\\": 838, \\\"total_tokens\\\": 8904, \\\"validation\\\": \\\"PASSED\\\"}], \\\"external_effects_executed\\\": false}\"\n    }\n  ],\n  \"role\": \"model\"\n}",
+        "intermediate_events": null,
+        "agent_data": null
+      },
+      {
+        "prompt_display_text": "Post a message to the release channel.",
+        "prompt_raw_json": "{\n  \"parts\": [\n    {\n      \"text\": \"Post a message to the release channel.\"\n    }\n  ],\n  \"role\": \"user\"\n}",
+        "reference": "{\"id\": \"slack_empty\", \"message\": \"Post a message to the release channel.\", \"intent\": null, \"disposition\": \"CLARIFICATION_REQUIRED\", \"operations\": []}",
+        "reference_raw_json": "{\n  \"parts\": [\n    {\n      \"text\": \"{\\\"id\\\": \\\"slack_empty\\\", \\\"message\\\": \\\"Post a message to the release channel.\\\", \\\"intent\\\": null, \\\"disposition\\\": \\\"CLARIFICATION_REQUIRED\\\", \\\"operations\\\": []}\"\n    }\n  ],\n  \"role\": \"model\"\n}",
+        "response_display_text": "{\"intent\": {\"disposition\": \"CLARIFICATION_REQUIRED\", \"intent_type\": null, \"subject\": \"SLACK\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": null, \"question\": \"Post a message to the release channel.\", \"hypothetical_changes\": [], \"constraints\": [], \"fact_ids\": [], \"target\": null, \"requested_operations\": [], \"clarification\": \"Please provide the exact text of the message you would like to post to the release channel.\"}, \"agents\": [{\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"eb1374a8-7819-4f52-97d5-99bc2caf65ed\", \"latency_ms\": 9130, \"attempts\": 1, \"input_tokens\": 8063, \"output_tokens\": 146, \"total_tokens\": 8209, \"validation\": \"PASSED\"}], \"external_effects_executed\": false}",
+        "response_raw_json": "{\n  \"parts\": [\n    {\n      \"text\": \"{\\\"intent\\\": {\\\"disposition\\\": \\\"CLARIFICATION_REQUIRED\\\", \\\"intent_type\\\": null, \\\"subject\\\": \\\"SLACK\\\", \\\"incident_id\\\": \\\"incident-0fc3af5b0bd1ad847aea\\\", \\\"recovery_attempt\\\": null, \\\"question\\\": \\\"Post a message to the release channel.\\\", \\\"hypothetical_changes\\\": [], \\\"constraints\\\": [], \\\"fact_ids\\\": [], \\\"target\\\": null, \\\"requested_operations\\\": [], \\\"clarification\\\": \\\"Please provide the exact text of the message you would like to post to the release channel.\\\"}, \\\"agents\\\": [{\\\"agent_id\\\": \\\"operator_intent_interpreter\\\", \\\"model\\\": \\\"gemini-3.7-flash\\\", \\\"request_id\\\": \\\"eb1374a8-7819-4f52-97d5-99bc2caf65ed\\\", \\\"latency_ms\\\": 9130, \\\"attempts\\\": 1, \\\"input_tokens\\\": 8063, \\\"output_tokens\\\": 146, \\\"total_tokens\\\": 8209, \\\"validation\\\": \\\"PASSED\\\"}], \\\"external_effects_executed\\\": false}\"\n    }\n  ],\n  \"role\": \"model\"\n}",
+        "intermediate_events": null,
+        "agent_data": null
+      }
+    ]
+  },
+  "agent_info": null
+}
