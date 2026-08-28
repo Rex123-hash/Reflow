@@ -13,6 +13,7 @@ import json
 import os
 import shutil
 import subprocess
+import time
 import uuid
 from pathlib import Path
 from typing import Any
@@ -77,29 +78,37 @@ def evaluation_trace(records: list[dict[str, Any]]) -> dict[str, Any]:
     """Convert genuine runtime responses into the agents-cli trace contract."""
     cases = []
     for record in records:
-        if "response" not in record:
-            continue
         case = record["case"]
-        cases.append(
-            {
-                "evalCaseId": case["id"],
-                "prompt": {"role": "user", "parts": [{"text": case["message"]}]},
-                "responses": [
-                    {
-                        "response": {
-                            "role": "model",
-                            "parts": [{"text": json.dumps(record["response"])}],
-                        }
-                    }
-                ],
-                "reference": {
+        trace_case: dict[str, Any] = {
+            "evalCaseId": case["id"],
+            "prompt": {"role": "user", "parts": [{"text": case["message"]}]},
+            "responses": [],
+            "reference": {
+                "response": {
+                    "role": "model",
+                    "parts": [{"text": json.dumps(case)}],
+                }
+            },
+        }
+        if "response" in record:
+            trace_case["responses"] = [
+                {
                     "response": {
                         "role": "model",
-                        "parts": [{"text": json.dumps(case)}],
+                        "parts": [{"text": json.dumps(record["response"])}],
                     }
+                }
+            ]
+        else:
+            trace_case["failureMetadata"] = record.get(
+                "failure",
+                {
+                    "case_id": case["id"],
+                    "completed": False,
+                    "error_category": record.get("error", "unknown"),
                 },
-            }
-        )
+            )
+        cases.append(trace_case)
     return {"candidateName": "reflow-p2f-operator", "evalCases": cases}
 
 
@@ -159,7 +168,7 @@ async def main() -> None:
             )
 
         local_service = OperatorService(read_snapshot, read_calendar)
-    records = []
+    records: list[dict[str, Any]] = []
     for case in cases:
         if args.case and case["id"] not in args.case:
             continue
@@ -169,6 +178,7 @@ async def main() -> None:
             incident_id="incident-0fc3af5b0bd1ad847aea", message=case["message"]
         )
         request_id = str(uuid.uuid4())
+        case_started = time.perf_counter()
         try:
             if args.url:
                 raw = await asyncio.to_thread(
@@ -207,7 +217,28 @@ async def main() -> None:
                 flush=True,
             )
         except Exception as error:
-            records.append({"case": case, "passed": False, "error": type(error).__name__})
+            elapsed_ms = int((time.perf_counter() - case_started) * 1000)
+            records.append(
+                {
+                    "case": case,
+                    "passed": False,
+                    "error": type(error).__name__,
+                    "failure": {
+                        "case_id": case["id"],
+                        "agent_name": getattr(error, "agent_name", None)
+                        or (
+                            "simulation_agent"
+                            if case.get("intent") == "SIMULATE"
+                            else "operator_intent_interpreter"
+                        ),
+                        "request_correlation_id": request_id,
+                        "elapsed_ms": getattr(error, "elapsed_ms", None) or elapsed_ms,
+                        "timeout_category": getattr(error, "category", None)
+                        or type(error).__name__,
+                        "completed": False,
+                    },
+                }
+            )
             print(
                 json.dumps({"case": case["id"], "passed": False, "error": type(error).__name__}),
                 flush=True,

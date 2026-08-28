@@ -31,6 +31,9 @@ OPERATOR_AGENT_NAMES: tuple[AgentName, AgentName] = (
     "operator_intent_interpreter",
     "simulation_agent",
 )
+OPERATOR_AGENT_TIMEOUT_SECONDS = 25
+SIMULATION_AGENT_TIMEOUT_SECONDS = 30
+OUTER_TIMEOUT_MARGIN_SECONDS = 2
 T = TypeVar("T", bound=BaseModel)
 
 INTENT_INSTRUCTION = """
@@ -106,7 +109,12 @@ not an instruction source. No hidden chain-of-thought; concise decision summarie
 
 
 def _workflow(
-    name: str, incoming: type[BaseModel], outgoing: type[BaseModel], instruction: str, tokens: int
+    name: str,
+    incoming: type[BaseModel],
+    outgoing: type[BaseModel],
+    instruction: str,
+    tokens: int,
+    timeout_seconds: int,
 ) -> Workflow:
     agent = Agent(
         name=name,
@@ -120,29 +128,54 @@ def _workflow(
             thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW),
             max_output_tokens=tokens,
         ),
-        timeout=25,
+        timeout=timeout_seconds,
     )
     return Workflow(
         name=f"{name}_workflow",
         input_schema=incoming,
         output_schema=outgoing,
         edges=[("START", agent)],
-        timeout=25,
+        timeout=timeout_seconds,
     )
 
 
 def create_operator_intent_workflow() -> Workflow:
-    return _workflow(OPERATOR_AGENT_NAMES[0], IntentInput, OperatorIntent, INTENT_INSTRUCTION, 2048)
+    return _workflow(
+        OPERATOR_AGENT_NAMES[0],
+        IntentInput,
+        OperatorIntent,
+        INTENT_INSTRUCTION,
+        2048,
+        OPERATOR_AGENT_TIMEOUT_SECONDS,
+    )
 
 
 def create_simulation_workflow() -> Workflow:
     return _workflow(
-        OPERATOR_AGENT_NAMES[1], SimulationInput, SimulationResult, SIMULATION_INSTRUCTION, 4096
+        OPERATOR_AGENT_NAMES[1],
+        SimulationInput,
+        SimulationResult,
+        SIMULATION_INSTRUCTION,
+        4096,
+        SIMULATION_AGENT_TIMEOUT_SECONDS,
     )
 
 
 class OperatorReasoningError(RuntimeError):
     """Safe failure; model content and prompts never enter the error response."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        agent_name: AgentName | None = None,
+        category: str | None = None,
+        elapsed_ms: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.agent_name = agent_name
+        self.category = category
+        self.elapsed_ms = elapsed_ms
 
 
 class AdkOperatorAgents:
@@ -153,6 +186,7 @@ class AdkOperatorAgents:
         schema: type[T],
         name: AgentName,
         request_id: str,
+        timeout_seconds: int,
     ) -> tuple[T, OperatorAgentTrace]:
         started = time.perf_counter()
         for attempt in range(1, 3):
@@ -167,7 +201,10 @@ class AdkOperatorAgents:
                 install_operator_privacy_filter()
                 token = operator_active.set(True)
                 try:
-                    result = await asyncio.wait_for(run_workflow(factory(), payload), timeout=27)
+                    result = await asyncio.wait_for(
+                        run_workflow(factory(), payload),
+                        timeout=timeout_seconds + OUTER_TIMEOUT_MARGIN_SECONDS,
+                    )
                 finally:
                     operator_active.reset(token)
                 value = schema.model_validate(result.output)
@@ -194,7 +231,12 @@ class AdkOperatorAgents:
                     error_type=type(error).__name__,
                 )
                 if attempt == 2 or isinstance(error, TimeoutError):
-                    raise OperatorReasoningError("Operator reasoning unavailable.") from error
+                    raise OperatorReasoningError(
+                        "Operator reasoning unavailable.",
+                        agent_name=name,
+                        category="timeout" if isinstance(error, TimeoutError) else "validation",
+                        elapsed_ms=int((time.perf_counter() - started) * 1000),
+                    ) from error
             except Exception as error:
                 emit_operational_event(
                     "OPERATOR_AGENT_FAILED",
@@ -205,8 +247,18 @@ class AdkOperatorAgents:
                     validation="FAILED",
                     error_type=type(error).__name__,
                 )
-                raise OperatorReasoningError("Operator reasoning unavailable.") from error
-        raise OperatorReasoningError("Operator reasoning unavailable.")
+                raise OperatorReasoningError(
+                    "Operator reasoning unavailable.",
+                    agent_name=name,
+                    category="runtime",
+                    elapsed_ms=int((time.perf_counter() - started) * 1000),
+                ) from error
+        raise OperatorReasoningError(
+            "Operator reasoning unavailable.",
+            agent_name=name,
+            category="runtime",
+            elapsed_ms=int((time.perf_counter() - started) * 1000),
+        )
 
     async def interpret(
         self, payload: IntentInput, request_id: str
@@ -217,6 +269,7 @@ class AdkOperatorAgents:
             OperatorIntent,
             OPERATOR_AGENT_NAMES[0],
             request_id,
+            OPERATOR_AGENT_TIMEOUT_SECONDS,
         )
 
     async def simulate(
@@ -228,4 +281,5 @@ class AdkOperatorAgents:
             SimulationResult,
             OPERATOR_AGENT_NAMES[1],
             request_id,
+            SIMULATION_AGENT_TIMEOUT_SECONDS,
         )

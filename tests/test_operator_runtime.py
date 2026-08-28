@@ -289,6 +289,8 @@ async def test_real_adk_workflow_boundary_and_safe_metadata(
     async def run(workflow: Any, payload: Any) -> WorkflowResult:
         node = workflow.edges[0][1]
         assert node.name == agent_name and node.model.model == MODEL_ID
+        expected_timeout = 30 if agent_name == "simulation_agent" else 25
+        assert node.timeout == expected_timeout and workflow.timeout == expected_timeout
         assert node.tools == [] and not node.sub_agents
         assert node.input_schema is not None and node.output_schema is not None
         calls.append(payload)
@@ -332,7 +334,7 @@ async def test_bounded_attempts_and_safe_failure(
         raise error
 
     monkeypatch.setattr(operator_agents, "run_workflow", run)
-    with pytest.raises(OperatorReasoningError, match="Operator reasoning unavailable"):
+    with pytest.raises(OperatorReasoningError, match="Operator reasoning unavailable") as caught:
         await AdkOperatorAgents().interpret(
             IntentInput(
                 request=OperatorQuery(incident_id=INCIDENT, message="Request"), snapshot=snapshot()
@@ -340,6 +342,16 @@ async def test_bounded_attempts_and_safe_failure(
             REQUEST,
         )
     assert calls == expected
+    assert caught.value.agent_name == "operator_intent_interpreter"
+    expected_category = (
+        "timeout"
+        if isinstance(error, TimeoutError)
+        else "validation"
+        if isinstance(error, ValueError)
+        else "runtime"
+    )
+    assert caught.value.category == expected_category
+    assert caught.value.elapsed_ms is not None
 
 
 def test_simulation_transitive_project_imports_have_no_effect_module() -> None:

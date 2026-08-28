@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 from datetime import UTC, datetime, timedelta
 from typing import Any, cast
@@ -417,10 +418,13 @@ async def test_agent_6_act_uses_real_adk_gemini_interface(monkeypatch: Any) -> N
 
 
 class ResponseStub:
-    def __init__(self, status: int, payload: Any = None) -> None:
+    def __init__(
+        self, status: int, payload: Any = None, headers: dict[str, str] | None = None
+    ) -> None:
         self.status_code = status
         self.ok = 200 <= status < 300
         self._payload = payload
+        self.headers = headers or {}
 
     def json(self) -> Any:
         if isinstance(self._payload, Exception):
@@ -518,6 +522,30 @@ def test_jira_inspect_mutations_transition_discovery_and_readback() -> None:
     assert observed["comment:10001"] == "Backend engineer unavailable."
     assert passed and proof["difference_count"] == "0"
     assert all(call[2].get("allow_redirects") is False for call in session.calls)
+    comment_call = next(
+        call
+        for call in session.calls
+        if call[0] == "POST" and call[1].endswith("/issue/API-42/comment")
+    )
+    assert comment_call[2]["headers"]["Content-Type"] == "application/json"
+    assert comment_call[2]["json"] == {
+        "body": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [{"type": "text", "text": "Backend engineer unavailable."}],
+                }
+            ],
+        },
+        "properties": [
+            {
+                "key": "reflow.operator_action_id",
+                "value": {"operator_action_id": "action-1"},
+            }
+        ],
+    }
 
 
 def test_jira_assignee_resolution_is_exact_bounded_and_ambiguous_safe() -> None:
@@ -544,7 +572,13 @@ def test_jira_assignee_resolution_is_exact_bounded_and_ambiguous_safe() -> None:
 
 @pytest.mark.parametrize(
     "status,category",
-    [(401, "jira_authentication"), (403, "jira_permission"), (404, "jira_not_found")],
+    [
+        (400, "jira_invalid_request"),
+        (401, "jira_authentication"),
+        (403, "jira_permission"),
+        (404, "jira_not_found"),
+        (429, "jira_rate_limit"),
+    ],
 )
 def test_jira_error_mapping_has_no_secret_leakage(status: int, category: str) -> None:
     class Failing(JiraSession):
@@ -554,6 +588,107 @@ def test_jira_error_mapping_has_no_secret_leakage(status: int, category: str) ->
     with pytest.raises(OperatorAdapterError, match=category) as caught:
         jira(Failing()).inspect(target())
     assert "secret-token" not in str(caught.value)
+
+
+def test_jira_validation_diagnostics_are_allowlisted_bounded_and_credential_safe() -> None:
+    encoded = base64.b64encode(b"operator@example.invalid:secret-token").decode()
+
+    class Failing(JiraSession):
+        def request(self, method: str, url: str, **kwargs: Any) -> ResponseStub:
+            if method == "POST" and url.endswith("/issue/API-42/comment"):
+                return ResponseStub(
+                    400,
+                    {
+                        "errorMessages": [
+                            "Property value must be a JSON object.",
+                            f"Authorization: Basic {encoded}",
+                            "Cookie: session=secret-token",
+                            "ignored fourth message",
+                        ],
+                        "errors": {
+                            "properties": "Expected object, received secret-token",
+                            "body": "Malformed field",
+                            "ignored": {"full": "arbitrary response"},
+                        },
+                        "unbounded": "must not be copied",
+                    },
+                    {"atl-traceid": "trace-123"},
+                )
+            return super().request(method, url, **kwargs)
+
+    adapter = jira(Failing())
+    current = adapter.inspect(target())
+    op = operation("JIRA_ADD_COMMENT", "Backend engineer unavailable.")
+    with pytest.raises(OperatorAdapterError, match="jira_invalid_request") as caught:
+        adapter.execute("action-safe", target(), (op,), current, {})
+    diagnostics = caught.value.diagnostics
+    assert diagnostics["jira_http_status"] == "400"
+    assert diagnostics["jira_error_category"] == "jira_invalid_request"
+    assert diagnostics["jira_operation_type"] == "JIRA_ADD_COMMENT"
+    assert diagnostics["jira_target_issue_key"] == "API-42"
+    assert diagnostics["jira_request_correlation_id"] == "trace-123"
+    assert "Property value must be a JSON object." in diagnostics["jira_error_messages"]
+    assert "body: Malformed field" in diagnostics["jira_field_errors"]
+    serialized = json.dumps(diagnostics)
+    assert "secret-token" not in serialized and encoded not in serialized
+    assert "Authorization" not in serialized and "Cookie" not in serialized
+    assert "must not be copied" not in serialized and "arbitrary response" not in serialized
+
+
+def test_jira_failure_diagnostics_persist_on_failed_receipt() -> None:
+    diagnostics = {"jira_http_status": "400", "jira_target_issue_key": "API-42"}
+
+    class DiagnosticAdapter(FakeAdapter):
+        def execute(self, *args: Any, **kwargs: Any) -> AdapterExecution:
+            self.executions += 1
+            raise OperatorAdapterError("jira_invalid_request", diagnostics)
+
+    control = coordinator(DiagnosticAdapter())
+    result = control.request(
+        request_id=REQUEST,
+        idempotency_key="diagnostic-failure",
+        subject_hash="a" * 64,
+        role="OPERATOR",
+        target=target(),
+        operations=(operation("JIRA_ADD_COMMENT", "Backend unavailable."),),
+    )
+    assert result.lifecycle == "FAILED"
+    assert result.adapter_proof["jira_http_status"] == "400"
+    assert result.adapter_proof["jira_target_issue_key"] == "API-42"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Backend engineer unavailable.",
+        "Développeur indisponible — 東京 ✅",
+        "Punctuation: !?.,;:'\"()[]{} / + = _ -",
+        "A" * 1000,
+    ],
+)
+def test_jira_comment_plain_text_boundaries_and_unicode(text: str) -> None:
+    document = JiraOperatorAdapter._comment_document(text)
+    assert document["content"][0]["content"][0]["text"] == text
+
+
+@pytest.mark.parametrize("text", ["", "   \t\n", "A" * 1001, "bad\x00control"])
+def test_jira_comment_invalid_text_is_rejected_before_http(text: str) -> None:
+    with pytest.raises(OperatorAdapterError, match="jira_comment_invalid"):
+        JiraOperatorAdapter._comment_document(text)
+
+
+def test_jira_comment_malformed_success_response_is_rejected() -> None:
+    class Malformed(JiraSession):
+        def request(self, method: str, url: str, **kwargs: Any) -> ResponseStub:
+            if method == "POST" and url.endswith("/issue/API-42/comment"):
+                return ResponseStub(201, ["not", "an", "object"])
+            return super().request(method, url, **kwargs)
+
+    adapter = jira(Malformed())
+    current = adapter.inspect(target())
+    op = operation("JIRA_ADD_COMMENT", "Backend engineer unavailable.")
+    with pytest.raises(OperatorAdapterError, match="jira_invalid_response"):
+        adapter.execute("action-malformed", target(), (op,), current, {})
 
 
 def test_jira_timeout_invalid_transition_priority_due_date_and_target() -> None:

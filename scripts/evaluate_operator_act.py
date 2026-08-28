@@ -9,7 +9,9 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import time
 import uuid
+from typing import Any
 
 from scripts.evaluate_operator import ROOT, environment, evaluation_trace
 
@@ -67,7 +69,7 @@ async def main() -> None:
             operations=("MOVE_PROTECTED_DEADLINE",),
         ),
     )
-    cases = [
+    cases: list[dict[str, Any]] = [
         {
             "id": "jira_inspect",
             "message": "What is the status of API-42?",
@@ -148,10 +150,12 @@ async def main() -> None:
         },
     ]
     agents = AdkOperatorAgents()
-    records = []
+    records: list[dict[str, Any]] = []
     for case in cases:
         if records and args.case_delay:
             await asyncio.sleep(args.case_delay)
+        request_id = str(uuid.uuid4())
+        case_started = time.perf_counter()
         try:
             intent, trace = await agents.interpret(
                 IntentInput(
@@ -163,7 +167,7 @@ async def main() -> None:
                         if not case.get("without_calendar") or item.authority != "GOOGLE_CALENDAR"
                     ),
                 ),
-                str(uuid.uuid4()),
+                request_id,
             )
             checks = {
                 "intent": intent.intent_type == case["intent"],
@@ -192,7 +196,24 @@ async def main() -> None:
                 }
             )
         except Exception as error:
-            records.append({"case": case, "passed": False, "error": type(error).__name__})
+            records.append(
+                {
+                    "case": case,
+                    "passed": False,
+                    "error": type(error).__name__,
+                    "failure": {
+                        "case_id": case["id"],
+                        "agent_name": getattr(error, "agent_name", None)
+                        or "operator_intent_interpreter",
+                        "request_correlation_id": request_id,
+                        "elapsed_ms": getattr(error, "elapsed_ms", None)
+                        or int((time.perf_counter() - case_started) * 1000),
+                        "timeout_category": getattr(error, "category", None)
+                        or type(error).__name__,
+                        "completed": False,
+                    },
+                }
+            )
         print(
             json.dumps(
                 {

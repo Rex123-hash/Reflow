@@ -28,9 +28,10 @@ AuthorizationResult = Literal["AUTO_EXECUTABLE", "APPROVAL_REQUIRED", "DENIED"]
 class OperatorAdapterError(RuntimeError):
     """Safe adapter failure whose category can be returned without leaking a response body."""
 
-    def __init__(self, category: str) -> None:
+    def __init__(self, category: str, diagnostics: dict[str, str] | None = None) -> None:
         super().__init__(category)
         self.category = category
+        self.diagnostics = dict(diagnostics or {})
 
 
 @dataclass(frozen=True, slots=True)
@@ -371,7 +372,12 @@ class OperatorActionCoordinator:
                 raise OperatorAdapterError("adapter_unavailable")
             proposal = adapter.propose(target, operations, inspection.observed_state)
         except OperatorAdapterError as error:
-            return self._fail(action, frozenset({"REQUESTED"}), error.category)
+            return self._fail(
+                action,
+                frozenset({"REQUESTED"}),
+                error.category,
+                diagnostics=error.diagnostics,
+            )
         proof = {
             **action.adapter_proof,
             **proposal,
@@ -456,7 +462,12 @@ class OperatorActionCoordinator:
         return result
 
     def _fail(
-        self, action: OperatorActionView, allowed_from: frozenset[str], category: str
+        self,
+        action: OperatorActionView,
+        allowed_from: frozenset[str],
+        category: str,
+        *,
+        diagnostics: dict[str, str] | None = None,
     ) -> OperatorActionView:
         emit_operational_event(
             "OPERATOR_ACTION_FAILED",
@@ -468,7 +479,13 @@ class OperatorActionCoordinator:
             execution_result="FAILED",
             error_category=category,
         )
-        return self._replace(action, "FAILED", allowed_from, error_category=category)
+        return self._replace(
+            action,
+            "FAILED",
+            allowed_from,
+            error_category=category,
+            adapter_proof={**action.adapter_proof, **(diagnostics or {})},
+        )
 
     def _execute(self, action: OperatorActionView) -> OperatorActionView:
         # This synchronous bound survives cancellation of an HTTP waiter/to_thread.
@@ -553,7 +570,10 @@ class OperatorActionCoordinator:
             return result
         except OperatorAdapterError as error:
             return self._fail(
-                action, frozenset({"EXECUTING", "EXECUTED", "READ_BACK"}), error.category
+                action,
+                frozenset({"EXECUTING", "EXECUTED", "READ_BACK"}),
+                error.category,
+                diagnostics=error.diagnostics,
             )
         except Exception:
             # Adapter/transport internals are not safe response text. Preserve the last

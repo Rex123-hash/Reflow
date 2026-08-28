@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import re
 from datetime import date
 from typing import Any, ClassVar
@@ -69,6 +70,8 @@ class JiraOperatorAdapter:
         if not allowed_account_ids:
             self.operations = self.operations - {"JIRA_ASSIGN"}
         self._timeout = timeout
+        basic_credential = base64.b64encode(f"{email}:{api_token}".encode()).decode()
+        self._diagnostic_secrets = (api_token, basic_credential)
         self._session = session or requests.Session()
         self._session.auth = (email, api_token)
         self._session.headers.update(
@@ -82,9 +85,85 @@ class JiraOperatorAdapter:
             and target.resource_identifier == self._demo_issue_key
         )
 
-    def _request(self, method: str, path: str, **kwargs: Any) -> Response:
+    def _safe_error_text(self, value: Any, limit: int = 240) -> str | None:
+        if not isinstance(value, str):
+            return None
+        text = value
+        for secret in self._diagnostic_secrets:
+            text = text.replace(secret, "[redacted]")
+        if any(marker in text.casefold() for marker in ("authorization", "cookie", "basic ")):
+            text = "[redacted]"
+        cleaned = safe_text(text, limit)
+        return None if cleaned == "Unavailable" else cleaned
+
+    def _error_diagnostics(
+        self,
+        response: Response,
+        category: str,
+        *,
+        operation_type: str | None,
+        target_issue_key: str | None,
+    ) -> dict[str, str]:
+        diagnostics = {
+            "jira_http_status": str(response.status_code),
+            "jira_error_category": category,
+        }
+        if operation_type:
+            diagnostics["jira_operation_type"] = operation_type[:80]
+        if target_issue_key and self._ISSUE.fullmatch(target_issue_key):
+            diagnostics["jira_target_issue_key"] = target_issue_key
+        headers = getattr(response, "headers", {})
+        if hasattr(headers, "get"):
+            for name in ("atl-traceid", "x-arequestid", "x-request-id", "x-trace-id"):
+                correlation = headers.get(name)
+                if isinstance(correlation, str) and re.fullmatch(
+                    r"[A-Za-z0-9._:-]{1,128}", correlation
+                ):
+                    diagnostics["jira_request_correlation_id"] = correlation
+                    break
+        try:
+            payload = response.json()
+        except ValueError:
+            return diagnostics
+        if not isinstance(payload, dict):
+            return diagnostics
+        messages = payload.get("errorMessages")
+        if isinstance(messages, list):
+            safe_messages = [
+                text
+                for text in (self._safe_error_text(item) for item in messages[:3])
+                if text is not None
+            ]
+            if safe_messages:
+                diagnostics["jira_error_messages"] = " | ".join(safe_messages)[:720]
+        field_errors = payload.get("errors")
+        if isinstance(field_errors, dict):
+            safe_fields: list[str] = []
+            for key in sorted(field_errors, key=str)[:5]:
+                safe_key = self._safe_error_text(str(key), 80)
+                safe_value = self._safe_error_text(field_errors[key], 240)
+                if safe_key and safe_value:
+                    safe_fields.append(f"{safe_key}: {safe_value}")
+            if safe_fields:
+                diagnostics["jira_field_errors"] = " | ".join(safe_fields)[:1000]
+        return diagnostics
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        operation_type: str | None = None,
+        target_issue_key: str | None = None,
+        **kwargs: Any,
+    ) -> Response:
         if not path.startswith("/rest/api/3/") or "://" in path:
             raise OperatorAdapterError("jira_target_rejected")
+        if "json" in kwargs:
+            kwargs["headers"] = {
+                **kwargs.get("headers", {}),
+                "Content-Type": "application/json",
+            }
         try:
             response = self._session.request(
                 method,
@@ -97,18 +176,29 @@ class JiraOperatorAdapter:
             raise OperatorAdapterError("jira_timeout") from error
         except requests.RequestException as error:
             raise OperatorAdapterError("jira_transport") from error
+        category = None
         if response.status_code == 401:
-            raise OperatorAdapterError("jira_authentication")
-        if response.status_code == 403:
-            raise OperatorAdapterError("jira_permission")
-        if response.status_code == 404:
-            raise OperatorAdapterError("jira_not_found")
-        if response.status_code == 429:
-            raise OperatorAdapterError("jira_rate_limit")
-        if response.status_code >= 500:
-            raise OperatorAdapterError("jira_server")
-        if not 200 <= response.status_code < 300:
-            raise OperatorAdapterError("jira_invalid_request")
+            category = "jira_authentication"
+        elif response.status_code == 403:
+            category = "jira_permission"
+        elif response.status_code == 404:
+            category = "jira_not_found"
+        elif response.status_code == 429:
+            category = "jira_rate_limit"
+        elif response.status_code >= 500:
+            category = "jira_server"
+        elif not 200 <= response.status_code < 300:
+            category = "jira_invalid_request"
+        if category:
+            raise OperatorAdapterError(
+                category,
+                self._error_diagnostics(
+                    response,
+                    category,
+                    operation_type=operation_type,
+                    target_issue_key=target_issue_key,
+                ),
+            )
         return response
 
     @staticmethod
@@ -250,6 +340,13 @@ class JiraOperatorAdapter:
 
     @staticmethod
     def _comment_document(text: str) -> dict[str, Any]:
+        if (
+            not isinstance(text, str)
+            or not text.strip()
+            or len(text) > 1000
+            or any(ord(character) < 32 and character not in "\n\t" for character in text)
+        ):
+            raise OperatorAdapterError("jira_comment_invalid")
         return {
             "type": "doc",
             "version": 1,
@@ -313,6 +410,8 @@ class JiraOperatorAdapter:
                 self._request(
                     "POST",
                     f"/rest/api/3/issue/{target.resource_identifier}/transitions",
+                    operation_type=item.operation,
+                    target_issue_key=target.resource_identifier,
                     json={"transition": {"id": transition_id}},
                 )
                 expected["status"] = destination
@@ -321,6 +420,8 @@ class JiraOperatorAdapter:
                 self._request(
                     "PUT",
                     f"/rest/api/3/issue/{target.resource_identifier}",
+                    operation_type=item.operation,
+                    target_issue_key=target.resource_identifier,
                     json={"fields": {"priority": {"name": value}}},
                 )
                 expected["priority"] = value
@@ -333,6 +434,8 @@ class JiraOperatorAdapter:
                 self._request(
                     "PUT",
                     f"/rest/api/3/issue/{target.resource_identifier}/assignee",
+                    operation_type=item.operation,
+                    target_issue_key=target.resource_identifier,
                     json={"accountId": account_id},
                 )
                 expected["assignee_account_id"] = account_id
@@ -342,6 +445,8 @@ class JiraOperatorAdapter:
                 self._request(
                     "PUT",
                     f"/rest/api/3/issue/{target.resource_identifier}",
+                    operation_type=item.operation,
+                    target_issue_key=target.resource_identifier,
                     json={"fields": {"duedate": value}},
                 )
                 expected["due_date"] = value
@@ -351,9 +456,16 @@ class JiraOperatorAdapter:
                 response = self._request(
                     "POST",
                     f"/rest/api/3/issue/{target.resource_identifier}/comment",
+                    operation_type=item.operation,
+                    target_issue_key=target.resource_identifier,
                     json={
                         "body": self._comment_document(comment),
-                        "properties": [{"key": "reflow.operator_action_id", "value": action_id}],
+                        "properties": [
+                            {
+                                "key": "reflow.operator_action_id",
+                                "value": {"operator_action_id": action_id},
+                            }
+                        ],
                     },
                 )
                 payload = self._json(response)
