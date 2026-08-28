@@ -276,8 +276,6 @@ describe("Calendar Overview timeline", () => {
           "../docs/ui-openapi.json",
           "src/app/contract",
           "src/app/data",
-          "../objective_recovery_agent",
-          "../src/objective_recovery/web_bff",
           "src/app/auth",
         ],
         { encoding: "utf8" },

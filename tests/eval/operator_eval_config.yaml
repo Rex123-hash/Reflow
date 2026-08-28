@@ -1,0 +1,7 @@
+metrics_to_run:
+  - p2f_operator_behavior
+
+custom_metrics:
+  - name: p2f_operator_behavior
+    execution: local
+    custom_function_file: operator_metric.py

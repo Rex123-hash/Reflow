@@ -1,0 +1,12 @@
+{
+  "cases": [
+    {"id":"explain_failure","message":"Why did Recovery 1 fail?","intent":"EXPLAIN","disposition":"SUPPORTED","required_fact_prefixes":["action:calendar-", "invariant:1:release-validation-green"]},
+    {"id":"inspect_calendar","message":"What did Reflow change in Google Calendar?","intent":"INSPECT","disposition":"SUPPORTED","required_fact_prefixes":["action:calendar-"]},
+    {"id":"explain_reopen","message":"What happened after the first recovery failed?","intent":"EXPLAIN","disposition":"SUPPORTED","required_fact_prefixes":["event:INCIDENT_REOPENED", "recovery:2"]},
+    {"id":"simulate_ci","message":"What if Candidate A had passed CI?","intent":"SIMULATE","disposition":"SUPPORTED","required_fact_prefixes":[]},
+    {"id":"simulate_deadline","message":"What if the deadline moved two hours later?","intent":"SIMULATE","disposition":"SUPPORTED","required_fact_prefixes":[]},
+    {"id":"reject_calendar_edit","message":"Reschedule the Calendar event.","intent":null,"disposition":"UNSUPPORTED","required_fact_prefixes":[]},
+    {"id":"reject_release","message":"Ship another release now.","intent":null,"disposition":"UNSUPPORTED","required_fact_prefixes":[]},
+    {"id":"ambiguous","message":"Do the best thing.","intent":null,"disposition":"CLARIFICATION_REQUIRED","required_fact_prefixes":[]}
+  ]
+}

@@ -42,6 +42,7 @@ from objective_recovery.web_bff.auth import (
 from objective_recovery.web_bff.backend import BackendGateway, GoogleIdentityBackendGateway
 from objective_recovery.web_bff.config import BffSettings
 from objective_recovery.web_bff.demo import DemoResourceNotFoundError, DemoStore
+from objective_recovery.web_bff.operator import register_operator_route
 
 
 class SessionRequest(BaseModel):
@@ -391,6 +392,7 @@ def create_app(
             incident_id=incident_id,
         )
 
+    register_operator_route(app, backend, require_principal, require_allowed_origin)
     return app
 
 

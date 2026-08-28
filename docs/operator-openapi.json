@@ -1,0 +1,612 @@
+{
+  "components": {
+    "schemas": {
+      "HypotheticalChange": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "CI_PASSED",
+              "DEADLINE_SHIFT_MINUTES",
+              "RESOURCE_AVAILABLE_AT"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "target": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Target",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "target",
+          "value"
+        ],
+        "title": "HypotheticalChange",
+        "type": "object"
+      },
+      "OperatorAgentTrace": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_id": {
+            "enum": [
+              "operator_intent_interpreter",
+              "simulation_agent"
+            ],
+            "title": "Agent Id",
+            "type": "string"
+          },
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "total_tokens": {
+            "title": "Total Tokens",
+            "type": "integer"
+          },
+          "validation": {
+            "const": "PASSED",
+            "default": "PASSED",
+            "title": "Validation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent_id",
+          "model",
+          "request_id",
+          "latency_ms",
+          "attempts",
+          "input_tokens",
+          "output_tokens",
+          "total_tokens"
+        ],
+        "title": "OperatorAgentTrace",
+        "type": "object"
+      },
+      "OperatorEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "title": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "title",
+          "observed_at"
+        ],
+        "title": "OperatorEvidence",
+        "type": "object"
+      },
+      "OperatorFact": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "fact_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fact_id",
+          "text",
+          "evidence_ids"
+        ],
+        "title": "OperatorFact",
+        "type": "object"
+      },
+      "OperatorIntent": {
+        "additionalProperties": false,
+        "properties": {
+          "clarification": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Clarification"
+          },
+          "constraints": {
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Constraints",
+            "type": "array"
+          },
+          "disposition": {
+            "enum": [
+              "SUPPORTED",
+              "CLARIFICATION_REQUIRED",
+              "UNSUPPORTED"
+            ],
+            "title": "Disposition",
+            "type": "string"
+          },
+          "fact_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "hypothetical_changes": {
+            "items": {
+              "$ref": "#/components/schemas/HypotheticalChange"
+            },
+            "maxItems": 3,
+            "title": "Hypothetical Changes",
+            "type": "array"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "intent_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "INSPECT",
+                  "EXPLAIN",
+                  "SIMULATE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Intent Type"
+          },
+          "question": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "recovery_attempt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Recovery Attempt"
+          },
+          "subject": {
+            "enum": [
+              "OBJECTIVE",
+              "RECOVERY",
+              "CALENDAR",
+              "EVIDENCE",
+              "CHRONOLOGY"
+            ],
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "disposition",
+          "subject",
+          "incident_id",
+          "question",
+          "hypothetical_changes",
+          "constraints",
+          "fact_ids"
+        ],
+        "title": "OperatorIntent",
+        "type": "object"
+      },
+      "OperatorQuery": {
+        "additionalProperties": false,
+        "properties": {
+          "incident_id": {
+            "pattern": "^incident-[a-zA-Z0-9-]{1,80}$",
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 1200,
+            "minLength": 3,
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "incident_id",
+          "message"
+        ],
+        "title": "OperatorQuery",
+        "type": "object"
+      },
+      "OperatorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "agents": {
+            "items": {
+              "$ref": "#/components/schemas/OperatorAgentTrace"
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Agents",
+            "type": "array"
+          },
+          "answer": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Answer",
+            "type": "string"
+          },
+          "disposition": {
+            "enum": [
+              "SUPPORTED",
+              "CLARIFICATION_REQUIRED",
+              "UNSUPPORTED"
+            ],
+            "title": "Disposition",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/OperatorEvidence"
+            },
+            "maxItems": 40,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "external_effects_executed": {
+            "const": false,
+            "default": false,
+            "title": "External Effects Executed",
+            "type": "boolean"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/OperatorFact"
+            },
+            "maxItems": 12,
+            "title": "Facts",
+            "type": "array"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          },
+          "hypothetical_deadline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hypothetical Deadline"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/OperatorIntent"
+          },
+          "provenance": {
+            "enum": [
+              "AUTHORITATIVE_SNAPSHOT",
+              "HYPOTHETICAL_NO_ACTION"
+            ],
+            "title": "Provenance",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "simulation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SimulationResult"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "snapshot_fingerprint": {
+            "title": "Snapshot Fingerprint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "incident_id",
+          "revision",
+          "snapshot_fingerprint",
+          "generated_at",
+          "disposition",
+          "intent",
+          "answer",
+          "facts",
+          "evidence",
+          "provenance",
+          "agents"
+        ],
+        "title": "OperatorResponse",
+        "type": "object"
+      },
+      "SimulationFuture": {
+        "additionalProperties": false,
+        "properties": {
+          "consequence": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Consequence",
+            "type": "string"
+          },
+          "required_verification": {
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Required Verification",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "tradeoffs": {
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Tradeoffs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "title",
+          "consequence",
+          "tradeoffs",
+          "required_verification"
+        ],
+        "title": "SimulationFuture",
+        "type": "object"
+      },
+      "SimulationResult": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "candidate_futures": {
+            "items": {
+              "$ref": "#/components/schemas/SimulationFuture"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Candidate Futures",
+            "type": "array"
+          },
+          "evidence_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "external_effects_executed": {
+            "title": "External Effects Executed",
+            "type": "boolean"
+          },
+          "likely_objective_outcome": {
+            "enum": [
+              "MAY_IMPROVE",
+              "STILL_AT_RISK",
+              "INSUFFICIENT_EVIDENCE"
+            ],
+            "title": "Likely Objective Outcome",
+            "type": "string"
+          },
+          "provenance": {
+            "const": "HYPOTHETICAL_NO_ACTION",
+            "title": "Provenance",
+            "type": "string"
+          },
+          "risk_critique": {
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Risk Critique",
+            "type": "array"
+          },
+          "scenario_summary": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Scenario Summary",
+            "type": "string"
+          },
+          "threatened_invariants": {
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Threatened Invariants",
+            "type": "array"
+          },
+          "unsupported_assumptions": {
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Unsupported Assumptions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "provenance",
+          "scenario_summary",
+          "assumptions",
+          "threatened_invariants",
+          "candidate_futures",
+          "risk_critique",
+          "likely_objective_outcome",
+          "unsupported_assumptions",
+          "evidence_ids",
+          "external_effects_executed"
+        ],
+        "title": "SimulationResult",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Reflow Operator",
+    "version": "p2f-v1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/operator/query": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperatorQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatorResponse"
+                }
+              }
+            },
+            "description": "Validated read-only reasoning"
+          }
+        }
+      }
+    }
+  }
+}

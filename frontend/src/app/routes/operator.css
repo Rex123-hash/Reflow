@@ -115,6 +115,20 @@
   max-width: 66ch;
 }
 
+.operator-result > p + p,
+.operator-result h3,
+.operator-result h4,
+.operator-result ul {
+  margin-top: var(--space-3);
+}
+
+.operator-result li {
+  margin-block: var(--space-2);
+  color: var(--body);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 .operator-focus {
   display: flex;
   align-items: center;

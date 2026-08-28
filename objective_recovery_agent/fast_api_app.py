@@ -41,6 +41,7 @@ from objective_recovery_agent.gmail_store import FirestoreGmailStore
 from objective_recovery_agent.ledger import FirestoreWorkflowLedger
 from objective_recovery_agent.objective_store import FirestoreObjectiveStore
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
+from objective_recovery_agent.operator_api import router as operator_router
 from objective_recovery_agent.orchestrator import RecoveryOrchestrator
 from objective_recovery_agent.p1c import P1CConfiguration, authorize_p1c_intent
 from objective_recovery_agent.p1d import (
@@ -85,6 +86,7 @@ app = FastAPI(
     redoc_url=None,
     openapi_url="/openapi.json",
 )
+app.include_router(operator_router)
 
 
 @lru_cache(maxsize=1)
