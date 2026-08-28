@@ -3,7 +3,7 @@ import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
 import { Icon } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import { HealthPill, StageChip } from "../components/StatusVocabulary";
-import { useOverview } from "../data/resources";
+import { useOverview, useRecoveryCase } from "../data/resources";
 import {
   formatDeadline,
   formatDuration,
@@ -23,6 +23,12 @@ import "./overview.css";
  */
 export function OverviewRoute() {
   const overview = useOverview();
+  const restoredIncidentId =
+    overview.status === "ready" &&
+    overview.data.current_priority?.objective_health === "RESTORED"
+      ? (overview.data.current_priority.incident_id ?? null)
+      : null;
+  const recovery = useRecoveryCase(restoredIncidentId);
 
   if (overview.status === "loading") {
     return (
@@ -58,7 +64,28 @@ export function OverviewRoute() {
   }
 
   const isRestored = priority.objective_health === "RESTORED";
-  const margin = priority.time_remaining_seconds;
+
+  if (restoredIncidentId && recovery.status === "loading") {
+    return (
+      <div className="route-pad">
+        <LoadingState label="Loading overview" rows={4} />
+      </div>
+    );
+  }
+
+  if (restoredIncidentId && recovery.status === "error") {
+    return (
+      <div className="route-pad">
+        <ErrorState error={recovery.error} onRetry={recovery.reload} />
+      </div>
+    );
+  }
+
+  const timing = isRestored
+    ? recovery.status === "ready"
+      ? recovery.data.objective.deadline_margin_seconds
+      : null
+    : priority.time_remaining_seconds;
 
   return (
     <div className="route-pad overview">
@@ -80,13 +107,13 @@ export function OverviewRoute() {
               )}
             </dd>
           </div>
-          {margin != null ? (
+          {timing != null ? (
             <div>
               <dt>{isRestored ? "Margin" : "Remaining"}</dt>
               <dd className="mono">
                 {isRestored
-                  ? `Restored ${formatDuration(margin)} before deadline`
-                  : formatDuration(margin)}
+                  ? `Restored ${formatDuration(timing)} before deadline`
+                  : formatDuration(timing)}
               </dd>
             </div>
           ) : null}

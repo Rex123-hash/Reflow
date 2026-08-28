@@ -90,7 +90,8 @@ export function formatClock(
 
 /**
  * `95710` → `26h 35m`. Only ever called with a backend-supplied seconds value
- * (`CurrentPriority.time_remaining_seconds`); never with a client-side subtraction.
+ * (`time_remaining_seconds` or `deadline_margin_seconds`); never with a
+ * client-side subtraction.
  */
 export function formatDuration(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
