@@ -89,7 +89,10 @@ describe("real Operator conversation", () => {
       screen.getByText("Objective verification failed."),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Recovery 01 verification" }),
+      // The evidence row now carries its observed-at stamp inside the link, so the
+      // accessible name is the title plus that stamp. The point of the assertion is
+      // the exact evidence identifier in the href, which is unchanged.
+      screen.getByRole("link", { name: /Recovery 01 verification/ }),
     ).toHaveAttribute(
       "href",
       "/app/evidence/incident-abc?evidence=objective-verification%3A1",

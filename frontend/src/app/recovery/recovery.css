@@ -356,8 +356,22 @@
   padding: var(--space-5);
 }
 
+/**
+ * The recovery reading column.
+ *
+ * The middle column of the instrument is ~1270px on a 1920 display while the lens
+ * body was pinned to 900px on its left edge, which left a wide dead field down the
+ * right of every lens. The column is centred inside the workspace and allowed a
+ * slightly longer measure; the headings, tables and cards inside it stay
+ * left-aligned, and prose keeps its own 66ch cap.
+ */
+.workspace-scroll > * {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
 .lens-body {
-  max-width: 900px;
+  max-width: 1120px;
 }
 
 .lens-verdict-row {

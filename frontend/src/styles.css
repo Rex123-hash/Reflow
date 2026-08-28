@@ -541,9 +541,18 @@ a {
   background: var(--canvas);
 }
 
+/**
+ * Scroll distance for the whole pinned story.
+ *
+ * Raised from 500svh. The beats now have real settled plateaus rather than passing
+ * through their composed state, and those plateaus need scroll to spend: at 600svh
+ * (500svh of travel while pinned) each of the seven beats owns roughly 70svh, and
+ * the settled part of a beat is around half a screen of scrolling during which
+ * nothing on the page moves at all.
+ */
 .story-track {
   position: relative;
-  height: 500svh;
+  height: 600svh;
 }
 
 .story-anchor {
@@ -555,7 +564,30 @@ a {
   scroll-margin-top: var(--header-height);
 }
 
+/**
+ * The phase rail's safe gutter.
+ *
+ * The rail is a column of labels pinned to the right edge, and the tall cards that
+ * anchor to that same edge were positioned with their own `right: clamp(...)`
+ * values of at most 96px — so on a wide display the ACT receipt and the VERIFY
+ * invariant list occupied the same band of screen as the rail and sat on top of it.
+ *
+ * The rail's geometry is declared once, here, and `--story-rail-safe` is the
+ * minimum right offset anything sharing the rail's vertical band may use. The
+ * right-anchored cards take `max(their own edge, --story-rail-safe)`, so each keeps
+ * its intended inset on narrow screens and is held clear of the rail on wide ones.
+ * Nothing is nudged by a pixel offset measured off a screenshot, and the beats keep
+ * symmetric padding so centred compositions stay centred.
+ */
 .sticky-stage {
+  --story-rail-width: 190px;
+  --story-rail-inset: 20px;
+  --story-rail-clearance: 22px;
+  --story-rail-safe: calc(
+    var(--story-rail-width) + var(--story-rail-inset) +
+      var(--story-rail-clearance)
+  );
+
   position: sticky;
   top: 0;
   width: 100%;
@@ -987,7 +1019,7 @@ a {
 .disruption-card {
   position: absolute;
   top: calc(var(--header-height) + 44px);
-  right: clamp(38px, 5.5vw, 96px);
+  right: max(clamp(38px, 5.5vw, 96px), var(--story-rail-safe));
   width: clamp(380px, 34vw, 520px);
   padding: 22px 26px 24px;
 }
@@ -1128,7 +1160,7 @@ a {
 
 .future-orbital-labels {
   position: absolute;
-  right: clamp(34px, 5vw, 82px);
+  right: max(clamp(34px, 5vw, 82px), var(--story-rail-safe));
   bottom: 28px;
   left: clamp(34px, 5vw, 82px);
   display: grid;
@@ -1309,7 +1341,7 @@ a {
 .receipt-card {
   position: absolute;
   top: calc(var(--header-height) + 44px);
-  right: clamp(38px, 5.5vw, 96px);
+  right: max(clamp(38px, 5.5vw, 96px), var(--story-rail-safe));
   z-index: 5;
   width: clamp(500px, 43vw, 650px);
   padding: 0 22px 20px;
@@ -1450,7 +1482,7 @@ a {
 
 .failure-marker {
   position: absolute;
-  right: 9vw;
+  right: max(9vw, var(--story-rail-safe));
   bottom: 16vh;
   z-index: 4;
   display: grid;
@@ -1499,7 +1531,7 @@ a {
 
 .replan-steps {
   position: absolute;
-  right: clamp(38px, 6vw, 110px);
+  right: max(clamp(38px, 6vw, 110px), var(--story-rail-safe));
   bottom: 42px;
   left: clamp(38px, 6vw, 110px);
   z-index: 4;
@@ -1539,7 +1571,7 @@ a {
 .verification-preview {
   position: absolute;
   top: calc(var(--header-height) + 120px);
-  right: clamp(38px, 7vw, 120px);
+  right: max(clamp(38px, 7vw, 120px), var(--story-rail-safe));
   z-index: 4;
   width: min(360px, 31vw);
   padding: 20px;
@@ -1574,14 +1606,14 @@ a {
 
 .story-progress {
   position: absolute;
-  right: 18px;
+  right: var(--story-rail-inset);
   top: 50%;
   z-index: 20;
   display: flex;
   flex-direction: column;
   gap: 9px;
   transform: translateY(-50%);
-  width: 190px;
+  width: var(--story-rail-width);
 }
 
 .story-progress span {
@@ -1598,7 +1630,7 @@ a {
 }
 
 .story-progress b {
-  width: 170px;
+  width: calc(var(--story-rail-width) - 20px);
   opacity: 0;
   white-space: nowrap;
 }
@@ -1717,7 +1749,20 @@ a {
   }
 
   .story-track {
-    height: 690svh;
+    height: 780svh;
+  }
+
+  /* A 190px rail would claim a quarter of a tablet's width once the beats keep
+     clear of it, so the labels tighten rather than the copy being squeezed. */
+  .sticky-stage {
+    --story-rail-width: 132px;
+    --story-rail-inset: 14px;
+    --story-rail-clearance: 16px;
+  }
+
+  .story-progress span {
+    font-size: 0.53rem;
+    letter-spacing: 0.06em;
   }
 
   .site-header {
@@ -1791,7 +1836,7 @@ a {
   }
 
   .story-track {
-    height: 650svh;
+    height: 730svh;
   }
 
   .sticky-stage {

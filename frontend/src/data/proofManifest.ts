@@ -1,13 +1,12 @@
+import {
+  STORY_BEATS,
+  STORY_BEAT_ORDER,
+  type StoryStageId,
+} from "./storySchedule";
+
 export type ProofLevel = "architecture" | "recorded-proof" | "product-preview";
 
-export type StoryStageId =
-  | "hero"
-  | "risk"
-  | "futures"
-  | "action"
-  | "incomplete"
-  | "replan"
-  | "restored";
+export type { StoryStageId };
 
 export interface StoryCapability {
   id: StoryStageId;
@@ -69,25 +68,21 @@ export const STORY_CAPABILITIES: readonly StoryCapability[] = [
   },
 ] as const;
 
-export const STORY_FRAME_PROGRESS: Record<StoryStageId, number> = {
-  hero: 0.055,
-  risk: 0.19,
-  futures: 0.33,
-  action: 0.48,
-  incomplete: 0.62,
-  replan: 0.76,
-  restored: 0.92,
-};
+/**
+ * Where `?frame=<stage>` parks the timeline: the middle of each beat's settled
+ * plateau. These were hand-written constants, and they had drifted away from the
+ * animation — `?frame=futures` landed at 0.33, where two of the three future cards
+ * were still fading in. Deriving them from the schedule makes a capture frame the
+ * definition of "this beat, fully composed and still".
+ */
+export const STORY_FRAME_PROGRESS = Object.fromEntries(
+  STORY_BEAT_ORDER.map((id) => [id, STORY_BEATS[id].frameP]),
+) as Record<StoryStageId, number>;
 
-const STORY_STAGE_PROGRESS: Record<StoryStageId, number> = {
-  hero: 0,
-  risk: 0.12,
-  futures: 0.255,
-  action: 0.405,
-  incomplete: 0.555,
-  replan: 0.685,
-  restored: 0.835,
-};
+/** A stage becomes the active one as soon as its beat begins arriving. */
+const STORY_STAGE_PROGRESS = Object.fromEntries(
+  STORY_BEAT_ORDER.map((id) => [id, STORY_BEATS[id].startP]),
+) as Record<StoryStageId, number>;
 
 export interface RecordedCalendarProof {
   mode: "recorded-proof";

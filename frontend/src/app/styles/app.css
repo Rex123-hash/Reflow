@@ -18,13 +18,19 @@
 
 /* ------------------------------------------------------------------ nav --- */
 
+/**
+ * Three zones: brand, primary nav, workspace/account.
+ *
+ * The nav used to be a flex row where the links took `flex: 1` immediately after
+ * the brand, which pinned the whole set to the left and left a long empty run
+ * before the account cluster. A `1fr auto 1fr` grid centres the nav on the
+ * container instead, and — because the outer columns are equal fractions rather
+ * than content-sized — it stays optically centred when the right-hand cluster
+ * changes width (Live vs. Demo · Read only, a longer set of initials, the
+ * development scenario switch appearing).
+ */
 .app-nav {
   flex: 0 0 auto;
-  height: var(--app-nav-height);
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-  padding: 0 var(--space-5);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   position: sticky;
@@ -32,38 +38,51 @@
   z-index: 40;
 }
 
+.app-nav-inner {
+  height: var(--app-nav-height);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-5);
+  padding-inline: var(--workspace-gutter);
+}
+
 .app-brand {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: 0.94rem;
+  gap: 10px;
+  font-size: 1.125rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: var(--ink);
   text-decoration: none;
+  justify-self: start;
+  min-width: 0;
 }
 
 .app-brand img {
-  width: 19px;
-  height: 19px;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 auto;
 }
 
 .app-nav-links {
   display: flex;
   align-items: center;
-  gap: var(--space-5);
-  flex: 1;
+  justify-content: center;
+  gap: var(--space-6);
   min-width: 0;
 }
 
 .app-nav-links a {
   position: relative;
-  font-size: 0.79rem;
+  font-size: 0.96rem;
   font-weight: 500;
   color: var(--body);
   text-decoration: none;
-  padding: 4px 0;
+  padding: 6px 0;
   white-space: nowrap;
+  transition: color 140ms ease;
 }
 
 .app-nav-links a:hover {
@@ -75,20 +94,26 @@
   font-weight: 600;
 }
 
+/* Anchored to the header's own bottom edge rather than an offset guessed from
+   the old 54px height, so the underline survives any header-height change. */
 .app-nav-links a[aria-current="page"]::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -18px;
+  left: -2px;
+  right: -2px;
+  top: calc(var(--app-nav-height) / 2 + 12px);
   height: 2px;
+  border-radius: 2px;
   background: var(--brass);
 }
 
 .app-nav-tail {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--space-3);
+  justify-self: end;
+  min-width: 0;
 }
 
 .workspace-mode {
@@ -97,9 +122,9 @@
   gap: 7px;
   white-space: nowrap;
   color: var(--body);
-  font-size: 11px;
+  font-size: 0.72rem;
   font-weight: 650;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 .workspace-mode i {
@@ -107,6 +132,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--brass);
+  flex: 0 0 auto;
 }
 
 .workspace-mode.is-live i {
@@ -115,30 +141,162 @@
 }
 
 .app-signout {
-  padding: 5px 8px;
+  padding: 7px 10px;
   border: 0;
+  border-radius: var(--radius-xs);
   background: transparent;
   color: var(--body);
-  font:
-    600 11px/1 system-ui,
-    sans-serif;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .app-signout:hover {
   color: var(--ink);
+  background: var(--surface-elevated);
 }
 
 .app-avatar {
-  width: 28px;
-  height: 28px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: var(--forest);
   color: #fffdf9;
-  font-size: 0.66rem;
+  font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
+  flex: 0 0 auto;
+}
+
+/**
+ * Below 900px the five primary routes cannot share a row with the brand and the
+ * account cluster — they used to overlap each other and push 91px of horizontal
+ * page overflow at 390px. They move to their own band under the header: a single
+ * scrollable rail of the same five routes, with the active one carrying the same
+ * brass underline it has on desktop. No route is hidden behind a menu and the
+ * route architecture is unchanged.
+ */
+.app-nav-rail {
+  display: none;
+}
+
+/* The brand block carries the workspace status only on the narrowest layout,
+   where the account cluster has no room for it. Declared before the media query
+   that turns it on so source order cannot defeat it. */
+.app-brand-block .workspace-mode {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --app-nav-rail-height: 46px;
+  }
+
+  .app-nav-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    height: auto;
+    min-height: 60px;
+    padding-block: var(--space-2);
+  }
+
+  .app-nav-inner > .app-nav-links {
+    display: none;
+  }
+
+  .app-brand {
+    font-size: 1.02rem;
+  }
+
+  .app-brand img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .app-nav-tail {
+    gap: var(--space-2);
+  }
+
+  .app-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.72rem;
+  }
+
+  .app-nav-rail {
+    display: block;
+    height: var(--app-nav-rail-height);
+    border-top: 1px solid var(--line-soft);
+    overflow: hidden;
+    /* Fades the last route into the edge so the rail reads as scrollable rather
+       than as a label clipped by accident. */
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--workspace-gutter),
+      #000 calc(100% - 26px),
+      transparent 100%
+    );
+  }
+
+  .app-nav-rail .app-nav-links {
+    height: 100%;
+    justify-content: flex-start;
+    gap: var(--space-5);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    padding-inline: var(--workspace-gutter);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app-nav-rail .app-nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-nav-rail .app-nav-links a {
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    padding: 0;
+  }
+
+  .app-nav-rail .app-nav-links a[aria-current="page"]::after {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  /* The workspace label carries "Demo workspace · Read only", which is truth the
+     mobile header must not drop; it wraps under the brand rather than competing
+     with the account controls for the same row. */
+  .workspace-mode {
+    font-size: 0.66rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-brand-block {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .app-nav-tail .workspace-mode {
+    display: none;
+  }
+
+  .app-brand-block .workspace-mode {
+    display: inline-flex;
+    padding-left: 2px;
+  }
 }
 
 /* --------------------------------------------------- objective context bar --- */
@@ -149,12 +307,22 @@
   display: flex;
   align-items: center;
   gap: 0;
-  padding: var(--space-2) var(--space-5);
+  padding: var(--space-2) var(--workspace-gutter);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   position: sticky;
-  top: var(--app-nav-height);
+  top: calc(var(--app-nav-height) + var(--app-nav-rail-height));
   z-index: 30;
+}
+
+@media (max-width: 900px) {
+  .objective-bar {
+    /* The header grows a second row and the rail on mobile; the sticky offset is
+       derived from both rather than assuming a fixed header height. */
+    position: static;
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+  }
 }
 
 .objective-bar-identity {
@@ -600,8 +768,29 @@
   flex-direction: column;
 }
 
+/**
+ * The one workspace container.
+ *
+ * Every padded route uses this and nothing else: no page-specific max-width, no
+ * page-specific left offset. The box is centred; everything inside it stays
+ * left-aligned, so a heading, a table and a card all share the same left rule
+ * whichever surface you are on.
+ */
+.route-pad,
+.workspace-inset {
+  width: 100%;
+  max-width: var(--workspace-max);
+  margin-inline: auto;
+}
+
 .route-pad {
-  padding: var(--space-6) var(--space-5);
+  padding: var(--space-6) var(--workspace-gutter) var(--space-6);
+}
+
+@media (max-width: 900px) {
+  .route-pad {
+    padding-top: var(--space-5);
+  }
 }
 
 .skeleton {

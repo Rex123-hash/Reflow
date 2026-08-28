@@ -1,6 +1,4 @@
-.evidence-page {
-  max-width: 1240px;
-}
+/* Width now comes from the shared .route-pad workspace container. */
 
 .evidence-head {
   display: flex;

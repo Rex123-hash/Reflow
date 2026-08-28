@@ -1,5 +1,12 @@
-.operator {
-  max-width: 1080px;
+/**
+ * The console sits on the shared workspace container's left rule, so the page
+ * begins exactly where Overview, Objectives and Evidence begin. Only its measure
+ * is shorter: this is a reading surface, and the answer, the input and the incident
+ * context all belong to one column rather than being stretched across the full
+ * desktop canvas.
+ */
+.operator > * {
+  max-width: var(--workspace-reading);
 }
 
 .operator-head {
@@ -15,13 +22,13 @@
   margin: var(--space-2) 0 var(--space-2);
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 2.1rem;
+  font-size: 2.35rem;
   letter-spacing: -0.03em;
 }
 
 .operator-lede {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--body);
   line-height: 1.6;
   max-width: 62ch;
@@ -42,21 +49,45 @@
   color: var(--secondary);
 }
 
+/* ------------------------------------------------------------------ input --- */
+
+/**
+ * The console, not a chat box.
+ *
+ * The Operator is now the primary conversational control surface of the product,
+ * so the field carries real scale and a focus state that reads as an instrument
+ * engaging: the whole plate lifts and takes a forest ring, rather than the input
+ * growing a browser outline inside a silent container.
+ */
 .operator-form {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--elev-card);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.operator-form:focus-within {
+  border-color: var(--forest);
+  box-shadow:
+    var(--elev-raised),
+    0 0 0 3px color-mix(in srgb, var(--forest) 12%, transparent);
 }
 
 .operator-form svg {
   color: var(--secondary);
   flex: 0 0 auto;
+}
+
+.operator-form:focus-within svg {
+  color: var(--forest);
 }
 
 .operator-form input {
@@ -65,9 +96,9 @@
   border: 0;
   background: transparent;
   font-family: inherit;
-  font-size: 0.92rem;
+  font-size: 1.02rem;
   color: var(--ink);
-  padding: var(--space-2) 0;
+  padding: var(--space-3) 0;
 }
 
 .operator-form input:focus {
@@ -78,56 +109,528 @@
   color: var(--secondary);
 }
 
+.operator-form input:disabled {
+  cursor: not-allowed;
+}
+
 .operator-examples {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-bottom: var(--space-5);
 }
 
-.operator-result {
-  padding: var(--space-4) var(--space-5);
-  border: 1px solid var(--motion-line);
-  border-radius: var(--radius-lg);
-  background: #fdfaf4;
-  margin-bottom: var(--space-5);
+.operator-examples-label {
+  font-size: 0.59rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  font-weight: 700;
+  padding-right: var(--space-1);
 }
 
-.operator-result.is-unmatched {
-  border-color: var(--line-strong);
-  border-style: dashed;
-  background: transparent;
-}
-
-.operator-result h2 {
-  margin: var(--space-2) 0 var(--space-3);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 1.5rem;
-  letter-spacing: -0.02em;
-}
-
-.operator-result p {
-  margin: 0;
-  font-size: 0.83rem;
+.operator-example {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
   color: var(--body);
-  line-height: 1.6;
-  max-width: 66ch;
+  font-family: inherit;
+  font-size: 0.76rem;
+  padding: 6px 13px;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background-color 140ms ease;
 }
 
-.operator-result > p + p,
-.operator-result h3,
-.operator-result h4,
-.operator-result ul {
-  margin-top: var(--space-3);
+.operator-example:hover:not(:disabled) {
+  border-color: var(--verified-line);
+  background: var(--pale-sage);
+  color: var(--forest);
 }
 
-.operator-result li {
-  margin-block: var(--space-2);
+.operator-example:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------- transient notes --- */
+
+.operator-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  font-size: 0.78rem;
   color: var(--body);
-  font-size: 0.8rem;
   line-height: 1.5;
 }
+
+.operator-note svg {
+  flex: 0 0 auto;
+  color: var(--secondary);
+}
+
+.operator-note.is-error {
+  border-color: var(--failed-line);
+  background: var(--failed-wash);
+  color: var(--failed-ink);
+}
+
+.operator-note.is-busy {
+  border-color: var(--motion-line);
+  background: var(--motion-fill);
+  color: var(--motion-ink);
+}
+
+.operator-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brass);
+  flex: 0 0 auto;
+  animation: operator-pulse 1.15s ease-in-out infinite;
+}
+
+@keyframes operator-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operator-pulse {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------------------------------- answer --- */
+
+.operator-result {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--elev-card);
+  margin-bottom: var(--space-5);
+  overflow: hidden;
+  animation: operator-answer-in 260ms ease-out both;
+}
+
+@keyframes operator-answer-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operator-result {
+    animation: none;
+  }
+}
+
+/**
+ * State bar.
+ *
+ * Carries the two things the runtime is authoritative about: the classified intent
+ * and whether anything left the building. "Read only" used to be the headline of the
+ * whole card; it is true and stays visible, but as state on a rule rather than as
+ * the title of the answer.
+ */
+.operator-result-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-elevated);
+}
+
+.operator-intent {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--verified-line);
+  background: var(--verified-fill);
+  color: var(--verified-ink);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.operator-intent.is-simulate {
+  border-color: var(--motion-line);
+  background: var(--motion-fill);
+  color: var(--motion-ink);
+}
+
+.operator-provenance-state {
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+/**
+ * Simulation is unmistakable but never alarmist: a brass hairline and a sand wash,
+ * plus a hatched top edge, so a hypothetical future can never be mistaken for an
+ * observed one. It borrows the caution palette the product already uses for
+ * in-motion states rather than introducing a warning colour.
+ */
+.operator-result.is-simulation {
+  border-color: var(--motion-line);
+  background: #fdfaf3;
+}
+
+.operator-result.is-simulation .operator-result-bar {
+  background: var(--motion-fill);
+  border-bottom-color: var(--motion-line);
+}
+
+.operator-result.is-simulation .operator-provenance-state {
+  color: var(--motion-ink);
+}
+
+.operator-result.is-simulation::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--brass) 0 5px,
+    transparent 5px 10px
+  );
+  opacity: 0.5;
+}
+
+/**
+ * Answer and proof, side by side.
+ *
+ * The answer used to be a 66ch column inside a full-width card, which left most of
+ * the card empty and made a real Gemini response look like a development print-out.
+ * The measure is still capped — that is what makes it readable — but the freed
+ * column now carries the evidence and provenance instead of nothing.
+ */
+.operator-answer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 350px);
+  gap: 0;
+  align-items: start;
+}
+
+.operator-answer {
+  padding: var(--space-5);
+  min-width: 0;
+}
+
+.operator-answer .field-label {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.operator-answer h2 {
+  margin: 0 0 var(--space-5);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.72rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  max-width: 34ch;
+}
+
+.operator-prose p {
+  margin: 0 0 var(--space-3);
+  font-size: 0.92rem;
+  color: var(--ink);
+  line-height: 1.65;
+  max-width: 68ch;
+}
+
+.operator-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.operator-list {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.operator-list li {
+  position: relative;
+  padding-left: var(--space-4);
+  font-size: 0.83rem;
+  color: var(--body);
+  line-height: 1.55;
+  max-width: 72ch;
+}
+
+.operator-list li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sage);
+}
+
+.operator-simulation {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--motion-line);
+}
+
+.operator-simulation .field-label {
+  margin-top: var(--space-4);
+  color: var(--motion-ink);
+}
+
+.operator-hypothetical-deadline {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-left: 2px solid var(--brass);
+  background: var(--motion-fill);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.operator-hypothetical-deadline b {
+  font-size: 0.59rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--motion-ink);
+}
+
+.operator-hypothetical-deadline span {
+  font-family: var(--mono);
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.operator-hypothetical-deadline em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--body);
+}
+
+.operator-futures {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.operator-future {
+  padding: var(--space-4);
+  border: 1px dashed var(--motion-line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.operator-future h4 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.06rem;
+  letter-spacing: -0.01em;
+}
+
+.operator-future > p {
+  margin: 0 0 var(--space-3);
+  font-size: 0.85rem;
+  color: var(--body);
+  line-height: 1.55;
+}
+
+.operator-future .operator-list {
+  margin-bottom: var(--space-3);
+}
+
+.operator-future-verify {
+  margin: 0;
+  font-size: 0.73rem;
+  color: var(--secondary);
+  line-height: 1.5;
+}
+
+.operator-outlook {
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.83rem;
+  color: var(--body);
+  line-height: 1.55;
+}
+
+.operator-outlook b {
+  color: var(--motion-ink);
+  text-transform: capitalize;
+}
+
+/* ------------------------------------------------------- evidence + proof --- */
+
+.operator-support {
+  padding: var(--space-5);
+  border-left: 1px solid var(--line);
+  background: var(--surface-elevated);
+  align-self: stretch;
+  min-width: 0;
+}
+
+.operator-result.is-simulation .operator-support {
+  background: #faf5ea;
+  border-left-color: var(--motion-line);
+}
+
+.operator-support-block + .operator-support-block {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.operator-support-block .field-label {
+  display: block;
+  margin: 0 0 var(--space-3);
+}
+
+.operator-support-evidence {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.operator-support-evidence li + li {
+  border-top: 1px solid var(--line-soft);
+}
+
+/* Evidence is proof, so each item is a whole target rather than a link inside a
+   bullet: the row highlights, and the title carries the underline. */
+.operator-support-evidence a {
+  display: grid;
+  gap: 3px;
+  padding: var(--space-3) var(--space-2);
+  margin-inline: calc(var(--space-2) * -1);
+  border-radius: var(--radius-xs);
+  text-decoration: none;
+  transition: background-color 140ms ease;
+}
+
+.operator-support-evidence a:hover {
+  background: var(--pale-sage);
+}
+
+.operator-support-evidence b {
+  font-size: 0.79rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--forest);
+  text-decoration: underline;
+  text-decoration-color: var(--verified-line);
+  text-underline-offset: 2px;
+}
+
+.operator-support-evidence a:hover b {
+  text-decoration-color: var(--forest);
+}
+
+.operator-support-evidence span {
+  font-size: 0.66rem;
+  color: var(--secondary);
+}
+
+.operator-provenance {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.operator-provenance > div {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.operator-provenance dt {
+  font-size: 0.59rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  font-weight: 700;
+}
+
+.operator-provenance dd {
+  margin: 0;
+  font-size: 0.71rem;
+  color: var(--body);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.operator-agents {
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.operator-no-action {
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+@media (max-width: 1080px) {
+  .operator-answer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .operator-support {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .operator-result.is-simulation .operator-support {
+    border-top-color: var(--motion-line);
+  }
+}
+
+/* ---------------------------------------------------------- incident context --- */
 
 .operator-focus {
   display: flex;
@@ -142,7 +645,7 @@
 
 .operator-context {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-5);
   align-items: start;
@@ -248,4 +751,40 @@
   letter-spacing: 0.08em;
   color: var(--body);
   flex: 0 0 82px;
+}
+
+@media (max-width: 640px) {
+  .operator-form {
+    flex-wrap: wrap;
+    padding: var(--space-3);
+  }
+
+  /* The icon stays on the field's own row; only the submit control drops below,
+     so the input never appears to belong to a stray glyph above it. */
+  .operator-form svg {
+    order: 1;
+  }
+
+  .operator-form input {
+    order: 2;
+    flex: 1 1 0;
+    min-width: 100px;
+    font-size: 0.95rem;
+    padding-block: var(--space-2);
+  }
+
+  .operator-form .btn-primary {
+    order: 3;
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .operator-answer,
+  .operator-support {
+    padding: var(--space-4);
+  }
+
+  .operator-answer h2 {
+    font-size: 1.4rem;
+  }
 }

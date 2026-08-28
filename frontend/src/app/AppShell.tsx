@@ -15,6 +15,28 @@ const PRIMARY_NAV = [
   { to: "/app/evidence", label: "Evidence" },
 ] as const;
 
+/**
+ * The five primary routes, rendered twice: once in the centre zone of the desktop
+ * header and once in the mobile rail beneath it. Only one is ever displayed, and
+ * the desktop copy is the labelled landmark so assistive technology is not offered
+ * two identical "Primary" navigations.
+ */
+function PrimaryNav() {
+  return (
+    <>
+      {PRIMARY_NAV.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          className={({ isActive }) => (isActive ? "is-active" : undefined)}
+        >
+          {item.label}
+        </NavLink>
+      ))}
+    </>
+  );
+}
+
 export function AppShell() {
   const { session, signOut } = useAuthSession();
   const initials = (session.display_name ?? session.email ?? "Reflow")
@@ -24,46 +46,53 @@ export function AppShell() {
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
+  const workspace = (
+    <span className={`workspace-mode is-${session.mode}`}>
+      <i aria-hidden="true" />
+      {session.workspace_label}
+    </span>
+  );
+
   return (
     <div className="app-root">
       <header className="app-nav">
-        <a className="app-brand" href="/">
-          <img src={reflowMarkUrl} alt="" aria-hidden="true" />
-          <span>Reflow</span>
-        </a>
+        <div className="app-nav-inner workspace-inset">
+          <div className="app-brand-block">
+            <a className="app-brand" href="/">
+              <img src={reflowMarkUrl} alt="" aria-hidden="true" />
+              <span>Reflow</span>
+            </a>
+            {workspace}
+          </div>
 
-        <nav className="app-nav-links" aria-label="Primary">
-          {PRIMARY_NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => (isActive ? "is-active" : undefined)}
+          <nav className="app-nav-links" aria-label="Primary">
+            <PrimaryNav />
+          </nav>
+
+          <div className="app-nav-tail">
+            <ScenarioSwitch />
+            {workspace}
+            <button
+              type="button"
+              className="app-signout"
+              onClick={() => void signOut()}
             >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="app-nav-tail">
-          <ScenarioSwitch />
-          <span className={`workspace-mode is-${session.mode}`}>
-            <i aria-hidden="true" />
-            {session.workspace_label}
-          </span>
-          <button
-            type="button"
-            className="app-signout"
-            onClick={() => void signOut()}
-          >
-            Sign out
-          </button>
-          <span
-            className="app-avatar"
-            title={session.email ?? session.workspace_label}
-          >
-            {initials || "R"}
-          </span>
+              Sign out
+            </button>
+            <span
+              className="app-avatar"
+              title={session.email ?? session.workspace_label}
+            >
+              {initials || "R"}
+            </span>
+          </div>
         </div>
+
+        <nav className="app-nav-rail" aria-label="Primary">
+          <div className="app-nav-links">
+            <PrimaryNav />
+          </div>
+        </nav>
       </header>
 
       <Suspense

@@ -72,6 +72,30 @@
   --elev-raised:
     0 1px 2px rgba(23, 33, 28, 0.04), 0 16px 42px rgba(23, 33, 28, 0.065);
 
-  --app-nav-height: 54px;
+  --app-nav-height: 74px;
+  --app-nav-rail-height: 0px;
   --app-context-height: 70px;
+
+  /**
+   * The workspace: one centred container every route shares.
+   *
+   * Routes used to set their own max-width (1080/1180/1240) and no auto margin,
+   * so on a wide display the whole application sat against the left edge with a
+   * dead field on the right. The container is centred; the content inside it is
+   * still left-aligned.
+   *
+   * 1500px is derived, not picked: the Recovery Room's three-column instrument is
+   * 300 + 352 of fixed rails plus a ~780px reading column, and matching that here
+   * keeps a route's content column the same physical width whichever surface you
+   * are on. Below the sum of the width and its gutters the container simply
+   * becomes fluid.
+   */
+  --workspace-max: 1500px;
+  --workspace-gutter: clamp(20px, 3.2vw, 44px);
+  /**
+   * A reading column for the surfaces that are prose-led rather than data-led.
+   * It starts at the workspace's left rule like everything else — only its right
+   * edge stops early, because an answer set in a 1400px measure is unreadable.
+   */
+  --workspace-reading: 1080px;
 }

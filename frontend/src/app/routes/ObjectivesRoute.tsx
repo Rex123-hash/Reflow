@@ -82,12 +82,14 @@ export function ObjectivesRoute() {
           <table className="data-table objectives-table">
             <thead>
               <tr>
-                <th>Objective</th>
-                <th style={{ width: "16%" }}>Health</th>
-                <th style={{ width: "18%" }}>Workflow stage</th>
-                <th style={{ width: "20%" }}>Protected deadline</th>
-                <th style={{ width: "18%" }}>Latest observed state</th>
-                <th className="numeric" style={{ width: "12%" }} />
+                {/* The identity column takes the slack on a wide desktop canvas; the
+                    rest are sized to their content so no column stretches absurdly. */}
+                <th style={{ width: "31%" }}>Objective</th>
+                <th style={{ width: "12%" }}>Health</th>
+                <th style={{ width: "17%" }}>Workflow stage</th>
+                <th style={{ width: "16%" }}>Protected deadline</th>
+                <th style={{ width: "16%" }}>Latest observed state</th>
+                <th className="numeric" style={{ width: "8%" }} />
               </tr>
             </thead>
             <tbody>

@@ -1,6 +1,4 @@
-.objectives {
-  max-width: 1240px;
-}
+/* Width now comes from the shared .route-pad workspace container. */
 
 .objectives-head {
   display: flex;
@@ -102,8 +100,18 @@
 }
 
 @media (max-width: 900px) {
+  /* The row genuinely needs ~860px to keep every column readable, so it scrolls
+     rather than being squashed. The fade is the affordance that says so — without
+     it the trailing Open control simply looks clipped. */
   .objectives-table-card {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(
+      to right,
+      #000 0,
+      #000 calc(100% - 34px),
+      transparent 100%
+    );
   }
 
   .objectives-table {

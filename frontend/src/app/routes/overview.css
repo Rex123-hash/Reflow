@@ -1,5 +1,6 @@
+/* Width now comes from the shared .route-pad workspace container. */
 .overview {
-  max-width: 1180px;
+  container-type: inline-size;
 }
 
 .verdict {
