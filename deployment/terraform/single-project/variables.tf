@@ -55,6 +55,24 @@ variable "operator_jira" {
   default = null
 }
 
+variable "operator_slack" {
+  description = "One public Slack demo channel and pinned Secret Manager version; no token value. Null disables Slack."
+  type = object({
+    channel_id     = string
+    team_id        = string
+    secret_version = string
+  })
+  default = null
+  validation {
+    condition = var.operator_slack == null ? true : (
+      can(regex("^C[A-Z0-9]{8,20}$", var.operator_slack.channel_id)) &&
+      can(regex("^T[A-Z0-9]{8,20}$", var.operator_slack.team_id)) &&
+      can(regex("^[1-9][0-9]*$", var.operator_slack.secret_version))
+    )
+    error_message = "Slack requires one channel ID, team ID, and a pinned numeric secret version."
+  }
+}
+
 variable "github_p1c_repository" {
   type        = string
   description = "Single GitHub proof repository authorized for P1C."

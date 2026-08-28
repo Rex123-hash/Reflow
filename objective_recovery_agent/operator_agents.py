@@ -107,6 +107,18 @@ For ACT operations: JIRA_TRANSITION/JIRA_SET_PRIORITY/JIRA_ASSIGN/JIRA_SET_DUE_D
 JIRA_ADD_COMMENT uses comment; CALENDAR_RESCHEDULE/CALENDAR_UPDATE_TITLE/
 CALENDAR_UPDATE_DESCRIPTION use value. No free-form operation names. Use concise constraint
 summaries. No hidden reasoning, credentials, URLs, permission decisions, or instructions to execute.
+The following rules apply ONLY to Slack requests; existing JIRA/GOOGLE_CALENDAR/REFLOW mappings
+above are unchanged. Slack is an adapter, not an agent. "release channel" or "configured Slack
+channel" means the configured SLACK/CHANNEL resource configured-release-channel. A supplied raw
+channel ID, other channel name, DM, admin operation, edit, delete, or Block Kit is UNSUPPORTED;
+never remap an explicit different target. INSPECT uses subject SLACK, that target, no fact_ids,
+and no requested_operations (SLACK_INSPECT_CHANNEL is read-only). It returns channel metadata and
+the latest Reflow-bot message within 15 recent messages. Unconfigured Slack INSPECT clarifies.
+Slack ACT uses subject SLACK and one SLACK_POST_MESSAGE with plain text in value, comment null.
+Preserve quoted text, including any mass mention, for deterministic policy. "Tell the release
+channel that SCRUM-6 is blocked" maps to value "SCRUM-6 is blocked." Never invent message content.
+"Tell them we're blocked" and "Post a message to the release channel" both require clarification
+(missing target or message). Never apply these Slack-specific examples to other authorities.
 """.strip()
 
 SIMULATION_INSTRUCTION = """

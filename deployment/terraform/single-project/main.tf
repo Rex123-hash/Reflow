@@ -131,6 +131,28 @@ resource "google_secret_manager_secret_iam_member" "gmail_oauth_user_accessor" {
   member    = "serviceAccount:${google_service_account.app.email}"
 }
 
+resource "google_secret_manager_secret" "slack_bot_token" {
+  project   = var.project_id
+  secret_id = "${var.project_name}-slack-bot-token"
+
+  replication {
+    auto {}
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret_iam_member" "slack_bot_token_accessor" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.slack_bot_token.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.app.email}"
+}
+
 resource "google_service_account_iam_member" "app_calendar_token_creator" {
   service_account_id = google_service_account.app.name
   role               = "roles/iam.serviceAccountTokenCreator"
@@ -241,6 +263,28 @@ resource "google_cloud_run_v2_service" "app" {
         name  = "OBJECTIVE_RECOVERY_SERVICE_ACCOUNT"
         value = google_service_account.app.email
       }
+      dynamic "env" {
+        for_each = var.operator_slack == null ? {} : {
+          SLACK_DEMO_CHANNEL_ID = var.operator_slack.channel_id
+          SLACK_TEAM_ID         = var.operator_slack.team_id
+        }
+        content {
+          name  = env.key
+          value = env.value
+        }
+      }
+      dynamic "env" {
+        for_each = var.operator_slack == null ? [] : [var.operator_slack]
+        content {
+          name = "SLACK_BOT_TOKEN"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.slack_bot_token.secret_id
+              version = env.value.secret_version
+            }
+          }
+        }
+      }
       env {
         name  = "GITHUB_P1C_REPOSITORY"
         value = var.github_p1c_repository
@@ -307,6 +351,7 @@ resource "google_cloud_run_v2_service" "app" {
     google_service_account_iam_member.app_calendar_token_creator,
     google_secret_manager_secret_iam_member.github_p1c_token_accessor,
     google_secret_manager_secret_iam_member.gmail_oauth_user_accessor,
+    google_secret_manager_secret_iam_member.slack_bot_token_accessor,
   ]
 }
 

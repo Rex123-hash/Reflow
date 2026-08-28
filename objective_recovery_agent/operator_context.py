@@ -9,12 +9,14 @@ from objective_recovery_agent.operator_schemas import (
     OperatorFact,
     OperatorSnapshot,
 )
+from objective_recovery_agent.slack_operator_policy import SLACK_CREDENTIAL
 from objective_recovery_agent.ui_schemas import ExecutionEventsView, RecoveryCaseView
 
 
 def safe_text(value: str, limit: int = 800) -> str:
     value = re.sub(r"[\x00-\x08\x0b-\x1f]", "", value)
     value = re.sub(r"(?i)bearer\s+\S+|AIza[\w-]{20,}|sk-[\w-]{20,}", "[redacted]", value)
+    value = SLACK_CREDENTIAL.sub("[redacted]", value)
     value = re.sub(r"-----BEGIN[\s\S]*?-----END[^-]*-----", "[redacted]", value)
     return value.strip()[:limit] or "Unavailable"
 

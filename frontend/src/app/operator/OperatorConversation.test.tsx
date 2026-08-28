@@ -68,6 +68,75 @@ const response = {
 };
 
 describe("real Operator conversation", () => {
+  it("renders bounded Slack proof with the existing generic UI and generated contract", async () => {
+    const target = {
+      authority: "SLACK",
+      resource_type: "CHANNEL",
+      resource_identifier: "configured-release-channel",
+    };
+    const operations = [
+      { operation: "SLACK_POST_MESSAGE", value: "SCRUM-6 is blocked." },
+    ];
+    const state = {
+      channel_id: "C123ABC456",
+      message_ts: "1788000000.000123",
+      text: "SCRUM-6 is blocked.",
+    };
+    const value = {
+      ...response,
+      answer: "The authorized action was independently read back and VERIFIED.",
+      facts: [],
+      evidence: [],
+      provenance: "OPERATOR_ACTION",
+      external_effects_executed: true,
+      intent: {
+        ...response.intent,
+        intent_type: "ACT",
+        subject: "SLACK",
+        fact_ids: [],
+        target,
+        requested_operations: operations,
+      },
+      action: {
+        ...target,
+        operator_action_id: "b".repeat(64),
+        request_id: response.request_id,
+        authenticated_subject_hash: "c".repeat(64),
+        operations,
+        expected_state: state,
+        authorization_result: "AUTO_EXECUTABLE",
+        lifecycle: "VERIFIED",
+        execution_acknowledgement: {
+          channel_id: state.channel_id,
+          message_ts: state.message_ts,
+        },
+        observed_state: state,
+        verification_result: "PASSED",
+        adapter_proof: {},
+        created_at: response.generated_at,
+        updated_at: response.generated_at,
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(value), { status: 200 })),
+    );
+    render(
+      <MemoryRouter>
+        <OperatorConversation incidentId="incident-abc" live />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByLabelText("Ask Reflow"), {
+      target: { value: "Tell the release channel that SCRUM-6 is blocked." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Ask Reflow/ }));
+    expect(await screen.findByText("VERIFIED")).toBeInTheDocument();
+    expect(screen.getByText("slack post message")).toBeInTheDocument();
+    expect(screen.getByText("Acknowledged")).toBeInTheDocument();
+    expect(screen.getByText(/channel_id: C123ABC456/)).toBeInTheDocument();
+    expect(screen.getByText("configured-release-channel")).toBeInTheDocument();
+  });
+
   it("posts a bounded request and renders facts, provenance and exact evidence", async () => {
     const fetcher = vi.fn<typeof fetch>(
       async () => new Response(JSON.stringify(response), { status: 200 }),

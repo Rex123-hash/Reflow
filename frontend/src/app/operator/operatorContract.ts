@@ -7,7 +7,7 @@ export type HypotheticalChange = {
 export type OperatorActionView = {
   adapter_proof?: Record<string, string>;
   authenticated_subject_hash: string;
-  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW";
+  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW" | "SLACK";
   authorization_result: "AUTO_EXECUTABLE" | "APPROVAL_REQUIRED" | "DENIED";
   created_at: string;
   error_category?: string | null;
@@ -32,7 +32,7 @@ export type OperatorActionView = {
   request_fingerprint?: string | null;
   request_id: string;
   resource_identifier: string;
-  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE";
+  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE" | "CHANNEL";
   updated_at: string;
   verification_result?: "NOT_RUN" | "PASSED" | "FAILED";
 };
@@ -58,11 +58,11 @@ export type OperatorFact = {
   text: string;
 };
 export type OperatorInspection = {
-  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW";
+  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW" | "SLACK";
   observed_at: string;
   observed_state: Record<string, string | null>;
   resource_identifier: string;
-  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE";
+  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE" | "CHANNEL";
 };
 export type OperatorIntent = {
   clarification?: string | null;
@@ -76,7 +76,13 @@ export type OperatorIntent = {
   recovery_attempt?: number | null;
   requested_operations?: RequestedOperation[];
   subject:
-    "OBJECTIVE" | "RECOVERY" | "CALENDAR" | "JIRA" | "EVIDENCE" | "CHRONOLOGY";
+    | "OBJECTIVE"
+    | "RECOVERY"
+    | "CALENDAR"
+    | "JIRA"
+    | "SLACK"
+    | "EVIDENCE"
+    | "CHRONOLOGY";
   target?: OperatorTarget | null;
 };
 export type OperatorQuery = {
@@ -105,9 +111,9 @@ export type OperatorResponse = {
   snapshot_fingerprint: string;
 };
 export type OperatorTarget = {
-  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW";
+  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW" | "SLACK";
   resource_identifier: string;
-  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE";
+  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE" | "CHANNEL";
 };
 export type RequestedOperation = {
   comment?: string | null;
@@ -120,7 +126,9 @@ export type RequestedOperation = {
     | "CALENDAR_RESCHEDULE"
     | "CALENDAR_UPDATE_TITLE"
     | "CALENDAR_UPDATE_DESCRIPTION"
-    | "MOVE_PROTECTED_DEADLINE";
+    | "MOVE_PROTECTED_DEADLINE"
+    | "SLACK_INSPECT_CHANNEL"
+    | "SLACK_POST_MESSAGE";
   value?: string | null;
 };
 export type SimulationFuture = {

@@ -6,11 +6,13 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from objective_recovery_agent.slack_operator_policy import SLACK_CREDENTIAL
+
 ShortText = Annotated[str, Field(min_length=1, max_length=800)]
 Reference = Annotated[str, Field(min_length=1, max_length=200)]
 IntentType = Literal["INSPECT", "EXPLAIN", "SIMULATE", "ACT"]
-Authority = Literal["JIRA", "GOOGLE_CALENDAR", "REFLOW"]
-ResourceType = Literal["ISSUE", "EVENT", "OBJECTIVE"]
+Authority = Literal["JIRA", "GOOGLE_CALENDAR", "REFLOW", "SLACK"]
+ResourceType = Literal["ISSUE", "EVENT", "OBJECTIVE", "CHANNEL"]
 OperationType = Literal[
     "JIRA_TRANSITION",
     "JIRA_SET_PRIORITY",
@@ -21,6 +23,8 @@ OperationType = Literal[
     "CALENDAR_UPDATE_TITLE",
     "CALENDAR_UPDATE_DESCRIPTION",
     "MOVE_PROTECTED_DEADLINE",
+    "SLACK_INSPECT_CHANNEL",
+    "SLACK_POST_MESSAGE",
 ]
 
 
@@ -43,7 +47,12 @@ class OperatorTarget(OperatorModel):
 
     @model_validator(mode="after")
     def matching_resource(self) -> OperatorTarget:
-        expected = {"JIRA": "ISSUE", "GOOGLE_CALENDAR": "EVENT", "REFLOW": "OBJECTIVE"}
+        expected = {
+            "JIRA": "ISSUE",
+            "GOOGLE_CALENDAR": "EVENT",
+            "REFLOW": "OBJECTIVE",
+            "SLACK": "CHANNEL",
+        }
         if expected[self.authority] != self.resource_type:
             raise ValueError("Authority and resource type do not match")
         return self
@@ -61,11 +70,16 @@ class RequestedOperation(OperatorModel):
             not text.strip() or any(ord(c) < 32 and c not in "\n\t" for c in text)
         ):
             raise ValueError("Action text must be nonempty and contain no control characters")
-        if self.operation == "JIRA_ADD_COMMENT":
+        if self.operation == "SLACK_INSPECT_CHANNEL":
+            if self.comment is not None or self.value is not None:
+                raise ValueError("Slack inspection has no mutation payload")
+        elif self.operation == "JIRA_ADD_COMMENT":
             if self.comment is None or self.value is not None:
                 raise ValueError("A Jira comment requires only comment text")
         elif self.comment is not None or self.value is None:
             raise ValueError("This operation requires only a typed value")
+        if self.operation == "SLACK_POST_MESSAGE" and SLACK_CREDENTIAL.search(text or ""):
+            raise ValueError("Credentials cannot enter a Slack action receipt")
         return self
 
 
@@ -108,7 +122,7 @@ class HypotheticalChange(OperatorModel):
 class OperatorIntent(OperatorModel):
     disposition: Literal["SUPPORTED", "CLARIFICATION_REQUIRED", "UNSUPPORTED"]
     intent_type: IntentType | None = None
-    subject: Literal["OBJECTIVE", "RECOVERY", "CALENDAR", "JIRA", "EVIDENCE", "CHRONOLOGY"]
+    subject: Literal["OBJECTIVE", "RECOVERY", "CALENDAR", "JIRA", "SLACK", "EVIDENCE", "CHRONOLOGY"]
     incident_id: str
     recovery_attempt: int | None = None
     question: ShortText
@@ -133,6 +147,14 @@ class OperatorIntent(OperatorModel):
                     raise ValueError("ACT requires one target and typed operations, not facts")
             elif self.requested_operations:
                 raise ValueError("Only ACT may request mutations")
+            elif self.subject == "SLACK":
+                if (
+                    self.intent_type != "INSPECT"
+                    or self.target is None
+                    or self.target.authority != "SLACK"
+                    or self.fact_ids
+                ):
+                    raise ValueError("Slack inspection requires only its external target")
             elif self.subject == "JIRA" and self.intent_type == "INSPECT":
                 if self.target is None or self.fact_ids:
                     raise ValueError("Jira inspection requires an external target")
@@ -147,6 +169,12 @@ class OperatorIntent(OperatorModel):
                     )
             elif not self.fact_ids:
                 raise ValueError("Supported intent must select authoritative facts")
+            if (
+                self.subject == "SLACK"
+                and self.intent_type == "ACT"
+                and (self.target is None or self.target.authority != "SLACK")
+            ):
+                raise ValueError("Slack ACT requires its external target")
         elif (
             self.intent_type is not None
             or not self.clarification

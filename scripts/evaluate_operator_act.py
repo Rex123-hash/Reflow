@@ -19,7 +19,16 @@ from scripts.evaluate_operator import ROOT, environment, evaluation_trace
 async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--case-delay", type=float, default=0)
+    parser.add_argument(
+        "--slack", action="store_true", help="Add P2H cases; preserve all P2G cases"
+    )
+    parser.add_argument("--output-prefix", default="p2g-act")
+    parser.add_argument(
+        "--case", action="append", help="Bounded diagnostic subset; final runs use all cases"
+    )
     args = parser.parse_args()
+    if not args.output_prefix.replace("-", "").isalnum():
+        parser.error("output-prefix must be alphanumeric with optional hyphens")
     if not 0 <= args.case_delay <= 30:
         parser.error("case-delay must be between 0 and 30 seconds")
     environment()
@@ -39,7 +48,7 @@ async def main() -> None:
         RecoveryCaseView.model_validate_json((fixtures / "recovery-restored.json").read_bytes()),
         ExecutionEventsView.model_validate_json((fixtures / "events.json").read_bytes()),
     )
-    capabilities = (
+    capabilities: tuple[OperatorCapability, ...] = (
         OperatorCapability(
             authority="JIRA",
             resource_type="ISSUE",
@@ -149,9 +158,21 @@ async def main() -> None:
             "operations": [],
         },
     ]
+    if args.slack:
+        capabilities += (
+            OperatorCapability(
+                authority="SLACK",
+                resource_type="CHANNEL",
+                resource_identifiers=("configured-release-channel",),
+                operations=("SLACK_INSPECT_CHANNEL", "SLACK_POST_MESSAGE"),
+            ),
+        )
+        cases.extend(json.loads((ROOT / "tests/eval/slack-cases.json").read_text(encoding="utf-8")))
     agents = AdkOperatorAgents()
     records: list[dict[str, Any]] = []
     for case in cases:
+        if args.case and case["id"] not in args.case:
+            continue
         if records and args.case_delay:
             await asyncio.sleep(args.case_delay)
         request_id = str(uuid.uuid4())
@@ -164,7 +185,8 @@ async def main() -> None:
                     capabilities=tuple(
                         item
                         for item in capabilities
-                        if not case.get("without_calendar") or item.authority != "GOOGLE_CALENDAR"
+                        if (not case.get("without_calendar") or item.authority != "GOOGLE_CALENDAR")
+                        and (not case.get("without_slack") or item.authority != "SLACK")
                     ),
                 ),
                 request_id,
@@ -226,7 +248,7 @@ async def main() -> None:
         )
     output = ROOT / "artifacts"
     output.mkdir(exist_ok=True)
-    (output / "p2g-act-evaluation.json").write_text(
+    (output / f"{args.output_prefix}-evaluation.json").write_text(
         json.dumps(
             {"runtime": "real-local-vertex-adk", "external_mutations": 0, "records": records},
             indent=2,
@@ -234,8 +256,10 @@ async def main() -> None:
         encoding="utf-8",
     )
     traces = evaluation_trace(records)
-    traces["candidateName"] = "reflow-p2g-act"
-    (output / "p2g-act-traces.json").write_text(json.dumps(traces, indent=2), encoding="utf-8")
+    traces["candidateName"] = f"reflow-{args.output_prefix}"
+    (output / f"{args.output_prefix}-traces.json").write_text(
+        json.dumps(traces, indent=2), encoding="utf-8"
+    )
     if not all(record["passed"] for record in records):
         raise SystemExit(1)
 

@@ -52,7 +52,8 @@
             "enum": [
               "JIRA",
               "GOOGLE_CALENDAR",
-              "REFLOW"
+              "REFLOW",
+              "SLACK"
             ],
             "title": "Authority",
             "type": "string"
@@ -174,7 +175,8 @@
             "enum": [
               "ISSUE",
               "EVENT",
-              "OBJECTIVE"
+              "OBJECTIVE",
+              "CHANNEL"
             ],
             "title": "Resource Type",
             "type": "string"
@@ -345,7 +347,8 @@
             "enum": [
               "JIRA",
               "GOOGLE_CALENDAR",
-              "REFLOW"
+              "REFLOW",
+              "SLACK"
             ],
             "title": "Authority",
             "type": "string"
@@ -376,7 +379,8 @@
             "enum": [
               "ISSUE",
               "EVENT",
-              "OBJECTIVE"
+              "OBJECTIVE",
+              "CHANNEL"
             ],
             "title": "Resource Type",
             "type": "string"
@@ -501,6 +505,7 @@
               "RECOVERY",
               "CALENDAR",
               "JIRA",
+              "SLACK",
               "EVIDENCE",
               "CHRONOLOGY"
             ],
@@ -715,7 +720,8 @@
             "enum": [
               "JIRA",
               "GOOGLE_CALENDAR",
-              "REFLOW"
+              "REFLOW",
+              "SLACK"
             ],
             "title": "Authority",
             "type": "string"
@@ -730,7 +736,8 @@
             "enum": [
               "ISSUE",
               "EVENT",
-              "OBJECTIVE"
+              "OBJECTIVE",
+              "CHANNEL"
             ],
             "title": "Resource Type",
             "type": "string"
@@ -771,7 +778,9 @@
               "CALENDAR_RESCHEDULE",
               "CALENDAR_UPDATE_TITLE",
               "CALENDAR_UPDATE_DESCRIPTION",
-              "MOVE_PROTECTED_DEADLINE"
+              "MOVE_PROTECTED_DEADLINE",
+              "SLACK_INSPECT_CHANNEL",
+              "SLACK_POST_MESSAGE"
             ],
             "title": "Operation",
             "type": "string"

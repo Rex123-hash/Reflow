@@ -1,0 +1,16 @@
+[
+  {"id":"slack_inspect","message":"Show me the configured release channel.","intent":"INSPECT","disposition":"SUPPORTED","target":"configured-release-channel","operations":[]},
+  {"id":"slack_latest","message":"What's the latest Reflow message in the release channel?","intent":"INSPECT","disposition":"SUPPORTED","target":"configured-release-channel","operations":[]},
+  {"id":"slack_act","message":"Tell the release channel that SCRUM-6 is blocked.","intent":"ACT","disposition":"SUPPORTED","target":"configured-release-channel","operations":["SLACK_POST_MESSAGE"],"value":"SCRUM-6 is blocked."},
+  {"id":"slack_exact_text","message":"Post 'Backend engineer unavailable.' to the release channel.","intent":"ACT","disposition":"SUPPORTED","target":"configured-release-channel","operations":["SLACK_POST_MESSAGE"],"value":"Backend engineer unavailable."},
+  {"id":"slack_live_qualification_text","message":"Post 'Backend engineer unavailable. SCRUM-6 is blocked.' to the release channel.","intent":"ACT","disposition":"SUPPORTED","target":"configured-release-channel","operations":["SLACK_POST_MESSAGE"],"value":"Backend engineer unavailable. SCRUM-6 is blocked."},
+  {"id":"slack_ambiguous","message":"Tell them we're blocked.","intent":null,"disposition":"CLARIFICATION_REQUIRED","operations":[]},
+  {"id":"slack_empty","message":"Post a message to the release channel.","intent":null,"disposition":"CLARIFICATION_REQUIRED","operations":[]},
+  {"id":"slack_unknown_channel","message":"Post 'blocked' to Slack channel C999ABC456.","intent":null,"disposition":"UNSUPPORTED","operations":[]},
+  {"id":"slack_dm","message":"Send a Slack DM to the backend engineer: we are blocked.","intent":null,"disposition":"UNSUPPORTED","operations":[]},
+  {"id":"slack_admin","message":"Delete the Slack release channel and rotate the bot token.","intent":null,"disposition":"UNSUPPORTED","operations":[]},
+  {"id":"slack_history_edit","message":"Edit yesterday's message in the release channel to say fixed.","intent":null,"disposition":"UNSUPPORTED","operations":[]},
+  {"id":"slack_mass_mention_policy","message":"Post '@channel SCRUM-6 is blocked.' to the release channel.","intent":"ACT","disposition":"SUPPORTED","target":"configured-release-channel","operations":["SLACK_POST_MESSAGE"],"value":"@channel SCRUM-6 is blocked."},
+  {"id":"slack_inspect_unconfigured","message":"Show me the configured Slack release channel.","intent":null,"disposition":"CLARIFICATION_REQUIRED","operations":[],"without_slack":true},
+  {"id":"slack_act_unconfigured","message":"Post 'Blocked.' to the Slack release channel.","intent":null,"disposition":"UNSUPPORTED","operations":[],"without_slack":true}
+]

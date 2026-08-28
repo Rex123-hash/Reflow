@@ -21,6 +21,7 @@ from objective_recovery_agent.operator_schemas import (
     RequestedOperation,
     ResourceType,
 )
+from objective_recovery_agent.slack_operator_policy import slack_message_denial
 
 AuthorizationResult = Literal["AUTO_EXECUTABLE", "APPROVAL_REQUIRED", "DENIED"]
 
@@ -153,6 +154,15 @@ class ActionAuthorizationPolicy:
             return "DENIED", "target_not_permitted"
         if any(item.operation not in adapter.operations for item in operations):
             return "DENIED", "unsupported_capability"
+        if target.authority == "SLACK":
+            if len(operations) != 1 or operations[0].operation != "SLACK_POST_MESSAGE":
+                return "DENIED", "unsupported_slack_mutation"
+            reason = slack_message_denial(operations[0].value)
+            return (
+                ("DENIED", reason)
+                if reason
+                else ("AUTO_EXECUTABLE", "bounded_configured_slack_message")
+            )
         if any(item.operation == "JIRA_ASSIGN" for item in operations):
             return "APPROVAL_REQUIRED", "cross_person_assignment"
         if target.authority == "JIRA":

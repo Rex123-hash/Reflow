@@ -1,0 +1,18 @@
+display_information:
+  name: Reflow Operator
+  description: Bounded operational updates to one configured demo release channel.
+  background_color: "#17282f"
+features:
+  bot_user:
+    display_name: Reflow Operator
+    always_online: false
+oauth_config:
+  scopes:
+    bot:
+      - chat:write
+      - channels:read
+      - channels:history
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

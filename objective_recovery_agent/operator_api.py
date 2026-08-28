@@ -37,6 +37,7 @@ from objective_recovery_agent.operator_schemas import (
 )
 from objective_recovery_agent.operator_service import OperatorService
 from objective_recovery_agent.presentation import PresentationService
+from objective_recovery_agent.slack_operator_adapter import SlackOperatorAdapter
 from objective_recovery_agent.ui_store import FirestorePresentationStore
 
 router = APIRouter()
@@ -105,6 +106,16 @@ def get_operator_service() -> OperatorService:
                     for item in os.environ.get("JIRA_ALLOWED_ACCOUNT_IDS", "").split(",")
                     if item.strip()
                 ),
+            )
+        )
+    slack_values = tuple(
+        os.environ.get(name, "").strip()
+        for name in ("SLACK_BOT_TOKEN", "SLACK_DEMO_CHANNEL_ID", "SLACK_TEAM_ID")
+    )
+    if all(slack_values):
+        adapters.append(
+            SlackOperatorAdapter(
+                bot_token=slack_values[0], demo_channel_id=slack_values[1], team_id=slack_values[2]
             )
         )
     registry = CapabilityRegistry(tuple(adapters))

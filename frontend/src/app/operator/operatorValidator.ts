@@ -171,7 +171,7 @@ const schema39 = {
   additionalProperties: false,
   properties: {
     authority: {
-      enum: ["JIRA", "GOOGLE_CALENDAR", "REFLOW"],
+      enum: ["JIRA", "GOOGLE_CALENDAR", "REFLOW", "SLACK"],
       title: "Authority",
       type: "string",
     },
@@ -183,7 +183,7 @@ const schema39 = {
     },
     resource_identifier: { title: "Resource Identifier", type: "string" },
     resource_type: {
-      enum: ["ISSUE", "EVENT", "OBJECTIVE"],
+      enum: ["ISSUE", "EVENT", "OBJECTIVE", "CHANNEL"],
       title: "Resource Type",
       type: "string",
     },
@@ -213,7 +213,7 @@ const schema34 = {
       type: "string",
     },
     authority: {
-      enum: ["JIRA", "GOOGLE_CALENDAR", "REFLOW"],
+      enum: ["JIRA", "GOOGLE_CALENDAR", "REFLOW", "SLACK"],
       title: "Authority",
       type: "string",
     },
@@ -279,7 +279,7 @@ const schema34 = {
     request_id: { title: "Request Id", type: "string" },
     resource_identifier: { title: "Resource Identifier", type: "string" },
     resource_type: {
-      enum: ["ISSUE", "EVENT", "OBJECTIVE"],
+      enum: ["ISSUE", "EVENT", "OBJECTIVE", "CHANNEL"],
       title: "Resource Type",
       type: "string",
     },
@@ -329,6 +329,8 @@ const schema35 = {
         "CALENDAR_UPDATE_TITLE",
         "CALENDAR_UPDATE_DESCRIPTION",
         "MOVE_PROTECTED_DEADLINE",
+        "SLACK_INSPECT_CHANNEL",
+        "SLACK_POST_MESSAGE",
       ],
       title: "Operation",
       type: "string",
@@ -627,7 +629,8 @@ function validate23(
       if (!(
         data3 === "JIRA" ||
         data3 === "GOOGLE_CALENDAR" ||
-        data3 === "REFLOW"
+        data3 === "REFLOW" ||
+        data3 === "SLACK"
       )) {
         const err16 = {
           instancePath: instancePath + "/authority",
@@ -1234,7 +1237,9 @@ function validate23(
                 data18 === "CALENDAR_RESCHEDULE" ||
                 data18 === "CALENDAR_UPDATE_TITLE" ||
                 data18 === "CALENDAR_UPDATE_DESCRIPTION" ||
-                data18 === "MOVE_PROTECTED_DEADLINE"
+                data18 === "MOVE_PROTECTED_DEADLINE" ||
+                data18 === "SLACK_INSPECT_CHANNEL" ||
+                data18 === "SLACK_POST_MESSAGE"
               )) {
                 const err44 = {
                   instancePath:
@@ -1522,7 +1527,8 @@ function validate23(
       if (!(
         data24 === "ISSUE" ||
         data24 === "EVENT" ||
-        data24 === "OBJECTIVE"
+        data24 === "OBJECTIVE" ||
+        data24 === "CHANNEL"
       )) {
         const err59 = {
           instancePath: instancePath + "/resource_type",
@@ -1686,6 +1692,7 @@ const schema40 = {
         "RECOVERY",
         "CALENDAR",
         "JIRA",
+        "SLACK",
         "EVIDENCE",
         "CHRONOLOGY",
       ],
@@ -1731,7 +1738,7 @@ const schema43 = {
   additionalProperties: false,
   properties: {
     authority: {
-      enum: ["JIRA", "GOOGLE_CALENDAR", "REFLOW"],
+      enum: ["JIRA", "GOOGLE_CALENDAR", "REFLOW", "SLACK"],
       title: "Authority",
       type: "string",
     },
@@ -1742,7 +1749,7 @@ const schema43 = {
       type: "string",
     },
     resource_type: {
-      enum: ["ISSUE", "EVENT", "OBJECTIVE"],
+      enum: ["ISSUE", "EVENT", "OBJECTIVE", "CHANNEL"],
       title: "Resource Type",
       type: "string",
     },
@@ -2874,7 +2881,9 @@ function validate25(
                 data18 === "CALENDAR_RESCHEDULE" ||
                 data18 === "CALENDAR_UPDATE_TITLE" ||
                 data18 === "CALENDAR_UPDATE_DESCRIPTION" ||
-                data18 === "MOVE_PROTECTED_DEADLINE"
+                data18 === "MOVE_PROTECTED_DEADLINE" ||
+                data18 === "SLACK_INSPECT_CHANNEL" ||
+                data18 === "SLACK_POST_MESSAGE"
               )) {
                 const err60 = {
                   instancePath:
@@ -3053,6 +3062,7 @@ function validate25(
         data20 === "RECOVERY" ||
         data20 === "CALENDAR" ||
         data20 === "JIRA" ||
+        data20 === "SLACK" ||
         data20 === "EVIDENCE" ||
         data20 === "CHRONOLOGY"
       )) {
@@ -3166,7 +3176,8 @@ function validate25(
           if (!(
             data22 === "JIRA" ||
             data22 === "GOOGLE_CALENDAR" ||
-            data22 === "REFLOW"
+            data22 === "REFLOW" ||
+            data22 === "SLACK"
           )) {
             const err75 = {
               instancePath: instancePath + "/target/authority",
@@ -3257,7 +3268,8 @@ function validate25(
           if (!(
             data24 === "ISSUE" ||
             data24 === "EVENT" ||
-            data24 === "OBJECTIVE"
+            data24 === "OBJECTIVE" ||
+            data24 === "CHANNEL"
           )) {
             const err80 = {
               instancePath: instancePath + "/target/resource_type",
@@ -6464,7 +6476,8 @@ function validate22(
           if (!(
             data30 === "JIRA" ||
             data30 === "GOOGLE_CALENDAR" ||
-            data30 === "REFLOW"
+            data30 === "REFLOW" ||
+            data30 === "SLACK"
           )) {
             const err90 = {
               instancePath: instancePath + "/inspection/authority",
@@ -6636,7 +6649,8 @@ function validate22(
           if (!(
             data35 === "ISSUE" ||
             data35 === "EVENT" ||
-            data35 === "OBJECTIVE"
+            data35 === "OBJECTIVE" ||
+            data35 === "CHANNEL"
           )) {
             const err98 = {
               instancePath: instancePath + "/inspection/resource_type",
@@ -7236,7 +7250,8 @@ function validate31(
       if (!(
         data3 === "JIRA" ||
         data3 === "GOOGLE_CALENDAR" ||
-        data3 === "REFLOW"
+        data3 === "REFLOW" ||
+        data3 === "SLACK"
       )) {
         const err16 = {
           instancePath: instancePath + "/authority",
@@ -7843,7 +7858,9 @@ function validate31(
                 data18 === "CALENDAR_RESCHEDULE" ||
                 data18 === "CALENDAR_UPDATE_TITLE" ||
                 data18 === "CALENDAR_UPDATE_DESCRIPTION" ||
-                data18 === "MOVE_PROTECTED_DEADLINE"
+                data18 === "MOVE_PROTECTED_DEADLINE" ||
+                data18 === "SLACK_INSPECT_CHANNEL" ||
+                data18 === "SLACK_POST_MESSAGE"
               )) {
                 const err44 = {
                   instancePath:
@@ -8131,7 +8148,8 @@ function validate31(
       if (!(
         data24 === "ISSUE" ||
         data24 === "EVENT" ||
-        data24 === "OBJECTIVE"
+        data24 === "OBJECTIVE" ||
+        data24 === "CHANNEL"
       )) {
         const err59 = {
           instancePath: instancePath + "/resource_type",

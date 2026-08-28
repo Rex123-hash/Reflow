@@ -164,6 +164,8 @@ class OperatorService:
                         if replay.authority == "JIRA"
                         else "CALENDAR"
                         if replay.authority == "GOOGLE_CALENDAR"
+                        else "SLACK"
+                        if replay.authority == "SLACK"
                         else "OBJECTIVE"
                     ),
                     incident_id=query.incident_id,
@@ -297,7 +299,29 @@ class OperatorService:
                     + simulation.scenario_summary
                 )
             else:
-                if intent.subject == "JIRA":
+                if intent.subject == "SLACK":
+                    if intent.target is None or intent.target.authority != "SLACK":
+                        raise OperatorReasoningError("Slack inspection target missing")
+                    try:
+                        inspection = await asyncio.to_thread(self._registry.inspect, intent.target)
+                    except OperatorAdapterError as error:
+                        raise OperatorReasoningError("Slack inspection unavailable") from error
+                    state = inspection.observed_state
+                    evidence_ids = set()
+                    facts = (
+                        OperatorFact(
+                            fact_id="slack:configured-release-channel",
+                            text=safe_text(
+                                f"Configured public Slack channel #{state.get('channel_name')} "
+                                f"({state.get('channel_id')}); bot membership confirmed. "
+                                "Latest Reflow-bot message in the bounded 15-message window: "
+                                f"{state.get('latest_reflow_message_text') or 'none observed'}."
+                            ),
+                            evidence_ids=(),
+                        ),
+                    )
+                    answer = facts[0].text
+                elif intent.subject == "JIRA":
                     if intent.target is None:
                         raise OperatorReasoningError("Jira inspection target missing")
                     try:
