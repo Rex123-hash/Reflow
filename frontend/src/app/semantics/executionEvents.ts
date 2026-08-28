@@ -6,41 +6,42 @@ export interface ActivityGroup {
   key: string;
   label: string;
   recoveryAttempt: number;
+  phase: ExecutionEventView["phase"];
   events: ExecutionEventView[];
 }
 
 /**
  * ACTIVITY grouping.
  *
- * The only authoritative grouping key on `ExecutionEventView` today is
- * `recovery_attempt`. Grouping any finer — by detect/plan/act/verify phase —
- * would mean mapping `semantic_type` to a workflow phase in the client, which is
- * exactly the causal interpretation the truth boundary forbids.
- *
- * So Activity groups by attempt and orders by `timestamp`. That is honest, but it
- * does not fully repair causal readability: in the canonical export
- * `INCIDENT_REOPENED` (sequence 25) carries a later timestamp than
- * `REPLAN_STARTED` (sequence 18) within the same attempt. Resolving that needs an
- * authoritative phase field on the event (known gap 5). Until then the console
- * says plainly what each mode is showing rather than implying a causal chain.
+ * Activity groups by the backend-supplied recovery attempt and authoritative
+ * `phase`. It does not infer a phase from `semantic_type`.
  */
 export function groupActivity(events: ExecutionEventView[]): ActivityGroup[] {
-  const groups = new Map<number, ExecutionEventView[]>();
+  const groups = new Map<string, ExecutionEventView[]>();
   for (const event of events) {
-    const bucket = groups.get(event.recovery_attempt);
+    const key = `${event.recovery_attempt}:${event.phase}`;
+    const bucket = groups.get(key);
     if (bucket) bucket.push(event);
-    else groups.set(event.recovery_attempt, [event]);
+    else groups.set(key, [event]);
   }
 
   return [...groups.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .map(([recoveryAttempt, bucket]) => ({
-      key: `attempt-${recoveryAttempt}`,
-      label: `Recovery ${String(recoveryAttempt).padStart(2, "0")}`,
-      recoveryAttempt,
+    .map(([key, bucket]) => ({
+      key,
+      recoveryAttempt: bucket[0].recovery_attempt,
+      phase: bucket[0].phase,
+      firstTimestamp: bucket[0].timestamp,
       events: [...bucket].sort((a, b) =>
         a.timestamp.localeCompare(b.timestamp),
       ),
+    }))
+    .sort((a, b) => a.firstTimestamp.localeCompare(b.firstTimestamp))
+    .map((group) => ({
+      key: `attempt-${group.recoveryAttempt}-${group.phase}`,
+      label: `Recovery ${String(group.recoveryAttempt).padStart(2, "0")} · ${group.phase}`,
+      recoveryAttempt: group.recoveryAttempt,
+      phase: group.phase,
+      events: group.events,
     }));
 }
 

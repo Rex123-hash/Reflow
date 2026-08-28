@@ -23,22 +23,6 @@ import {
 import { formatObservedAt } from "../semantics/format";
 import "./operator.css";
 
-/** Modes the backend does not support. Shown as unavailable rather than mocked. */
-const UNSUPPORTED_MODES = [
-  {
-    id: "SIMULATE",
-    note: "Counterfactual replanning is not exposed by the P2A contract.",
-  },
-  {
-    id: "DIRECT",
-    note: "Reflow accepts no external direction of its recovery engine.",
-  },
-  {
-    id: "ACT",
-    note: "Operator cannot cause an external effect. Only the engine acts.",
-  },
-];
-
 /**
  * Operator — read-only INSPECT.
  *
@@ -286,18 +270,6 @@ export function OperatorRoute() {
             ))}
           </ul>
         </div>
-      </section>
-
-      <section className="operator-modes">
-        <p className="field-label">Not available in this build</p>
-        <ul>
-          {UNSUPPORTED_MODES.map((mode) => (
-            <li key={mode.id}>
-              <span className="operator-mode-id">{mode.id}</span>
-              <span>{mode.note}</span>
-            </li>
-          ))}
-        </ul>
       </section>
     </div>
   );

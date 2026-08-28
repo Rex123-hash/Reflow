@@ -5,7 +5,7 @@ import { matchIntent } from "./intents";
 
 const fixture = active as unknown as RecoveryCaseView;
 const context = {
-  incidentId: "incident-938b303718a6abe41244",
+  incidentId: "incident-0fc3af5b0bd1ad847aea",
   attempts: fixture.attempts,
 };
 
@@ -38,7 +38,7 @@ describe("operator INSPECT resolves deterministically", () => {
 
   it("routes proof to the Evidence page", () => {
     const match = matchIntent("Show the proof", context)!;
-    expect(match.href).toBe("/app/evidence/incident-938b303718a6abe41244");
+    expect(match.href).toBe("/app/evidence/incident-0fc3af5b0bd1ad847aea");
   });
 
   it("focuses the CURRENT stage for what-is-happening-now", () => {

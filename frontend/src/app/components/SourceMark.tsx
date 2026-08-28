@@ -156,6 +156,26 @@ export function resolveSource(raw: string): {
 } {
   const key = raw.trim().toLowerCase();
 
+  const normalized: Record<
+    string,
+    { brand?: string; reflow?: ReflowMarkName }
+  > = {
+    gmail: { brand: "gmail" },
+    google_calendar: { brand: "google_calendar" },
+    github: { brand: "github" },
+    github_actions: { brand: "github" },
+    reflow_verifier: { reflow: "verifier" },
+    reflow_policy: { reflow: "policy" },
+    reflow_graph: { reflow: "graph" },
+    reflow_engine: { reflow: "engine" },
+    unknown: { reflow: "engine" },
+  };
+  const exact = normalized[key];
+  if (exact?.brand) {
+    return { brand: INTEGRATION_MARKS[exact.brand], label: raw };
+  }
+  if (exact?.reflow) return { reflow: exact.reflow, label: raw };
+
   if (key.includes("github")) {
     return { brand: INTEGRATION_MARKS.github, label: raw };
   }

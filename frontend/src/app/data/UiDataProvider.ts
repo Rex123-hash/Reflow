@@ -16,6 +16,7 @@ export type UiErrorCode =
   | "malformed_request"
   | "resource_not_found"
   | "backend_infrastructure_unavailable"
+  | "authentication_required"
   | "transport_failure";
 
 export class UiDataError extends Error {

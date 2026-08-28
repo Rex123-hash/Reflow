@@ -91,6 +91,44 @@
   gap: var(--space-3);
 }
 
+.workspace-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  color: var(--body);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+.workspace-mode i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brass);
+}
+
+.workspace-mode.is-live i {
+  background: var(--forest);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--forest) 14%, transparent);
+}
+
+.app-signout {
+  padding: 5px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--body);
+  font:
+    600 11px/1 system-ui,
+    sans-serif;
+  cursor: pointer;
+}
+
+.app-signout:hover {
+  color: var(--ink);
+}
+
 .app-avatar {
   width: 28px;
   height: 28px;
@@ -492,24 +530,6 @@
   font-size: 0.63rem;
   color: var(--secondary);
   word-break: break-all;
-}
-
-/* ---------------------------------------------------------- contract gaps --- */
-
-.contract-gap {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  color: var(--secondary);
-  border-bottom: 1px dashed var(--line-strong);
-  padding-bottom: 1px;
-  cursor: help;
-}
-
-.contract-gap svg {
-  flex: 0 0 auto;
-  color: var(--sage);
 }
 
 .notice {

@@ -2,7 +2,6 @@ import type {
   RecoveryAttemptView,
   RecoveryCaseView,
 } from "../contract/uiContract";
-import { ContractGap, Notice } from "../components/Feedback";
 import { Icon } from "../components/Icon";
 import {
   actionsFor,
@@ -191,18 +190,6 @@ export function PlansLens({ recoveryCase, attempt }: LensProps) {
         validated, and a stable selection rule chose. The model never decided
         which plan ran.
       </p>
-
-      <Notice>
-        <strong>Proposed steps are proposals.</strong> A plan's steps describe
-        intent. The presentation contract does not yet distinguish a step that
-        can produce a real external effect from one that cannot{" "}
-        <ContractGap
-          field="RecoveryPlanView.proposed_action_summary (no executable/executed flag)"
-          note="Reflow will not classify these in the client. Only the Actions lens shows effects that produced an authoritative receipt."
-        />
-        , so none is marked as executed here. The Actions lens is the only place
-        an external effect is claimed.
-      </Notice>
 
       <div className="plan-grid">
         {plans.map((plan) => (

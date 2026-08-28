@@ -21,7 +21,8 @@ export interface ActionReceiptView {
   receipt_id?: string | null;
   receipt_status: ReceiptStatusView;
   recovery_attempt: number;
-  system: string;
+  system: SourceAuthority;
+  system_label: string;
   verification_state: VerificationStatus;
   write_acknowledged: boolean;
   write_acknowledged_at?: string | null;
@@ -45,6 +46,26 @@ export interface CurrentPriority {
   summary: string;
   time_remaining_seconds?: number | null;
 }
+
+export interface DetectContextView {
+  affected_resource_ids?: string[];
+  bounded_summary: string;
+  disruption_type: string;
+  occurred_at?: string | null;
+  source_evidence_id?: string | null;
+  source_label: string;
+  source_system: SourceAuthority;
+}
+
+export type EventPhase =
+  | "DETECT"
+  | "IMPACT"
+  | "PLAN"
+  | "ACT"
+  | "VERIFY"
+  | "REPLAN"
+  | "RESTORED"
+  | "SYSTEM";
 
 export interface EvidencePageView {
   decisions: RecoveryPlanView[];
@@ -71,7 +92,8 @@ export interface EvidenceView {
   proof_fields?: Record<string, string | number | boolean | null>;
   recovery_attempt: number;
   semantic_status: EvidenceSemanticStatus;
-  source_system: string;
+  source_label: string;
+  source_system: SourceAuthority;
   summary: string;
   title: string;
 }
@@ -80,11 +102,13 @@ export interface ExecutionEventView {
   cursor: string;
   event_id: string;
   human_message: string;
+  phase: EventPhase;
   recovery_attempt: number;
   related_resource_ids?: string[];
   semantic_type: string;
   sequence: number;
-  source_authority: string;
+  source_authority: SourceAuthority;
+  source_label: string;
   technical_summary: string;
   timestamp: string;
 }
@@ -114,6 +138,8 @@ export interface GraphNodeView {
 
 export interface ObjectiveContext {
   current_recovery_number: number;
+  deadline_at: string;
+  deadline_margin_seconds?: number | null;
   deadline_timezone: string;
   health: ObjectiveHealth;
   incident_stage: string;
@@ -122,7 +148,9 @@ export interface ObjectiveContext {
   objective_id: string;
   objective_version: number;
   protected_deadline: string;
+  restored_at?: string | null;
   revision: number;
+  time_remaining_seconds?: number | null;
   title: string;
   workflow_stage: WorkflowStage;
 }
@@ -191,6 +219,19 @@ export interface OverviewView {
   revision: number;
 }
 
+export type PlanActionDisposition =
+  | "PROPOSAL_ONLY"
+  | "EXECUTABLE"
+  | "EXECUTED";
+
+export interface PlanActionView {
+  action_id: string;
+  disposition: PlanActionDisposition;
+  execution_evidence_id?: string | null;
+  kind: string;
+  target: string;
+}
+
 export interface PolicyDecisionView {
   blocking_unknowns?: string[];
   plan_id: string;
@@ -222,9 +263,11 @@ export interface RecoveryAttemptView {
 export interface RecoveryCaseView {
   actions: ActionReceiptView[];
   attempts: RecoveryAttemptView[];
+  detect_context?: DetectContextView | null;
   evidence: EvidenceView[];
   objective: ObjectiveContext;
   plans: RecoveryPlanView[];
+  replan_context?: ReplanContextView | null;
   revision: number;
   summary: RecoverySummary;
   verifications: VerificationView[];
@@ -233,6 +276,7 @@ export interface RecoveryCaseView {
 }
 
 export interface RecoveryPlanView {
+  actions?: PlanActionView[];
   assumptions_summary?: string[];
   candidate_sha?: string | null;
   critic_summary?: string | null;
@@ -265,12 +309,34 @@ export interface RecoverySummary {
   why_current_recovery_exists?: string | null;
 }
 
+export interface ReplanContextView {
+  changed_context_summary: string;
+  failed_effect_fingerprint?: string | null;
+  failed_evidence_id?: string | null;
+  failed_invariant_id: string;
+  prior_attempt: number;
+  recovery_attempt: number;
+  replanning_input_fingerprint?: string | null;
+  replanning_input_summary: string;
+}
+
 export type SemanticStatus =
   | "PENDING"
   | "CURRENT"
   | "COMPLETED"
   | "FAILED"
   | "UNAVAILABLE";
+
+export type SourceAuthority =
+  | "gmail"
+  | "google_calendar"
+  | "github"
+  | "github_actions"
+  | "reflow_verifier"
+  | "reflow_policy"
+  | "reflow_engine"
+  | "reflow_graph"
+  | "unknown";
 
 export interface VerificationInvariantView {
   evidence_id?: string | null;

@@ -43,7 +43,7 @@ export function EvidenceCard({
         <div className="evidence-card-identity">
           <span className="evidence-card-source">
             <SourceMark source={evidence.source_system} size={14} />
-            {evidence.source_system}
+            {evidence.source_label}
             {mode === "proof" ? ` · ${evidence.evidence_kind}` : null}
           </span>
           <b>{evidence.title}</b>

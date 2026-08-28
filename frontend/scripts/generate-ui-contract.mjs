@@ -15,8 +15,10 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const SPEC = resolve(here, "../../docs/ui-openapi.json");
 const OUT = resolve(here, "../src/app/contract/uiContract.ts");
+const OUT_SPEC = resolve(here, "../src/app/contract/ui-openapi.json");
 
-const spec = JSON.parse(readFileSync(SPEC, "utf8"));
+const specText = readFileSync(SPEC, "utf8");
+const spec = JSON.parse(specText);
 const schemas = spec.components.schemas;
 
 /** Schemas that describe FastAPI/Pydantic error envelopes rather than presentation resources. */
@@ -132,8 +134,21 @@ if (process.argv.includes("--check")) {
     );
     process.exit(1);
   }
+  let currentSpec = "";
+  try {
+    currentSpec = readFileSync(OUT_SPEC, "utf8");
+  } catch {
+    /* missing file falls through to the mismatch branch */
+  }
+  if (currentSpec !== specText) {
+    console.error(
+      "bundled UI OpenAPI is stale — run `npm run contract:generate` and commit the result.",
+    );
+    process.exit(1);
+  }
   console.log("ui contract types are up to date.");
 } else {
   writeFileSync(OUT, output, "utf8");
+  writeFileSync(OUT_SPEC, specText, "utf8");
   console.log(`wrote ${OUT} (${blocks.length} types from API ${version})`);
 }

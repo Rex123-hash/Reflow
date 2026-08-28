@@ -8,7 +8,6 @@ import {
 } from "../components/StatusVocabulary";
 import {
   displayReference,
-  displaySystem,
   formatClock,
   humanizeEnum,
   isHttpReference,
@@ -108,7 +107,7 @@ export function ReceiptLadder({ action }: { action: ActionReceiptView }) {
       <header className="receipt-head">
         <SourceMark source={action.system} framed size={17} />
         <div>
-          <span className="field-label">{displaySystem(action.system)}</span>
+          <span className="field-label">{action.system_label}</span>
           <b>{humanizeEnum(action.kind)}</b>
         </div>
         <ReceiptStatusPill status={action.receipt_status} />

@@ -13,7 +13,8 @@ const fixture = active as unknown as RecoveryCaseView;
 const evidence = (id: string, attempt = 1): EvidenceView => ({
   evidence_id: id,
   recovery_attempt: attempt,
-  source_system: "GitHub Actions",
+  source_system: "github_actions",
+  source_label: "GitHub Actions",
   evidence_kind: "workflow_run_read_back",
   title: `Card ${id}`,
   semantic_status: "VERIFIED_HEALTHY",
@@ -31,8 +32,7 @@ describe("exact-identifier evidence resolution", () => {
   });
 
   it("never fuzzy-matches a receipt-scoped id onto a resource-scoped card", () => {
-    // This is the shape of the current P2A gap: the stage references a receipt key
-    // while the evidence set declares a run key. They must not be joined.
+    // Even malformed input must never cause a fuzzy join.
     const index = buildEvidenceIndex([evidence("github-run:33074677098")]);
     const result = resolveEvidenceIds(index, [
       "github-validation:github-cd0a32978a645e079242e5af068b547409f426ec25fadd4b437751902f63b671",
@@ -43,16 +43,9 @@ describe("exact-identifier evidence resolution", () => {
     expect(result.allUnresolved).toBe(true);
   });
 
-  it("reports unresolved references rather than dropping them", () => {
+  it("confirms every canonical evidence reference resolves", () => {
     const unresolved = unresolvedReferenceReport(fixture);
-    // The canonical export currently leaves GitHub stage/action/invariant references
-    // unresolved. The UI must be able to say so.
-    expect(unresolved.length).toBeGreaterThan(0);
-    for (const id of unresolved) {
-      expect(fixture.evidence.some((item) => item.evidence_id === id)).toBe(
-        false,
-      );
-    }
+    expect(unresolved).toEqual([]);
   });
 });
 
@@ -89,7 +82,7 @@ describe("evidence rail scoping", () => {
     );
   });
 
-  it("distinguishes an unresolved anchor from an absent one", () => {
+  it("does not fall back or guess when malformed input has an unresolved anchor", () => {
     const contents = railContentsForStage(
       fixture,
       index,
@@ -99,10 +92,11 @@ describe("evidence rail scoping", () => {
     );
 
     expect(contents.scope).toEqual({
-      kind: "attempt",
+      kind: "stage",
       attemptLabel: "Recovery 02",
-      reason: "unresolved-anchors",
+      stageTitle: "Act",
     });
+    expect(contents.cards).toEqual([]);
     expect(contents.unresolvedIds).toEqual([
       "github-validation:does-not-exist",
     ]);

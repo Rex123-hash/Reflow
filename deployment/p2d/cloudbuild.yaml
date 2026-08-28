@@ -1,0 +1,15 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --file
+      - deployment/p2d/Dockerfile
+      - --build-arg
+      - COMMIT_SHA=${COMMIT_SHA}
+      - --tag
+      - ${_IMAGE}
+      - .
+images:
+  - ${_IMAGE}
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -79,13 +79,13 @@ describe("Recovery Room", () => {
     renderRoom("?stage=recovery-1-verify&lens=verify");
 
     const links = await screen.findAllByRole("link", {
-      name: /github\.com\/Rex123-hash\/EXperiments\/actions\/runs\/33074677098/,
+      name: /github\.com\/Rex123-hash\/EXperiments\/actions\/runs\/33106938744/,
     });
     expect(links.length).toBeGreaterThan(0);
     for (const link of links) {
       expect(link).toHaveAttribute(
         "href",
-        "https://github.com/Rex123-hash/EXperiments/actions/runs/33074677098",
+        "https://github.com/Rex123-hash/EXperiments/actions/runs/33106938744",
       );
     }
   });
@@ -111,14 +111,10 @@ describe("Recovery Room", () => {
     expect(screen.queryByText(/^Live$/)).not.toBeInTheDocument();
   });
 
-  it("marks the deadline margin as unsupplied rather than computing one", async () => {
+  it("renders authoritative remaining time and pending invariant set", async () => {
     renderRoom();
 
-    // Two gaps are honest here: the context bar's deadline margin, and the
-    // invariant set an active PENDING verification has not published.
-    expect((await screen.findAllByText("Not supplied")).length).toBeGreaterThan(
-      0,
-    );
-    expect(screen.queryByText(/^\d+h \d+m$/)).not.toBeInTheDocument();
+    expect(await screen.findByText(/^21h 51m$/)).toBeInTheDocument();
+    expect(screen.queryByText("Not supplied")).not.toBeInTheDocument();
   });
 });

@@ -12,12 +12,18 @@ describe("execution console modes", () => {
     expect(total).toBe(all.length);
   });
 
-  it("groups Activity by the authoritative recovery_attempt only", () => {
+  it("groups Activity by authoritative recovery attempt and phase", () => {
     const groups = groupActivity(all);
-    expect(groups.map((g) => g.recoveryAttempt)).toEqual([1, 2]);
+    expect(new Set(groups.map((g) => g.recoveryAttempt))).toEqual(
+      new Set([1, 2]),
+    );
     for (const group of groups) {
       expect(
-        group.events.every((e) => e.recovery_attempt === group.recoveryAttempt),
+        group.events.every(
+          (e) =>
+            e.recovery_attempt === group.recoveryAttempt &&
+            e.phase === group.phase,
+        ),
       ).toBe(true);
     }
   });
@@ -33,11 +39,13 @@ describe("execution console modes", () => {
     // INCIDENT_REOPENED persists later than REPLAN_STARTED in the canonical export.
     // Activity sorts by timestamp and therefore still shows it after — which is why
     // the console labels what each mode is, instead of implying a causal chain.
-    const attemptTwo = groupActivity(all).find((g) => g.recoveryAttempt === 2)!;
-    const replan = attemptTwo.events.findIndex(
+    const attemptTwo = groupActivity(all)
+      .filter((g) => g.recoveryAttempt === 2)
+      .flatMap((group) => group.events);
+    const replan = attemptTwo.findIndex(
       (e) => e.semantic_type === "REPLAN_STARTED",
     );
-    const reopened = attemptTwo.events.findIndex(
+    const reopened = attemptTwo.findIndex(
       (e) => e.semantic_type === "INCIDENT_REOPENED",
     );
 

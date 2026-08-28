@@ -9,7 +9,6 @@ import {
 } from "../semantics/format";
 import { Icon } from "../components/Icon";
 import { VerificationPill } from "../components/StatusVocabulary";
-import { ContractGap } from "../components/Feedback";
 
 /**
  * Reflow's core epistemic pattern: what the objective requires, beside what an
@@ -147,21 +146,13 @@ export function InvariantTable({
   );
 }
 
-/**
- * The invariant set a PENDING verification will evaluate is not exposed by the
- * contract (known gap 2). Rather than borrow the six names from the restored
- * export, the count itself is marked as not supplied.
- */
 export function PendingInvariantGap() {
   return (
     <p className="invariant-gap">
-      <ContractGap
-        field="VerificationView.invariants (while PENDING)"
-        note="An active verification does not yet publish the invariant set it will evaluate, so Reflow cannot show which conditions are outstanding. It will not borrow the names from a later revision."
-      />
       <span>
-        The objective is not restored until deterministic verification reports
-        on every required invariant. Nothing has been assumed in the meantime.
+        The pending conditions above are the authoritative invariant set. The
+        objective is not restored until deterministic verification reports on
+        every one.
       </span>
     </p>
   );

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import reflowMarkUrl from "../assets/reflow/reflow-mark.svg";
-import { Icon } from "./components/Icon";
 import { LoadingState } from "./components/Feedback";
 import { ScenarioSwitch } from "./components/ScenarioSwitch";
+import { useAuthSession } from "./auth/AuthSessionContext";
 import "./styles/tokens.css";
 import "./styles/app.css";
 
@@ -16,6 +16,14 @@ const PRIMARY_NAV = [
 ] as const;
 
 export function AppShell() {
+  const { session, signOut } = useAuthSession();
+  const initials = (session.display_name ?? session.email ?? "Reflow")
+    .split(/\s+|@/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
   return (
     <div className="app-root">
       <header className="app-nav">
@@ -38,12 +46,22 @@ export function AppShell() {
 
         <div className="app-nav-tail">
           <ScenarioSwitch />
-          <span className="app-ask" aria-hidden="true">
-            <Icon name="search" size={12} />
-            Ask Reflow
+          <span className={`workspace-mode is-${session.mode}`}>
+            <i aria-hidden="true" />
+            {session.workspace_label}
           </span>
-          <span className="app-avatar" aria-hidden="true">
-            AK
+          <button
+            type="button"
+            className="app-signout"
+            onClick={() => void signOut()}
+          >
+            Sign out
+          </button>
+          <span
+            className="app-avatar"
+            title={session.email ?? session.workspace_label}
+          >
+            {initials || "R"}
           </span>
         </div>
       </header>

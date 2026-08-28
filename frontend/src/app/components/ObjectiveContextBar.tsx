@@ -1,19 +1,11 @@
 import type { ObjectiveContext } from "../contract/uiContract";
 import type { ProvenanceInfo } from "../data/UiDataProvider";
 import { formatDeadline, formatDuration } from "../semantics/format";
-import { ContractGap } from "./Feedback";
 import { HealthPill, StageChip } from "./StatusVocabulary";
 
 export interface ObjectiveContextBarProps {
   objective: ObjectiveContext;
   provenance: ProvenanceInfo;
-  /**
-   * Backend-supplied seconds between restoration and the protected deadline, when
-   * an authority provides one. `CurrentPriority.time_remaining_seconds` carries
-   * this on Overview; `ObjectiveContext` does not yet expose an equivalent
-   * (known gap 4), so Recovery passes nothing and renders the gap honestly.
-   */
-  marginSeconds?: number | null;
 }
 
 /**
@@ -27,9 +19,11 @@ export interface ObjectiveContextBarProps {
 export function ObjectiveContextBar({
   objective,
   provenance,
-  marginSeconds = null,
 }: ObjectiveContextBarProps) {
   const isRestored = objective.health === "RESTORED";
+  const timing = isRestored
+    ? objective.deadline_margin_seconds
+    : objective.time_remaining_seconds;
 
   return (
     <div className="objective-bar">
@@ -71,17 +65,14 @@ export function ObjectiveContextBar({
         */}
         <dt>{isRestored ? "Margin" : "Remaining"}</dt>
         <dd className="mono">
-          {marginSeconds != null ? (
+          {timing != null ? (
             isRestored ? (
-              `Restored ${formatDuration(marginSeconds)} before deadline`
+              `Restored ${formatDuration(timing)} before deadline`
             ) : (
-              formatDuration(marginSeconds)
+              formatDuration(timing)
             )
           ) : (
-            <ContractGap
-              field="ObjectiveContext.time_remaining_seconds"
-              note="Recovery cannot show a deadline margin without an authoritative value; the client will not subtract its own clock from the deadline."
-            />
+            <span className="observed-absent">not supplied</span>
           )}
         </dd>
       </dl>

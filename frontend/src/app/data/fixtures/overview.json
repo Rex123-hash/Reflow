@@ -4,13 +4,13 @@
     "active_recovery_number": 2,
     "active_workflow_stage": "RESTORED",
     "deadline_timezone": "Etc/UTC",
-    "incident_id": "incident-938b303718a6abe41244",
+    "incident_id": "incident-0fc3af5b0bd1ad847aea",
     "objective_health": "RESTORED",
     "objective_id": "release-v2",
     "objective_title": "SHIP RELEASE V2",
     "protected_deadline": "2026-08-28T17:00:00+00:00",
     "summary": "SHIP RELEASE V2 was restored after Recovery 2.",
-    "time_remaining_seconds": 95710
+    "time_remaining_seconds": 67686
   },
   "objective_summary": {
     "active": 0,
@@ -21,121 +21,137 @@
   },
   "recent_activity": [
     {
-      "cursor": "30",
+      "cursor": "28",
       "event_id": "OBJECTIVE_RESTORED-454d377459df3a19",
       "human_message": "All required objective invariants passed.",
+      "phase": "RESTORED",
       "recovery_attempt": 2,
       "related_resource_ids": [
         "revision-2"
       ],
       "semantic_type": "OBJECTIVE_RESTORED",
-      "sequence": 30,
-      "source_authority": "reflow_workflow_ledger",
+      "sequence": 28,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
       "technical_summary": "Durable OBJECTIVE_RESTORED event; key=revision-2.",
-      "timestamp": "2026-08-27T13:02:27.403179+00:00"
+      "timestamp": "2026-08-27T19:08:54.588385+00:00"
     },
     {
-      "cursor": "29",
+      "cursor": "27",
       "event_id": "OBJECTIVE_VERIFICATION_STARTED-454d377459df3a19",
       "human_message": "Deterministic objective verification started.",
+      "phase": "VERIFY",
       "recovery_attempt": 2,
       "related_resource_ids": [
         "revision-2"
       ],
       "semantic_type": "OBJECTIVE_VERIFICATION_STARTED",
-      "sequence": 29,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable OBJECTIVE_VERIFICATION_STARTED event; key=revision-2.",
-      "timestamp": "2026-08-27T13:02:27.213518+00:00"
-    },
-    {
-      "cursor": "28",
-      "event_id": "FULL_RELEASE_PROMOTION_VERIFIED-5ac2ce69f4ea4d0b",
-      "human_message": "The full latest release was independently verified.",
-      "recovery_attempt": 2,
-      "related_resource_ids": [
-        "github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
-        "377826902"
-      ],
-      "semantic_type": "FULL_RELEASE_PROMOTION_VERIFIED",
-      "sequence": 28,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable FULL_RELEASE_PROMOTION_VERIFIED event; key=github-608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66.",
-      "timestamp": "2026-08-27T13:02:26.808893+00:00"
-    },
-    {
-      "cursor": "27",
-      "event_id": "FULL_RELEASE_PROMOTION_STARTED-c382e65f4087bdc0",
-      "human_message": "Promotion of the validated release started.",
-      "recovery_attempt": 2,
-      "related_resource_ids": [
-        "608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66",
-        "377826902"
-      ],
-      "semantic_type": "FULL_RELEASE_PROMOTION_STARTED",
       "sequence": 27,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable FULL_RELEASE_PROMOTION_STARTED event; key=608c9646e22ca5e80636c4741c0503054d2978f165b84e18b78918fc76985c66.",
-      "timestamp": "2026-08-27T13:02:25.135258+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable OBJECTIVE_VERIFICATION_STARTED event; key=revision-2.",
+      "timestamp": "2026-08-27T19:08:54.472374+00:00"
     },
     {
       "cursor": "26",
-      "event_id": "RELEASE_VALIDATION_SUCCEEDED-e156a7621d55229d",
-      "human_message": "Candidate validation succeeded.",
+      "event_id": "FULL_RELEASE_PROMOTION_VERIFIED-a3a0b3ed5bfb344e",
+      "human_message": "The full latest release was independently verified.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "33074746109:1",
-        "33074746109"
+        "github-64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0",
+        "378060699"
       ],
-      "semantic_type": "RELEASE_VALIDATION_SUCCEEDED",
+      "semantic_type": "FULL_RELEASE_PROMOTION_VERIFIED",
       "sequence": 26,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable RELEASE_VALIDATION_SUCCEEDED event; key=33074746109:1.",
-      "timestamp": "2026-08-27T13:02:24.962605+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable FULL_RELEASE_PROMOTION_VERIFIED event; key=github-64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0.",
+      "timestamp": "2026-08-27T19:08:53.712768+00:00"
     },
     {
       "cursor": "25",
-      "event_id": "INCIDENT_REOPENED-121850742f8f45d8",
-      "human_message": "The failed objective reopened for another recovery.",
+      "event_id": "FULL_RELEASE_PROMOTION_STARTED-9a30ca675a04c668",
+      "human_message": "Promotion of the validated release started.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "b865dc601a0c56227b869890a3722251f116c97b9da31d8a91e922ce350cbfd0"
+        "64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0",
+        "378060699"
       ],
-      "semantic_type": "INCIDENT_REOPENED",
+      "semantic_type": "FULL_RELEASE_PROMOTION_STARTED",
       "sequence": 25,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable INCIDENT_REOPENED event; key=b865dc601a0c56227b869890a3722251f116c97b9da31d8a91e922ce350cbfd0.",
-      "timestamp": "2026-08-27T13:02:23.170724+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable FULL_RELEASE_PROMOTION_STARTED event; key=64f1b1432d79406060fe6483bf92f10525283b4c329231b54163c7d4c36422f0.",
+      "timestamp": "2026-08-27T19:08:52.000304+00:00"
     },
     {
       "cursor": "24",
-      "event_id": "GITHUB_RUN_PINNED-e156a7621d55229d",
-      "human_message": "The exact GitHub Actions run and attempt were pinned.",
+      "event_id": "RELEASE_VALIDATION_SUCCEEDED-ee7301e4378bb28d",
+      "human_message": "Candidate validation succeeded.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "33074746109:1",
-        "33074746109"
+        "33106995963:1",
+        "33106995963"
       ],
-      "semantic_type": "GITHUB_RUN_PINNED",
+      "semantic_type": "RELEASE_VALIDATION_SUCCEEDED",
       "sequence": 24,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable GITHUB_RUN_PINNED event; key=33074746109:1.",
-      "timestamp": "2026-08-27T13:02:10.105622+00:00"
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable RELEASE_VALIDATION_SUCCEEDED event; key=33106995963:1.",
+      "timestamp": "2026-08-27T19:08:51.863435+00:00"
     },
     {
       "cursor": "23",
-      "event_id": "GITHUB_RELEASE_ACKNOWLEDGED-15ef66a4873c98c9",
-      "human_message": "GitHub acknowledged the exact release.",
+      "event_id": "GITHUB_RUN_PINNED-ee7301e4378bb28d",
+      "human_message": "The exact GitHub Actions run and attempt were pinned.",
+      "phase": "ACT",
       "recovery_attempt": 2,
       "related_resource_ids": [
-        "reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785",
-        "377826902"
+        "33106995963:1",
+        "33106995963"
+      ],
+      "semantic_type": "GITHUB_RUN_PINNED",
+      "sequence": 23,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable GITHUB_RUN_PINNED event; key=33106995963:1.",
+      "timestamp": "2026-08-27T19:08:50.389583+00:00"
+    },
+    {
+      "cursor": "22",
+      "event_id": "INCIDENT_REOPENED-9d92468d22f6ad48",
+      "human_message": "The failed objective reopened for another recovery.",
+      "phase": "REPLAN",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "799d3ad2567198e85e64947ca9f0ccf04aed4bb77d18f9608b85875d420754a0"
+      ],
+      "semantic_type": "INCIDENT_REOPENED",
+      "sequence": 22,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable INCIDENT_REOPENED event; key=799d3ad2567198e85e64947ca9f0ccf04aed4bb77d18f9608b85875d420754a0.",
+      "timestamp": "2026-08-27T19:08:49.909247+00:00"
+    },
+    {
+      "cursor": "21",
+      "event_id": "GITHUB_RELEASE_ACKNOWLEDGED-8458c080436b9f94",
+      "human_message": "GitHub acknowledged the exact release.",
+      "phase": "ACT",
+      "recovery_attempt": 2,
+      "related_resource_ids": [
+        "reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785",
+        "378060699"
       ],
       "semantic_type": "GITHUB_RELEASE_ACKNOWLEDGED",
-      "sequence": 23,
-      "source_authority": "reflow_workflow_ledger",
-      "technical_summary": "Durable GITHUB_RELEASE_ACKNOWLEDGED event; key=reflow-p1d-9c613523dd025de0cb3370cba8c5-7b7881ed1785.",
-      "timestamp": "2026-08-27T13:01:55.371242+00:00"
+      "sequence": 21,
+      "source_authority": "reflow_engine",
+      "source_label": "Reflow engine",
+      "technical_summary": "Durable GITHUB_RELEASE_ACKNOWLEDGED event; key=reflow-p1d-56a4daae83fa8f95bafc916bb017-7b7881ed1785.",
+      "timestamp": "2026-08-27T19:08:34.398058+00:00"
     }
   ],
   "revision": 51

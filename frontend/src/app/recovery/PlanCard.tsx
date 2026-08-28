@@ -56,13 +56,14 @@ export function PlanCard({ plan }: { plan: RecoveryPlanView }) {
         </p>
       ) : null}
 
-      {(plan.proposed_action_summary ?? []).length > 0 ? (
+      {(plan.actions ?? []).length > 0 ? (
         <div className="plan-steps">
-          <span className="field-label">Proposed steps</span>
+          <span className="field-label">Action semantics</span>
           <ul>
-            {(plan.proposed_action_summary ?? []).map((step) => (
-              <li key={step} className="mono">
-                {step}
+            {(plan.actions ?? []).map((action) => (
+              <li key={action.action_id} className="mono">
+                {action.kind} → {action.target} ·{" "}
+                {action.disposition.toLowerCase().replaceAll("_", " ")}
               </li>
             ))}
           </ul>

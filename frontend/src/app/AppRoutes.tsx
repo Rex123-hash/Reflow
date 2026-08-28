@@ -1,6 +1,8 @@
-import { lazy, type ComponentType } from "react";
+import { lazy, useMemo, type ComponentType } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./AppShell";
+import { AuthBoundary, useAuthSession } from "./auth/AuthSessionContext";
+import { ApiUiDataProvider } from "./data/ApiUiDataProvider";
 import { UiDataProviderRoot } from "./data/UiDataContext";
 
 /**
@@ -43,9 +45,14 @@ const OperatorRoute = lazyNamed(
   "OperatorRoute",
 );
 
-export function AppRoutes() {
+function AuthenticatedRoutes() {
+  const { session } = useAuthSession();
+  const provider = useMemo(
+    () => new ApiUiDataProvider({ mode: session.mode }),
+    [session.mode],
+  );
   return (
-    <UiDataProviderRoot>
+    <UiDataProviderRoot provider={provider}>
       <Routes>
         <Route element={<AppShell />}>
           <Route index element={<Navigate to="overview" replace />} />
@@ -61,6 +68,14 @@ export function AppRoutes() {
         </Route>
       </Routes>
     </UiDataProviderRoot>
+  );
+}
+
+export function AppRoutes() {
+  return (
+    <AuthBoundary>
+      <AuthenticatedRoutes />
+    </AuthBoundary>
   );
 }
 

@@ -145,8 +145,13 @@ export function humanizeEnum(value: string): string {
  */
 const SYSTEM_NAMES: Record<string, string> = {
   github: "GitHub",
+  github_actions: "GitHub Actions",
   google_calendar: "Google Calendar",
   gmail: "Gmail",
+  reflow_verifier: "Reflow Verifier",
+  reflow_policy: "Reflow Policy",
+  reflow_engine: "Reflow Engine",
+  reflow_graph: "Reflow Graph",
 };
 
 export function displaySystem(system: string): string {

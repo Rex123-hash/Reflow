@@ -5,13 +5,8 @@ import type { EvidenceView, RecoveryCaseView } from "../contract/uiContract";
  *
  * docs/ui-backend-contract.md § "Recovery spine and branching" states that stage,
  * action and invariant evidence references resolve to an `EvidenceView.evidence_id`.
- * Several references in the current P2A export do not resolve — the fix is a
- * backend presentation-layer change (known gap 1).
- *
- * This module therefore does exactly one thing: an exact `Map` lookup. It never
- * guesses that a receipt-scoped key means a resource-scoped card, never matches on
- * prefixes or substrings, and never silently drops an unresolved reference — the
- * unresolved ids are returned so the UI can state the gap truthfully.
+ * P2B guarantees that every published reference resolves exactly once. This
+ * module performs only the exact lookup; it never fuzzy-matches identifiers.
  */
 
 export interface EvidenceResolution {
@@ -53,7 +48,7 @@ export type RailScope =
   | {
       kind: "attempt";
       attemptLabel: string;
-      reason: "no-anchors" | "unresolved-anchors";
+      reason: "no-anchors";
     };
 
 export interface RailContents extends EvidenceResolution {
@@ -65,9 +60,8 @@ export interface RailContents extends EvidenceResolution {
  * What the Evidence Rail shows for the selected stage.
  *
  * When a stage anchors evidence that resolves, the rail is stage-scoped. When it
- * anchors nothing — or anchors only ids that do not resolve — the rail falls back
- * to the attempt and says which of the two happened. The fallback is a designed
- * state, not an apology for an empty column.
+ * anchors nothing, the rail shows attempt evidence. Published anchors are exact
+ * by contract and remain stage-scoped.
  */
 export function railContentsForStage(
   recoveryCase: RecoveryCaseView,
@@ -79,7 +73,7 @@ export function railContentsForStage(
   const attemptLabel = `Recovery ${String(attemptNumber).padStart(2, "0")}`;
   const resolution = resolveEvidenceIds(index, stageIds);
 
-  if (resolution.resolved.length > 0) {
+  if (stageIds.length > 0) {
     return {
       ...resolution,
       cards: resolution.resolved,
@@ -97,7 +91,7 @@ export function railContentsForStage(
     scope: {
       kind: "attempt",
       attemptLabel,
-      reason: stageIds.length === 0 ? "no-anchors" : "unresolved-anchors",
+      reason: "no-anchors",
     },
   };
 }

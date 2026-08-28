@@ -2,25 +2,6 @@ import type { ReactNode } from "react";
 import type { UiDataError } from "../data/UiDataProvider";
 import { Icon } from "./Icon";
 
-/**
- * Marks a value the P2A contract does not yet supply.
- *
- * The alternative to this component is fabricating the value, which the truth
- * boundary forbids. It renders as a neutral dashed placeholder — never as an error
- * and never as a failure — and names the missing field for whoever is reading.
- */
-export function ContractGap({ field, note }: { field: string; note: string }) {
-  return (
-    <span
-      className="contract-gap"
-      title={`Not supplied by the presentation contract: ${field}. ${note}`}
-    >
-      <Icon name="info" size={13} />
-      Not supplied
-    </span>
-  );
-}
-
 export function Notice({
   children,
   dashed = false,
@@ -72,6 +53,10 @@ const ERROR_COPY: Record<string, { title: string; body: string }> = {
   transport_failure: {
     title: "Reflow's records could not be loaded",
     body: "The request did not complete. This says nothing about the objective — an unreadable authority is not a failed one.",
+  },
+  authentication_required: {
+    title: "Your product session expired",
+    body: "Sign in again to return to the workspace. No recovery state was changed.",
   },
 };
 

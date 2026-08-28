@@ -32,7 +32,7 @@ import operatorFixture from "./fixtures/operator-context.json";
  */
 export type FixtureScenario = "active" | "restored";
 
-export const CANONICAL_INCIDENT_ID = "incident-938b303718a6abe41244";
+export const CANONICAL_INCIDENT_ID = "incident-0fc3af5b0bd1ad847aea";
 
 const FIXTURE_PROVENANCE: Record<FixtureScenario, ProvenanceInfo> = {
   active: {

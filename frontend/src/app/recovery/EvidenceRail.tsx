@@ -6,10 +6,8 @@ import type { RailContents } from "../semantics/evidence";
  * Contextual proof for whatever is selected.
  *
  * The rail is stage-scoped when the stage anchors evidence that resolves by exact
- * id. When it anchors nothing, or anchors only ids that do not resolve, it falls
- * back to the attempt and says which of the two happened — an unresolved reference
- * is reported, never quietly swallowed and never fuzzy-matched into a plausible
- * card. See docs/ui-backend-contract.md and known gap 1.
+ * id. When it anchors nothing, it shows attempt evidence. P2B and the BFF validate
+ * that every published evidence join resolves exactly once.
  */
 export function EvidenceRail({
   contents,
@@ -20,7 +18,7 @@ export function EvidenceRail({
   incidentId: string;
   focusedEvidenceId: string | null;
 }) {
-  const { scope, cards, unresolvedIds } = contents;
+  const { scope, cards } = contents;
 
   return (
     <aside className="rail" aria-label="Evidence">
@@ -38,41 +36,10 @@ export function EvidenceRail({
           <div className="rail-note">
             <Icon name="info" size={13} />
             <p>
-              {scope.reason === "no-anchors" ? (
-                <>
-                  No evidence is anchored to this stage. Showing everything{" "}
-                  {scope.attemptLabel} produced.
-                </>
-              ) : (
-                <>
-                  This stage references evidence that the payload does not
-                  declare, so it cannot be resolved by exact id. Showing
-                  everything {scope.attemptLabel} produced instead.
-                </>
-              )}
+              No evidence is anchored to this stage. Showing everything{" "}
+              {scope.attemptLabel} produced.
             </p>
           </div>
-        ) : null}
-
-        {unresolvedIds.length > 0 ? (
-          <details className="rail-unresolved">
-            <summary>
-              {unresolvedIds.length} unresolved reference
-              {unresolvedIds.length === 1 ? "" : "s"}
-            </summary>
-            <ul>
-              {unresolvedIds.map((id) => (
-                <li key={id} className="mono">
-                  {id}
-                </li>
-              ))}
-            </ul>
-            <p>
-              These ids are referenced by the recovery payload but are not
-              declared in its evidence set. Reflow will not guess which card
-              they mean.
-            </p>
-          </details>
         ) : null}
 
         {cards.map((evidence) => (

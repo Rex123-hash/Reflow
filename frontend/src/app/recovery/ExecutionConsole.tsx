@@ -96,9 +96,8 @@ export function ExecutionConsole({
             {mode === "activity" ? (
               <>
                 Grouped by recovery attempt and ordered by observation time.
-                Reflow does not reorder events into a causal narrative — a finer
-                grouping would require an authoritative phase field the contract
-                does not expose.
+                Phase groups use the backend's authoritative phase metadata;
+                Reflow does not derive phases from event names.
               </>
             ) : (
               <>

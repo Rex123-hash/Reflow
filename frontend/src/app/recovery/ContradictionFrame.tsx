@@ -11,7 +11,6 @@ import {
 } from "../components/StatusVocabulary";
 import {
   displayReference,
-  displaySystem,
   humanizeEnum,
   isHttpReference,
 } from "../semantics/format";
@@ -93,8 +92,8 @@ export function ContradictionFrame({
         <p className="contradiction-statement">
           {failedOutcome ? (
             <>
-              Reflow wrote to {displaySystem(failedOutcome.system)}, read it
-              back independently and matched it. The receipt is verified. The
+              Reflow wrote to {failedOutcome.system_label}, read it back
+              independently and matched it. The receipt is verified. The
               objective is not.
             </>
           ) : (
