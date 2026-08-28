@@ -17,6 +17,8 @@ from pydantic import ValidationError
 from objective_recovery_agent.action_ledger import FirestoreActionReceiptLedger
 from objective_recovery_agent.calendar_execution import CalendarExecutionService
 from objective_recovery_agent.calendar_gateway import GoogleCalendarGateway
+from objective_recovery_agent.external_reality import ExternalRealityService
+from objective_recovery_agent.external_reality_schemas import ExternalRealityView
 from objective_recovery_agent.github_execution import (
     GitHubP1CService,
     GitHubP1DPromotionService,
@@ -127,6 +129,35 @@ def get_presentation_service() -> PresentationService:
     if not project_id:
         raise RuntimeError("GOOGLE_CLOUD_PROJECT is required")
     return PresentationService(FirestorePresentationStore(project_id))
+
+
+def get_external_reality_service() -> ExternalRealityService:
+    project_id = os.environ["GOOGLE_CLOUD_PROJECT"]
+    service_account = os.environ.get("OBJECTIVE_RECOVERY_SERVICE_ACCOUNT")
+    return ExternalRealityService(
+        FirestorePresentationStore(project_id),
+        allowed_calendar_id=os.environ.get("GOOGLE_CALENDAR_ID"),
+        reader_factory=(
+            lambda: GoogleCalendarGateway(service_account_email=service_account, request_timeout=3)
+        )
+        if service_account
+        else None,
+    )
+
+
+@app.get("/api/v1/ui/recoveries/{incident_id}/external-reality", response_model=ExternalRealityView)
+async def ui_external_reality(
+    incident_id: str,
+    service: Annotated[ExternalRealityService, Depends(get_external_reality_service)],
+) -> Response:
+    try:
+        value = await service.read(incident_id)
+        # Fresh external state may change without a new incident revision. Never use revision ETags.
+        return JSONResponse(
+            content=value.model_dump(mode="json"), headers={"Cache-Control": "no-store"}
+        )
+    except Exception as error:
+        raise _presentation_failure(error) from error
 
 
 @lru_cache(maxsize=1)

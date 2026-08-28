@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import { useCallback, useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/Feedback";
+import { ExternalReality } from "../components/ExternalReality";
 import { ObjectiveContextBar } from "../components/ObjectiveContextBar";
 import { Icon } from "../components/Icon";
 import { useExecutionEvents, useRecoveryCase } from "../data/resources";
@@ -203,6 +204,18 @@ export function RecoveryRoute() {
           </div>
 
           <div className="workspace-scroll">
+            {(activeLens === "summary" ||
+              activeLens === "actions" ||
+              activeLens === "verify") && (
+              <ExternalReality
+                incidentId={incidentId}
+                objectiveStatus={
+                  recoveryCase.verifications.find(
+                    (v) => v.recovery_attempt === attempt?.attempt_number,
+                  )?.status
+                }
+              />
+            )}
             {attempt ? (
               <LensComponent
                 recoveryCase={recoveryCase}

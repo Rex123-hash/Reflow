@@ -20,6 +20,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import JSONResponse
+from objective_recovery_agent.external_reality_schemas import ExternalRealityView
 from objective_recovery_agent.ui_schemas import (
     EvidencePageView,
     ExecutionEventsView,
@@ -69,6 +70,8 @@ def _session_view(principal: SessionPrincipal) -> SessionView:
 
 
 def _validated_json(resource: str, body: bytes) -> str:
+    if resource == "external-reality":
+        return ExternalRealityView.model_validate_json(body).model_dump_json()
     if resource == "overview":
         return OverviewView.model_validate_json(body).model_dump_json()
     if resource == "objectives":
@@ -335,6 +338,24 @@ def create_app(
             if_none_match,
             incident_id=incident_id,
         )
+
+    @app.get("/api/v1/ui/recoveries/{incident_id}/external-reality")
+    def external_reality(
+        incident_id: str,
+        principal: Annotated[SessionPrincipal, Depends(require_principal)],
+    ) -> Response:
+        response = presentation_response(
+            principal,
+            "external-reality",
+            f"/api/v1/ui/recoveries/{incident_id}/external-reality",
+            {},
+            None,
+            incident_id=incident_id,
+        )
+        response.headers["Cache-Control"] = "no-store"
+        if "etag" in response.headers:
+            del response.headers["etag"]
+        return response
 
     @app.get("/api/v1/ui/recoveries/{incident_id}/events")
     def events(

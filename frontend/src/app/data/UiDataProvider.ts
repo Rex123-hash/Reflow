@@ -1,5 +1,6 @@
 import type {
   EvidencePageView,
+  ExternalRealityView,
   ExecutionEventsView,
   ObjectiveFilter,
   ObjectivesView,
@@ -66,6 +67,11 @@ export interface UiDataProvider {
   readonly id: string;
 
   getOverview(signal?: AbortSignal): Promise<Provenanced<OverviewView>>;
+
+  getExternalReality(
+    incidentId: string,
+    signal?: AbortSignal,
+  ): Promise<Provenanced<ExternalRealityView>>;
 
   getObjectives(
     filter: ObjectiveFilter,

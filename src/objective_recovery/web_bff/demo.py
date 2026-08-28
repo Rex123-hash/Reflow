@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from objective_recovery_agent.external_reality_schemas import ExternalRealityView
 from objective_recovery_agent.ui_schemas import (
     EvidencePageView,
     ExecutionEventsView,
@@ -38,6 +39,9 @@ class DemoStore:
         self.operator = OperatorContextView.model_validate_json(
             self._read(root / "operator-context.json")
         )
+        self.external_reality = ExternalRealityView.model_validate_json(
+            self._read(root / "external-reality.json")
+        )
         if {
             self.evidence.incident_id,
             self.events.incident_id,
@@ -68,6 +72,8 @@ class DemoStore:
         value: PresentationModel
         if resource == "overview":
             value = self.overview
+        elif resource == "external-reality":
+            value = self.external_reality
         elif resource == "objectives":
             items = self.objectives.items
             if selected_filter is ObjectiveFilter.RESTORED:

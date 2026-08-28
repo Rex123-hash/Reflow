@@ -109,7 +109,8 @@ def _raise_for_calendar_error(response: Response) -> None:
 class GoogleCalendarGateway:
     """Uses short-lived, Calendar-scoped service-account impersonation credentials."""
 
-    def __init__(self, *, service_account_email: str) -> None:
+    def __init__(self, *, service_account_email: str, request_timeout: float = 20) -> None:
+        self._request_timeout = request_timeout
         source_credentials, _ = google.auth.default()
         scoped_credentials = impersonated_credentials.Credentials(  # type: ignore[no-untyped-call]
             source_credentials=source_credentials,
@@ -133,7 +134,7 @@ class GoogleCalendarGateway:
             response = cast(
                 Response,
                 self._session.request(  # type: ignore[no-untyped-call]
-                    method, url, timeout=20, **kwargs
+                    method, url, timeout=self._request_timeout, **kwargs
                 ),
             )
         except RequestException as error:

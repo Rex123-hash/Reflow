@@ -12150,3 +12150,1855 @@ validate73.evaluated = {
   dynamicProps: false,
   dynamicItems: false,
 };
+
+export const ExternalRealityView = validate82;
+const schema87 = {
+  $id: "reflow-ExternalRealityView",
+  $ref: "reflow-ui-openapi#/components/schemas/ExternalRealityView",
+};
+const schema88 = {
+  additionalProperties: false,
+  properties: {
+    availability: {
+      default: "EVIDENCE_UNAVAILABLE",
+      enum: ["AVAILABLE", "EVIDENCE_UNAVAILABLE"],
+      title: "Availability",
+      type: "string",
+    },
+    incident_id: { title: "Incident Id", type: "string" },
+    resources: {
+      items: { $ref: "#/components/schemas/ExternalResourceView" },
+      title: "Resources",
+      type: "array",
+    },
+    revision: { title: "Revision", type: "integer" },
+  },
+  required: ["incident_id", "revision"],
+  title: "ExternalRealityView",
+  type: "object",
+};
+const schema89 = {
+  additionalProperties: false,
+  properties: {
+    action_id: { title: "Action Id", type: "string" },
+    authority: {
+      const: "google_calendar",
+      default: "google_calendar",
+      title: "Authority",
+      type: "string",
+    },
+    checked_at: {
+      anyOf: [{ type: "string" }, { type: "null" }],
+      title: "Checked At",
+    },
+    evidence_id: { title: "Evidence Id", type: "string" },
+    expected: { $ref: "#/components/schemas/ExternalEventState" },
+    fresh_read_status: {
+      enum: [
+        "NOT_REQUESTED",
+        "READ_BACK",
+        "NOT_FOUND",
+        "TIMEOUT",
+        "UNAVAILABLE",
+      ],
+      title: "Fresh Read Status",
+      type: "string",
+    },
+    latest_readback: {
+      anyOf: [
+        { $ref: "#/components/schemas/ExternalObservation" },
+        { type: "null" },
+      ],
+    },
+    presentation_label: {
+      default: "Recovery coordination commitment",
+      title: "Presentation Label",
+      type: "string",
+    },
+    receipt_id: { title: "Receipt Id", type: "string" },
+    receipt_readback: {
+      anyOf: [
+        { $ref: "#/components/schemas/ExternalObservation" },
+        { type: "null" },
+      ],
+    },
+    receipt_status: {
+      enum: [
+        "PENDING",
+        "WRITE_ACKNOWLEDGED",
+        "VERIFIED",
+        "VERIFICATION_FAILED",
+        "FAILED",
+        "UNAVAILABLE",
+      ],
+      title: "Receipt Status",
+      type: "string",
+    },
+    recovery_attempt: {
+      default: 1,
+      title: "Recovery Attempt",
+      type: "integer",
+    },
+    resource_id: { title: "Resource Id", type: "string" },
+    resource_type: {
+      const: "event",
+      default: "event",
+      title: "Resource Type",
+      type: "string",
+    },
+    write_acknowledged_at: {
+      anyOf: [{ type: "string" }, { type: "null" }],
+      title: "Write Acknowledged At",
+    },
+  },
+  required: [
+    "resource_id",
+    "action_id",
+    "receipt_id",
+    "evidence_id",
+    "expected",
+    "write_acknowledged_at",
+    "receipt_status",
+    "receipt_readback",
+    "latest_readback",
+    "fresh_read_status",
+  ],
+  title: "ExternalResourceView",
+  type: "object",
+};
+const schema90 = {
+  additionalProperties: false,
+  description:
+    "Allowlisted event fields; never calendar/account IDs or arbitrary event text.",
+  properties: {
+    end: { anyOf: [{ type: "string" }, { type: "null" }], title: "End" },
+    start: { anyOf: [{ type: "string" }, { type: "null" }], title: "Start" },
+    status: {
+      anyOf: [
+        { enum: ["confirmed", "tentative", "cancelled"], type: "string" },
+        { type: "null" },
+      ],
+      title: "Status",
+    },
+  },
+  title: "ExternalEventState",
+  type: "object",
+};
+const schema91 = {
+  additionalProperties: false,
+  properties: {
+    observed_at: { title: "Observed At", type: "string" },
+    source_freshness: {
+      enum: ["FRESH_READ", "PERSISTED_READBACK"],
+      title: "Source Freshness",
+      type: "string",
+    },
+    state: { $ref: "#/components/schemas/ExternalEventState" },
+    verification_status: { $ref: "#/components/schemas/VerificationStatus" },
+  },
+  required: ["state", "observed_at", "verification_status", "source_freshness"],
+  title: "ExternalObservation",
+  type: "object",
+};
+
+function validate85(
+  data,
+  {
+    instancePath = "",
+    parentData,
+    parentDataProperty,
+    rootData = data,
+    dynamicAnchors = {},
+  } = {},
+) {
+  let vErrors = null;
+  let errors = 0;
+  const evaluated0 = validate85.evaluated;
+  if (evaluated0.dynamicProps) {
+    evaluated0.props = undefined;
+  }
+  if (evaluated0.dynamicItems) {
+    evaluated0.items = undefined;
+  }
+  if (data && typeof data == "object" && !Array.isArray(data)) {
+    if (data.state === undefined) {
+      const err0 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "state" },
+        message: "must have required property '" + "state" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err0];
+      } else {
+        vErrors.push(err0);
+      }
+      errors++;
+    }
+    if (data.observed_at === undefined) {
+      const err1 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "observed_at" },
+        message: "must have required property '" + "observed_at" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err1];
+      } else {
+        vErrors.push(err1);
+      }
+      errors++;
+    }
+    if (data.verification_status === undefined) {
+      const err2 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "verification_status" },
+        message: "must have required property '" + "verification_status" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    }
+    if (data.source_freshness === undefined) {
+      const err3 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "source_freshness" },
+        message: "must have required property '" + "source_freshness" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err3];
+      } else {
+        vErrors.push(err3);
+      }
+      errors++;
+    }
+    for (const key0 in data) {
+      if (!(
+        key0 === "observed_at" ||
+        key0 === "source_freshness" ||
+        key0 === "state" ||
+        key0 === "verification_status"
+      )) {
+        const err4 = {
+          instancePath,
+          schemaPath: "#/additionalProperties",
+          keyword: "additionalProperties",
+          params: { additionalProperty: key0 },
+          message: "must NOT have additional properties",
+        };
+        if (vErrors === null) {
+          vErrors = [err4];
+        } else {
+          vErrors.push(err4);
+        }
+        errors++;
+      }
+    }
+    if (data.observed_at !== undefined) {
+      if (typeof data.observed_at !== "string") {
+        const err5 = {
+          instancePath: instancePath + "/observed_at",
+          schemaPath: "#/properties/observed_at/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err5];
+        } else {
+          vErrors.push(err5);
+        }
+        errors++;
+      }
+    }
+    if (data.source_freshness !== undefined) {
+      let data1 = data.source_freshness;
+      if (typeof data1 !== "string") {
+        const err6 = {
+          instancePath: instancePath + "/source_freshness",
+          schemaPath: "#/properties/source_freshness/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err6];
+        } else {
+          vErrors.push(err6);
+        }
+        errors++;
+      }
+      if (!(data1 === "FRESH_READ" || data1 === "PERSISTED_READBACK")) {
+        const err7 = {
+          instancePath: instancePath + "/source_freshness",
+          schemaPath: "#/properties/source_freshness/enum",
+          keyword: "enum",
+          params: { allowedValues: schema91.properties.source_freshness.enum },
+          message: "must be equal to one of the allowed values",
+        };
+        if (vErrors === null) {
+          vErrors = [err7];
+        } else {
+          vErrors.push(err7);
+        }
+        errors++;
+      }
+    }
+    if (data.state !== undefined) {
+      let data2 = data.state;
+      if (data2 && typeof data2 == "object" && !Array.isArray(data2)) {
+        for (const key1 in data2) {
+          if (!(key1 === "end" || key1 === "start" || key1 === "status")) {
+            const err8 = {
+              instancePath: instancePath + "/state",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/additionalProperties",
+              keyword: "additionalProperties",
+              params: { additionalProperty: key1 },
+              message: "must NOT have additional properties",
+            };
+            if (vErrors === null) {
+              vErrors = [err8];
+            } else {
+              vErrors.push(err8);
+            }
+            errors++;
+          }
+        }
+        if (data2.end !== undefined) {
+          let data3 = data2.end;
+          const _errs11 = errors;
+          let valid3 = false;
+          const _errs12 = errors;
+          if (typeof data3 !== "string") {
+            const err9 = {
+              instancePath: instancePath + "/state/end",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/end/anyOf/0/type",
+              keyword: "type",
+              params: { type: "string" },
+              message: "must be string",
+            };
+            if (vErrors === null) {
+              vErrors = [err9];
+            } else {
+              vErrors.push(err9);
+            }
+            errors++;
+          }
+          var _valid0 = _errs12 === errors;
+          valid3 = valid3 || _valid0;
+          const _errs14 = errors;
+          if (data3 !== null) {
+            const err10 = {
+              instancePath: instancePath + "/state/end",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/end/anyOf/1/type",
+              keyword: "type",
+              params: { type: "null" },
+              message: "must be null",
+            };
+            if (vErrors === null) {
+              vErrors = [err10];
+            } else {
+              vErrors.push(err10);
+            }
+            errors++;
+          }
+          var _valid0 = _errs14 === errors;
+          valid3 = valid3 || _valid0;
+          if (!valid3) {
+            const err11 = {
+              instancePath: instancePath + "/state/end",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/end/anyOf",
+              keyword: "anyOf",
+              params: {},
+              message: "must match a schema in anyOf",
+            };
+            if (vErrors === null) {
+              vErrors = [err11];
+            } else {
+              vErrors.push(err11);
+            }
+            errors++;
+          } else {
+            errors = _errs11;
+            if (vErrors !== null) {
+              if (_errs11) {
+                vErrors.length = _errs11;
+              } else {
+                vErrors = null;
+              }
+            }
+          }
+        }
+        if (data2.start !== undefined) {
+          let data4 = data2.start;
+          const _errs17 = errors;
+          let valid4 = false;
+          const _errs18 = errors;
+          if (typeof data4 !== "string") {
+            const err12 = {
+              instancePath: instancePath + "/state/start",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/start/anyOf/0/type",
+              keyword: "type",
+              params: { type: "string" },
+              message: "must be string",
+            };
+            if (vErrors === null) {
+              vErrors = [err12];
+            } else {
+              vErrors.push(err12);
+            }
+            errors++;
+          }
+          var _valid1 = _errs18 === errors;
+          valid4 = valid4 || _valid1;
+          const _errs20 = errors;
+          if (data4 !== null) {
+            const err13 = {
+              instancePath: instancePath + "/state/start",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/start/anyOf/1/type",
+              keyword: "type",
+              params: { type: "null" },
+              message: "must be null",
+            };
+            if (vErrors === null) {
+              vErrors = [err13];
+            } else {
+              vErrors.push(err13);
+            }
+            errors++;
+          }
+          var _valid1 = _errs20 === errors;
+          valid4 = valid4 || _valid1;
+          if (!valid4) {
+            const err14 = {
+              instancePath: instancePath + "/state/start",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/start/anyOf",
+              keyword: "anyOf",
+              params: {},
+              message: "must match a schema in anyOf",
+            };
+            if (vErrors === null) {
+              vErrors = [err14];
+            } else {
+              vErrors.push(err14);
+            }
+            errors++;
+          } else {
+            errors = _errs17;
+            if (vErrors !== null) {
+              if (_errs17) {
+                vErrors.length = _errs17;
+              } else {
+                vErrors = null;
+              }
+            }
+          }
+        }
+        if (data2.status !== undefined) {
+          let data5 = data2.status;
+          const _errs23 = errors;
+          let valid5 = false;
+          const _errs24 = errors;
+          if (typeof data5 !== "string") {
+            const err15 = {
+              instancePath: instancePath + "/state/status",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/status/anyOf/0/type",
+              keyword: "type",
+              params: { type: "string" },
+              message: "must be string",
+            };
+            if (vErrors === null) {
+              vErrors = [err15];
+            } else {
+              vErrors.push(err15);
+            }
+            errors++;
+          }
+          if (!(
+            data5 === "confirmed" ||
+            data5 === "tentative" ||
+            data5 === "cancelled"
+          )) {
+            const err16 = {
+              instancePath: instancePath + "/state/status",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/status/anyOf/0/enum",
+              keyword: "enum",
+              params: {
+                allowedValues: schema90.properties.status.anyOf[0].enum,
+              },
+              message: "must be equal to one of the allowed values",
+            };
+            if (vErrors === null) {
+              vErrors = [err16];
+            } else {
+              vErrors.push(err16);
+            }
+            errors++;
+          }
+          var _valid2 = _errs24 === errors;
+          valid5 = valid5 || _valid2;
+          const _errs26 = errors;
+          if (data5 !== null) {
+            const err17 = {
+              instancePath: instancePath + "/state/status",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/status/anyOf/1/type",
+              keyword: "type",
+              params: { type: "null" },
+              message: "must be null",
+            };
+            if (vErrors === null) {
+              vErrors = [err17];
+            } else {
+              vErrors.push(err17);
+            }
+            errors++;
+          }
+          var _valid2 = _errs26 === errors;
+          valid5 = valid5 || _valid2;
+          if (!valid5) {
+            const err18 = {
+              instancePath: instancePath + "/state/status",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/status/anyOf",
+              keyword: "anyOf",
+              params: {},
+              message: "must match a schema in anyOf",
+            };
+            if (vErrors === null) {
+              vErrors = [err18];
+            } else {
+              vErrors.push(err18);
+            }
+            errors++;
+          } else {
+            errors = _errs23;
+            if (vErrors !== null) {
+              if (_errs23) {
+                vErrors.length = _errs23;
+              } else {
+                vErrors = null;
+              }
+            }
+          }
+        }
+      } else {
+        const err19 = {
+          instancePath: instancePath + "/state",
+          schemaPath: "#/components/schemas/ExternalEventState/type",
+          keyword: "type",
+          params: { type: "object" },
+          message: "must be object",
+        };
+        if (vErrors === null) {
+          vErrors = [err19];
+        } else {
+          vErrors.push(err19);
+        }
+        errors++;
+      }
+    }
+    if (data.verification_status !== undefined) {
+      let data6 = data.verification_status;
+      if (typeof data6 !== "string") {
+        const err20 = {
+          instancePath: instancePath + "/verification_status",
+          schemaPath: "#/components/schemas/VerificationStatus/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err20];
+        } else {
+          vErrors.push(err20);
+        }
+        errors++;
+      }
+      if (!(
+        data6 === "PASSED" ||
+        data6 === "FAILED" ||
+        data6 === "PENDING" ||
+        data6 === "UNAVAILABLE"
+      )) {
+        const err21 = {
+          instancePath: instancePath + "/verification_status",
+          schemaPath: "#/components/schemas/VerificationStatus/enum",
+          keyword: "enum",
+          params: { allowedValues: schema52.enum },
+          message: "must be equal to one of the allowed values",
+        };
+        if (vErrors === null) {
+          vErrors = [err21];
+        } else {
+          vErrors.push(err21);
+        }
+        errors++;
+      }
+    }
+  } else {
+    const err22 = {
+      instancePath,
+      schemaPath: "#/type",
+      keyword: "type",
+      params: { type: "object" },
+      message: "must be object",
+    };
+    if (vErrors === null) {
+      vErrors = [err22];
+    } else {
+      vErrors.push(err22);
+    }
+    errors++;
+  }
+  validate85.errors = vErrors;
+  return errors === 0;
+}
+validate85.evaluated = {
+  props: true,
+  dynamicProps: false,
+  dynamicItems: false,
+};
+
+function validate84(
+  data,
+  {
+    instancePath = "",
+    parentData,
+    parentDataProperty,
+    rootData = data,
+    dynamicAnchors = {},
+  } = {},
+) {
+  let vErrors = null;
+  let errors = 0;
+  const evaluated0 = validate84.evaluated;
+  if (evaluated0.dynamicProps) {
+    evaluated0.props = undefined;
+  }
+  if (evaluated0.dynamicItems) {
+    evaluated0.items = undefined;
+  }
+  if (data && typeof data == "object" && !Array.isArray(data)) {
+    if (data.resource_id === undefined) {
+      const err0 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "resource_id" },
+        message: "must have required property '" + "resource_id" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err0];
+      } else {
+        vErrors.push(err0);
+      }
+      errors++;
+    }
+    if (data.action_id === undefined) {
+      const err1 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "action_id" },
+        message: "must have required property '" + "action_id" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err1];
+      } else {
+        vErrors.push(err1);
+      }
+      errors++;
+    }
+    if (data.receipt_id === undefined) {
+      const err2 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "receipt_id" },
+        message: "must have required property '" + "receipt_id" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err2];
+      } else {
+        vErrors.push(err2);
+      }
+      errors++;
+    }
+    if (data.evidence_id === undefined) {
+      const err3 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "evidence_id" },
+        message: "must have required property '" + "evidence_id" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err3];
+      } else {
+        vErrors.push(err3);
+      }
+      errors++;
+    }
+    if (data.expected === undefined) {
+      const err4 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "expected" },
+        message: "must have required property '" + "expected" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err4];
+      } else {
+        vErrors.push(err4);
+      }
+      errors++;
+    }
+    if (data.write_acknowledged_at === undefined) {
+      const err5 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "write_acknowledged_at" },
+        message:
+          "must have required property '" + "write_acknowledged_at" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err5];
+      } else {
+        vErrors.push(err5);
+      }
+      errors++;
+    }
+    if (data.receipt_status === undefined) {
+      const err6 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "receipt_status" },
+        message: "must have required property '" + "receipt_status" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err6];
+      } else {
+        vErrors.push(err6);
+      }
+      errors++;
+    }
+    if (data.receipt_readback === undefined) {
+      const err7 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "receipt_readback" },
+        message: "must have required property '" + "receipt_readback" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err7];
+      } else {
+        vErrors.push(err7);
+      }
+      errors++;
+    }
+    if (data.latest_readback === undefined) {
+      const err8 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "latest_readback" },
+        message: "must have required property '" + "latest_readback" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err8];
+      } else {
+        vErrors.push(err8);
+      }
+      errors++;
+    }
+    if (data.fresh_read_status === undefined) {
+      const err9 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "fresh_read_status" },
+        message: "must have required property '" + "fresh_read_status" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err9];
+      } else {
+        vErrors.push(err9);
+      }
+      errors++;
+    }
+    for (const key0 in data) {
+      if (!func1.call(schema89.properties, key0)) {
+        const err10 = {
+          instancePath,
+          schemaPath: "#/additionalProperties",
+          keyword: "additionalProperties",
+          params: { additionalProperty: key0 },
+          message: "must NOT have additional properties",
+        };
+        if (vErrors === null) {
+          vErrors = [err10];
+        } else {
+          vErrors.push(err10);
+        }
+        errors++;
+      }
+    }
+    if (data.action_id !== undefined) {
+      if (typeof data.action_id !== "string") {
+        const err11 = {
+          instancePath: instancePath + "/action_id",
+          schemaPath: "#/properties/action_id/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err11];
+        } else {
+          vErrors.push(err11);
+        }
+        errors++;
+      }
+    }
+    if (data.authority !== undefined) {
+      let data1 = data.authority;
+      if (typeof data1 !== "string") {
+        const err12 = {
+          instancePath: instancePath + "/authority",
+          schemaPath: "#/properties/authority/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err12];
+        } else {
+          vErrors.push(err12);
+        }
+        errors++;
+      }
+      if ("google_calendar" !== data1) {
+        const err13 = {
+          instancePath: instancePath + "/authority",
+          schemaPath: "#/properties/authority/const",
+          keyword: "const",
+          params: { allowedValue: "google_calendar" },
+          message: "must be equal to constant",
+        };
+        if (vErrors === null) {
+          vErrors = [err13];
+        } else {
+          vErrors.push(err13);
+        }
+        errors++;
+      }
+    }
+    if (data.checked_at !== undefined) {
+      let data2 = data.checked_at;
+      const _errs7 = errors;
+      let valid1 = false;
+      const _errs8 = errors;
+      if (typeof data2 !== "string") {
+        const err14 = {
+          instancePath: instancePath + "/checked_at",
+          schemaPath: "#/properties/checked_at/anyOf/0/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err14];
+        } else {
+          vErrors.push(err14);
+        }
+        errors++;
+      }
+      var _valid0 = _errs8 === errors;
+      valid1 = valid1 || _valid0;
+      const _errs10 = errors;
+      if (data2 !== null) {
+        const err15 = {
+          instancePath: instancePath + "/checked_at",
+          schemaPath: "#/properties/checked_at/anyOf/1/type",
+          keyword: "type",
+          params: { type: "null" },
+          message: "must be null",
+        };
+        if (vErrors === null) {
+          vErrors = [err15];
+        } else {
+          vErrors.push(err15);
+        }
+        errors++;
+      }
+      var _valid0 = _errs10 === errors;
+      valid1 = valid1 || _valid0;
+      if (!valid1) {
+        const err16 = {
+          instancePath: instancePath + "/checked_at",
+          schemaPath: "#/properties/checked_at/anyOf",
+          keyword: "anyOf",
+          params: {},
+          message: "must match a schema in anyOf",
+        };
+        if (vErrors === null) {
+          vErrors = [err16];
+        } else {
+          vErrors.push(err16);
+        }
+        errors++;
+      } else {
+        errors = _errs7;
+        if (vErrors !== null) {
+          if (_errs7) {
+            vErrors.length = _errs7;
+          } else {
+            vErrors = null;
+          }
+        }
+      }
+    }
+    if (data.evidence_id !== undefined) {
+      if (typeof data.evidence_id !== "string") {
+        const err17 = {
+          instancePath: instancePath + "/evidence_id",
+          schemaPath: "#/properties/evidence_id/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err17];
+        } else {
+          vErrors.push(err17);
+        }
+        errors++;
+      }
+    }
+    if (data.expected !== undefined) {
+      let data4 = data.expected;
+      if (data4 && typeof data4 == "object" && !Array.isArray(data4)) {
+        for (const key1 in data4) {
+          if (!(key1 === "end" || key1 === "start" || key1 === "status")) {
+            const err18 = {
+              instancePath: instancePath + "/expected",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/additionalProperties",
+              keyword: "additionalProperties",
+              params: { additionalProperty: key1 },
+              message: "must NOT have additional properties",
+            };
+            if (vErrors === null) {
+              vErrors = [err18];
+            } else {
+              vErrors.push(err18);
+            }
+            errors++;
+          }
+        }
+        if (data4.end !== undefined) {
+          let data5 = data4.end;
+          const _errs19 = errors;
+          let valid4 = false;
+          const _errs20 = errors;
+          if (typeof data5 !== "string") {
+            const err19 = {
+              instancePath: instancePath + "/expected/end",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/end/anyOf/0/type",
+              keyword: "type",
+              params: { type: "string" },
+              message: "must be string",
+            };
+            if (vErrors === null) {
+              vErrors = [err19];
+            } else {
+              vErrors.push(err19);
+            }
+            errors++;
+          }
+          var _valid1 = _errs20 === errors;
+          valid4 = valid4 || _valid1;
+          const _errs22 = errors;
+          if (data5 !== null) {
+            const err20 = {
+              instancePath: instancePath + "/expected/end",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/end/anyOf/1/type",
+              keyword: "type",
+              params: { type: "null" },
+              message: "must be null",
+            };
+            if (vErrors === null) {
+              vErrors = [err20];
+            } else {
+              vErrors.push(err20);
+            }
+            errors++;
+          }
+          var _valid1 = _errs22 === errors;
+          valid4 = valid4 || _valid1;
+          if (!valid4) {
+            const err21 = {
+              instancePath: instancePath + "/expected/end",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/end/anyOf",
+              keyword: "anyOf",
+              params: {},
+              message: "must match a schema in anyOf",
+            };
+            if (vErrors === null) {
+              vErrors = [err21];
+            } else {
+              vErrors.push(err21);
+            }
+            errors++;
+          } else {
+            errors = _errs19;
+            if (vErrors !== null) {
+              if (_errs19) {
+                vErrors.length = _errs19;
+              } else {
+                vErrors = null;
+              }
+            }
+          }
+        }
+        if (data4.start !== undefined) {
+          let data6 = data4.start;
+          const _errs25 = errors;
+          let valid5 = false;
+          const _errs26 = errors;
+          if (typeof data6 !== "string") {
+            const err22 = {
+              instancePath: instancePath + "/expected/start",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/start/anyOf/0/type",
+              keyword: "type",
+              params: { type: "string" },
+              message: "must be string",
+            };
+            if (vErrors === null) {
+              vErrors = [err22];
+            } else {
+              vErrors.push(err22);
+            }
+            errors++;
+          }
+          var _valid2 = _errs26 === errors;
+          valid5 = valid5 || _valid2;
+          const _errs28 = errors;
+          if (data6 !== null) {
+            const err23 = {
+              instancePath: instancePath + "/expected/start",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/start/anyOf/1/type",
+              keyword: "type",
+              params: { type: "null" },
+              message: "must be null",
+            };
+            if (vErrors === null) {
+              vErrors = [err23];
+            } else {
+              vErrors.push(err23);
+            }
+            errors++;
+          }
+          var _valid2 = _errs28 === errors;
+          valid5 = valid5 || _valid2;
+          if (!valid5) {
+            const err24 = {
+              instancePath: instancePath + "/expected/start",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/start/anyOf",
+              keyword: "anyOf",
+              params: {},
+              message: "must match a schema in anyOf",
+            };
+            if (vErrors === null) {
+              vErrors = [err24];
+            } else {
+              vErrors.push(err24);
+            }
+            errors++;
+          } else {
+            errors = _errs25;
+            if (vErrors !== null) {
+              if (_errs25) {
+                vErrors.length = _errs25;
+              } else {
+                vErrors = null;
+              }
+            }
+          }
+        }
+        if (data4.status !== undefined) {
+          let data7 = data4.status;
+          const _errs31 = errors;
+          let valid6 = false;
+          const _errs32 = errors;
+          if (typeof data7 !== "string") {
+            const err25 = {
+              instancePath: instancePath + "/expected/status",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/status/anyOf/0/type",
+              keyword: "type",
+              params: { type: "string" },
+              message: "must be string",
+            };
+            if (vErrors === null) {
+              vErrors = [err25];
+            } else {
+              vErrors.push(err25);
+            }
+            errors++;
+          }
+          if (!(
+            data7 === "confirmed" ||
+            data7 === "tentative" ||
+            data7 === "cancelled"
+          )) {
+            const err26 = {
+              instancePath: instancePath + "/expected/status",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/status/anyOf/0/enum",
+              keyword: "enum",
+              params: {
+                allowedValues: schema90.properties.status.anyOf[0].enum,
+              },
+              message: "must be equal to one of the allowed values",
+            };
+            if (vErrors === null) {
+              vErrors = [err26];
+            } else {
+              vErrors.push(err26);
+            }
+            errors++;
+          }
+          var _valid3 = _errs32 === errors;
+          valid6 = valid6 || _valid3;
+          const _errs34 = errors;
+          if (data7 !== null) {
+            const err27 = {
+              instancePath: instancePath + "/expected/status",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/status/anyOf/1/type",
+              keyword: "type",
+              params: { type: "null" },
+              message: "must be null",
+            };
+            if (vErrors === null) {
+              vErrors = [err27];
+            } else {
+              vErrors.push(err27);
+            }
+            errors++;
+          }
+          var _valid3 = _errs34 === errors;
+          valid6 = valid6 || _valid3;
+          if (!valid6) {
+            const err28 = {
+              instancePath: instancePath + "/expected/status",
+              schemaPath:
+                "#/components/schemas/ExternalEventState/properties/status/anyOf",
+              keyword: "anyOf",
+              params: {},
+              message: "must match a schema in anyOf",
+            };
+            if (vErrors === null) {
+              vErrors = [err28];
+            } else {
+              vErrors.push(err28);
+            }
+            errors++;
+          } else {
+            errors = _errs31;
+            if (vErrors !== null) {
+              if (_errs31) {
+                vErrors.length = _errs31;
+              } else {
+                vErrors = null;
+              }
+            }
+          }
+        }
+      } else {
+        const err29 = {
+          instancePath: instancePath + "/expected",
+          schemaPath: "#/components/schemas/ExternalEventState/type",
+          keyword: "type",
+          params: { type: "object" },
+          message: "must be object",
+        };
+        if (vErrors === null) {
+          vErrors = [err29];
+        } else {
+          vErrors.push(err29);
+        }
+        errors++;
+      }
+    }
+    if (data.fresh_read_status !== undefined) {
+      let data8 = data.fresh_read_status;
+      if (typeof data8 !== "string") {
+        const err30 = {
+          instancePath: instancePath + "/fresh_read_status",
+          schemaPath: "#/properties/fresh_read_status/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err30];
+        } else {
+          vErrors.push(err30);
+        }
+        errors++;
+      }
+      if (!(
+        data8 === "NOT_REQUESTED" ||
+        data8 === "READ_BACK" ||
+        data8 === "NOT_FOUND" ||
+        data8 === "TIMEOUT" ||
+        data8 === "UNAVAILABLE"
+      )) {
+        const err31 = {
+          instancePath: instancePath + "/fresh_read_status",
+          schemaPath: "#/properties/fresh_read_status/enum",
+          keyword: "enum",
+          params: { allowedValues: schema89.properties.fresh_read_status.enum },
+          message: "must be equal to one of the allowed values",
+        };
+        if (vErrors === null) {
+          vErrors = [err31];
+        } else {
+          vErrors.push(err31);
+        }
+        errors++;
+      }
+    }
+    if (data.latest_readback !== undefined) {
+      let data9 = data.latest_readback;
+      const _errs39 = errors;
+      let valid7 = false;
+      const _errs40 = errors;
+      if (
+        !validate85(data9, {
+          instancePath: instancePath + "/latest_readback",
+          parentData: data,
+          parentDataProperty: "latest_readback",
+          rootData,
+          dynamicAnchors,
+        })
+      ) {
+        vErrors =
+          vErrors === null
+            ? validate85.errors
+            : vErrors.concat(validate85.errors);
+        errors = vErrors.length;
+      }
+      var _valid4 = _errs40 === errors;
+      valid7 = valid7 || _valid4;
+      const _errs41 = errors;
+      if (data9 !== null) {
+        const err32 = {
+          instancePath: instancePath + "/latest_readback",
+          schemaPath: "#/properties/latest_readback/anyOf/1/type",
+          keyword: "type",
+          params: { type: "null" },
+          message: "must be null",
+        };
+        if (vErrors === null) {
+          vErrors = [err32];
+        } else {
+          vErrors.push(err32);
+        }
+        errors++;
+      }
+      var _valid4 = _errs41 === errors;
+      valid7 = valid7 || _valid4;
+      if (!valid7) {
+        const err33 = {
+          instancePath: instancePath + "/latest_readback",
+          schemaPath: "#/properties/latest_readback/anyOf",
+          keyword: "anyOf",
+          params: {},
+          message: "must match a schema in anyOf",
+        };
+        if (vErrors === null) {
+          vErrors = [err33];
+        } else {
+          vErrors.push(err33);
+        }
+        errors++;
+      } else {
+        errors = _errs39;
+        if (vErrors !== null) {
+          if (_errs39) {
+            vErrors.length = _errs39;
+          } else {
+            vErrors = null;
+          }
+        }
+      }
+    }
+    if (data.presentation_label !== undefined) {
+      if (typeof data.presentation_label !== "string") {
+        const err34 = {
+          instancePath: instancePath + "/presentation_label",
+          schemaPath: "#/properties/presentation_label/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err34];
+        } else {
+          vErrors.push(err34);
+        }
+        errors++;
+      }
+    }
+    if (data.receipt_id !== undefined) {
+      if (typeof data.receipt_id !== "string") {
+        const err35 = {
+          instancePath: instancePath + "/receipt_id",
+          schemaPath: "#/properties/receipt_id/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err35];
+        } else {
+          vErrors.push(err35);
+        }
+        errors++;
+      }
+    }
+    if (data.receipt_readback !== undefined) {
+      let data12 = data.receipt_readback;
+      const _errs48 = errors;
+      let valid8 = false;
+      const _errs49 = errors;
+      if (
+        !validate85(data12, {
+          instancePath: instancePath + "/receipt_readback",
+          parentData: data,
+          parentDataProperty: "receipt_readback",
+          rootData,
+          dynamicAnchors,
+        })
+      ) {
+        vErrors =
+          vErrors === null
+            ? validate85.errors
+            : vErrors.concat(validate85.errors);
+        errors = vErrors.length;
+      }
+      var _valid5 = _errs49 === errors;
+      valid8 = valid8 || _valid5;
+      const _errs50 = errors;
+      if (data12 !== null) {
+        const err36 = {
+          instancePath: instancePath + "/receipt_readback",
+          schemaPath: "#/properties/receipt_readback/anyOf/1/type",
+          keyword: "type",
+          params: { type: "null" },
+          message: "must be null",
+        };
+        if (vErrors === null) {
+          vErrors = [err36];
+        } else {
+          vErrors.push(err36);
+        }
+        errors++;
+      }
+      var _valid5 = _errs50 === errors;
+      valid8 = valid8 || _valid5;
+      if (!valid8) {
+        const err37 = {
+          instancePath: instancePath + "/receipt_readback",
+          schemaPath: "#/properties/receipt_readback/anyOf",
+          keyword: "anyOf",
+          params: {},
+          message: "must match a schema in anyOf",
+        };
+        if (vErrors === null) {
+          vErrors = [err37];
+        } else {
+          vErrors.push(err37);
+        }
+        errors++;
+      } else {
+        errors = _errs48;
+        if (vErrors !== null) {
+          if (_errs48) {
+            vErrors.length = _errs48;
+          } else {
+            vErrors = null;
+          }
+        }
+      }
+    }
+    if (data.receipt_status !== undefined) {
+      let data13 = data.receipt_status;
+      if (typeof data13 !== "string") {
+        const err38 = {
+          instancePath: instancePath + "/receipt_status",
+          schemaPath: "#/properties/receipt_status/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err38];
+        } else {
+          vErrors.push(err38);
+        }
+        errors++;
+      }
+      if (!(
+        data13 === "PENDING" ||
+        data13 === "WRITE_ACKNOWLEDGED" ||
+        data13 === "VERIFIED" ||
+        data13 === "VERIFICATION_FAILED" ||
+        data13 === "FAILED" ||
+        data13 === "UNAVAILABLE"
+      )) {
+        const err39 = {
+          instancePath: instancePath + "/receipt_status",
+          schemaPath: "#/properties/receipt_status/enum",
+          keyword: "enum",
+          params: { allowedValues: schema89.properties.receipt_status.enum },
+          message: "must be equal to one of the allowed values",
+        };
+        if (vErrors === null) {
+          vErrors = [err39];
+        } else {
+          vErrors.push(err39);
+        }
+        errors++;
+      }
+    }
+    if (data.recovery_attempt !== undefined) {
+      let data14 = data.recovery_attempt;
+      if (!(typeof data14 == "number" && !(data14 % 1) && !isNaN(data14))) {
+        const err40 = {
+          instancePath: instancePath + "/recovery_attempt",
+          schemaPath: "#/properties/recovery_attempt/type",
+          keyword: "type",
+          params: { type: "integer" },
+          message: "must be integer",
+        };
+        if (vErrors === null) {
+          vErrors = [err40];
+        } else {
+          vErrors.push(err40);
+        }
+        errors++;
+      }
+    }
+    if (data.resource_id !== undefined) {
+      if (typeof data.resource_id !== "string") {
+        const err41 = {
+          instancePath: instancePath + "/resource_id",
+          schemaPath: "#/properties/resource_id/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err41];
+        } else {
+          vErrors.push(err41);
+        }
+        errors++;
+      }
+    }
+    if (data.resource_type !== undefined) {
+      let data16 = data.resource_type;
+      if (typeof data16 !== "string") {
+        const err42 = {
+          instancePath: instancePath + "/resource_type",
+          schemaPath: "#/properties/resource_type/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err42];
+        } else {
+          vErrors.push(err42);
+        }
+        errors++;
+      }
+      if ("event" !== data16) {
+        const err43 = {
+          instancePath: instancePath + "/resource_type",
+          schemaPath: "#/properties/resource_type/const",
+          keyword: "const",
+          params: { allowedValue: "event" },
+          message: "must be equal to constant",
+        };
+        if (vErrors === null) {
+          vErrors = [err43];
+        } else {
+          vErrors.push(err43);
+        }
+        errors++;
+      }
+    }
+    if (data.write_acknowledged_at !== undefined) {
+      let data17 = data.write_acknowledged_at;
+      const _errs61 = errors;
+      let valid9 = false;
+      const _errs62 = errors;
+      if (typeof data17 !== "string") {
+        const err44 = {
+          instancePath: instancePath + "/write_acknowledged_at",
+          schemaPath: "#/properties/write_acknowledged_at/anyOf/0/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err44];
+        } else {
+          vErrors.push(err44);
+        }
+        errors++;
+      }
+      var _valid6 = _errs62 === errors;
+      valid9 = valid9 || _valid6;
+      const _errs64 = errors;
+      if (data17 !== null) {
+        const err45 = {
+          instancePath: instancePath + "/write_acknowledged_at",
+          schemaPath: "#/properties/write_acknowledged_at/anyOf/1/type",
+          keyword: "type",
+          params: { type: "null" },
+          message: "must be null",
+        };
+        if (vErrors === null) {
+          vErrors = [err45];
+        } else {
+          vErrors.push(err45);
+        }
+        errors++;
+      }
+      var _valid6 = _errs64 === errors;
+      valid9 = valid9 || _valid6;
+      if (!valid9) {
+        const err46 = {
+          instancePath: instancePath + "/write_acknowledged_at",
+          schemaPath: "#/properties/write_acknowledged_at/anyOf",
+          keyword: "anyOf",
+          params: {},
+          message: "must match a schema in anyOf",
+        };
+        if (vErrors === null) {
+          vErrors = [err46];
+        } else {
+          vErrors.push(err46);
+        }
+        errors++;
+      } else {
+        errors = _errs61;
+        if (vErrors !== null) {
+          if (_errs61) {
+            vErrors.length = _errs61;
+          } else {
+            vErrors = null;
+          }
+        }
+      }
+    }
+  } else {
+    const err47 = {
+      instancePath,
+      schemaPath: "#/type",
+      keyword: "type",
+      params: { type: "object" },
+      message: "must be object",
+    };
+    if (vErrors === null) {
+      vErrors = [err47];
+    } else {
+      vErrors.push(err47);
+    }
+    errors++;
+  }
+  validate84.errors = vErrors;
+  return errors === 0;
+}
+validate84.evaluated = {
+  props: true,
+  dynamicProps: false,
+  dynamicItems: false,
+};
+
+function validate83(
+  data,
+  {
+    instancePath = "",
+    parentData,
+    parentDataProperty,
+    rootData = data,
+    dynamicAnchors = {},
+  } = {},
+) {
+  let vErrors = null;
+  let errors = 0;
+  const evaluated0 = validate83.evaluated;
+  if (evaluated0.dynamicProps) {
+    evaluated0.props = undefined;
+  }
+  if (evaluated0.dynamicItems) {
+    evaluated0.items = undefined;
+  }
+  if (data && typeof data == "object" && !Array.isArray(data)) {
+    if (data.incident_id === undefined) {
+      const err0 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "incident_id" },
+        message: "must have required property '" + "incident_id" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err0];
+      } else {
+        vErrors.push(err0);
+      }
+      errors++;
+    }
+    if (data.revision === undefined) {
+      const err1 = {
+        instancePath,
+        schemaPath: "#/required",
+        keyword: "required",
+        params: { missingProperty: "revision" },
+        message: "must have required property '" + "revision" + "'",
+      };
+      if (vErrors === null) {
+        vErrors = [err1];
+      } else {
+        vErrors.push(err1);
+      }
+      errors++;
+    }
+    for (const key0 in data) {
+      if (!(
+        key0 === "availability" ||
+        key0 === "incident_id" ||
+        key0 === "resources" ||
+        key0 === "revision"
+      )) {
+        const err2 = {
+          instancePath,
+          schemaPath: "#/additionalProperties",
+          keyword: "additionalProperties",
+          params: { additionalProperty: key0 },
+          message: "must NOT have additional properties",
+        };
+        if (vErrors === null) {
+          vErrors = [err2];
+        } else {
+          vErrors.push(err2);
+        }
+        errors++;
+      }
+    }
+    if (data.availability !== undefined) {
+      let data0 = data.availability;
+      if (typeof data0 !== "string") {
+        const err3 = {
+          instancePath: instancePath + "/availability",
+          schemaPath: "#/properties/availability/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err3];
+        } else {
+          vErrors.push(err3);
+        }
+        errors++;
+      }
+      if (!(data0 === "AVAILABLE" || data0 === "EVIDENCE_UNAVAILABLE")) {
+        const err4 = {
+          instancePath: instancePath + "/availability",
+          schemaPath: "#/properties/availability/enum",
+          keyword: "enum",
+          params: { allowedValues: schema88.properties.availability.enum },
+          message: "must be equal to one of the allowed values",
+        };
+        if (vErrors === null) {
+          vErrors = [err4];
+        } else {
+          vErrors.push(err4);
+        }
+        errors++;
+      }
+    }
+    if (data.incident_id !== undefined) {
+      if (typeof data.incident_id !== "string") {
+        const err5 = {
+          instancePath: instancePath + "/incident_id",
+          schemaPath: "#/properties/incident_id/type",
+          keyword: "type",
+          params: { type: "string" },
+          message: "must be string",
+        };
+        if (vErrors === null) {
+          vErrors = [err5];
+        } else {
+          vErrors.push(err5);
+        }
+        errors++;
+      }
+    }
+    if (data.resources !== undefined) {
+      let data2 = data.resources;
+      if (Array.isArray(data2)) {
+        const len0 = data2.length;
+        for (let i0 = 0; i0 < len0; i0++) {
+          if (
+            !validate84(data2[i0], {
+              instancePath: instancePath + "/resources/" + i0,
+              parentData: data2,
+              parentDataProperty: i0,
+              rootData,
+              dynamicAnchors,
+            })
+          ) {
+            vErrors =
+              vErrors === null
+                ? validate84.errors
+                : vErrors.concat(validate84.errors);
+            errors = vErrors.length;
+          }
+        }
+      } else {
+        const err6 = {
+          instancePath: instancePath + "/resources",
+          schemaPath: "#/properties/resources/type",
+          keyword: "type",
+          params: { type: "array" },
+          message: "must be array",
+        };
+        if (vErrors === null) {
+          vErrors = [err6];
+        } else {
+          vErrors.push(err6);
+        }
+        errors++;
+      }
+    }
+    if (data.revision !== undefined) {
+      let data4 = data.revision;
+      if (!(typeof data4 == "number" && !(data4 % 1) && !isNaN(data4))) {
+        const err7 = {
+          instancePath: instancePath + "/revision",
+          schemaPath: "#/properties/revision/type",
+          keyword: "type",
+          params: { type: "integer" },
+          message: "must be integer",
+        };
+        if (vErrors === null) {
+          vErrors = [err7];
+        } else {
+          vErrors.push(err7);
+        }
+        errors++;
+      }
+    }
+  } else {
+    const err8 = {
+      instancePath,
+      schemaPath: "#/type",
+      keyword: "type",
+      params: { type: "object" },
+      message: "must be object",
+    };
+    if (vErrors === null) {
+      vErrors = [err8];
+    } else {
+      vErrors.push(err8);
+    }
+    errors++;
+  }
+  validate83.errors = vErrors;
+  return errors === 0;
+}
+validate83.evaluated = {
+  props: true,
+  dynamicProps: false,
+  dynamicItems: false,
+};
+
+function validate82(
+  data,
+  {
+    instancePath = "",
+    parentData,
+    parentDataProperty,
+    rootData = data,
+    dynamicAnchors = {},
+  } = {},
+) {
+  /*# sourceURL="reflow-ExternalRealityView" */ let vErrors = null;
+  let errors = 0;
+  const evaluated0 = validate82.evaluated;
+  if (evaluated0.dynamicProps) {
+    evaluated0.props = undefined;
+  }
+  if (evaluated0.dynamicItems) {
+    evaluated0.items = undefined;
+  }
+  if (
+    !validate83(data, {
+      instancePath,
+      parentData,
+      parentDataProperty,
+      rootData,
+      dynamicAnchors,
+    })
+  ) {
+    vErrors =
+      vErrors === null ? validate83.errors : vErrors.concat(validate83.errors);
+    errors = vErrors.length;
+  }
+  validate82.errors = vErrors;
+  return errors === 0;
+}
+validate82.evaluated = {
+  props: true,
+  dynamicProps: false,
+  dynamicItems: false,
+};

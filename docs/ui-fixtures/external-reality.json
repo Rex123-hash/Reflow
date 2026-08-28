@@ -1,0 +1,46 @@
+{
+  "availability": "AVAILABLE",
+  "incident_id": "incident-0fc3af5b0bd1ad847aea",
+  "resources": [
+    {
+      "action_id": "calendar-9899dba7a849a328a49d",
+      "authority": "google_calendar",
+      "checked_at": null,
+      "evidence_id": "calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+      "expected": {
+        "end": "2026-08-28T14:00:00+00:00",
+        "start": "2026-08-28T13:00:00+00:00",
+        "status": "confirmed"
+      },
+      "fresh_read_status": "NOT_REQUESTED",
+      "latest_readback": {
+        "observed_at": "2026-08-27T19:08:54.311870+00:00",
+        "source_freshness": "PERSISTED_READBACK",
+        "state": {
+          "end": "2026-08-28T14:00:00+00:00",
+          "start": "2026-08-28T13:00:00+00:00",
+          "status": "confirmed"
+        },
+        "verification_status": "PASSED"
+      },
+      "presentation_label": "Recovery coordination commitment",
+      "receipt_id": "receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+      "receipt_readback": {
+        "observed_at": "2026-08-27T19:07:45.772017+00:00",
+        "source_freshness": "PERSISTED_READBACK",
+        "state": {
+          "end": "2026-08-28T14:00:00+00:00",
+          "start": "2026-08-28T13:00:00+00:00",
+          "status": "confirmed"
+        },
+        "verification_status": "PASSED"
+      },
+      "receipt_status": "VERIFIED",
+      "recovery_attempt": 1,
+      "resource_id": "p1b9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c",
+      "resource_type": "event",
+      "write_acknowledged_at": "2026-08-27T19:07:44.825660+00:00"
+    }
+  ],
+  "revision": 16
+}

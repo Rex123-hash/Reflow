@@ -1,5 +1,6 @@
 import type {
   EvidencePageView,
+  ExternalRealityView,
   ExecutionEventsView,
   ObjectiveFilter,
   ObjectivesView,
@@ -16,6 +17,7 @@ import {
 import { list } from "./normalize";
 
 import overviewFixture from "./fixtures/overview.json";
+import externalRealityFixture from "./fixtures/external-reality.json";
 import objectivesFixture from "./fixtures/objectives.json";
 import recoveryActiveFixture from "./fixtures/recovery-active.json";
 import recoveryRestoredFixture from "./fixtures/recovery-restored.json";
@@ -88,6 +90,24 @@ export class FixtureUiDataProvider implements UiDataProvider {
 
   get scenario(): FixtureScenario {
     return this.#scenario;
+  }
+
+  async getExternalReality(
+    incidentId: string,
+    signal?: AbortSignal,
+  ): Promise<Provenanced<ExternalRealityView>> {
+    await delay(signal);
+    if (incidentId !== CANONICAL_INCIDENT_ID) {
+      throw new UiDataError(
+        "resource_not_found",
+        "No exported Calendar proof for this incident.",
+        404,
+      );
+    }
+    return {
+      data: externalRealityFixture as unknown as ExternalRealityView,
+      provenance: TERMINAL_PROVENANCE,
+    };
   }
 
   async getOverview(signal?: AbortSignal): Promise<Provenanced<OverviewView>> {

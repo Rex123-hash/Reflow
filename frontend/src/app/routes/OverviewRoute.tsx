@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ExternalReality } from "../components/ExternalReality";
 import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
 import { Icon } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
@@ -149,6 +150,10 @@ export function OverviewRoute() {
           </div>
         ) : null}
       </section>
+
+      {priority.incident_id ? (
+        <ExternalReality incidentId={priority.incident_id} compact />
+      ) : null}
 
       <div className="overview-grid">
         <section className="card">

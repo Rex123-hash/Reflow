@@ -18,6 +18,7 @@ const resources = [
   "EvidencePageView",
   "ExecutionEventsView",
   "OperatorContextView",
+  "ExternalRealityView",
 ];
 
 const openApi = JSON.parse(readFileSync(SPEC, "utf8"));

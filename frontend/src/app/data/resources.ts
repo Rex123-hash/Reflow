@@ -10,6 +10,17 @@ export function useOverview() {
   );
 }
 
+export function useExternalReality(incidentId: string) {
+  const { provider } = useUiData();
+  return useResource(
+    `external-reality:${provider.id}:${incidentId}`,
+    useCallback(
+      (s) => provider.getExternalReality(incidentId, s),
+      [provider, incidentId],
+    ),
+  );
+}
+
 export function useObjectives(filter: ObjectiveFilter) {
   const { provider } = useUiData();
   return useResource(

@@ -121,6 +121,45 @@ export interface ExecutionEventsView {
   terminal: boolean;
 }
 
+/** Allowlisted event fields; never calendar/account IDs or arbitrary event text. */
+export interface ExternalEventState {
+  end?: string | null;
+  start?: string | null;
+  status?: "confirmed" | "tentative" | "cancelled" | null;
+}
+
+export interface ExternalObservation {
+  observed_at: string;
+  source_freshness: "FRESH_READ" | "PERSISTED_READBACK";
+  state: ExternalEventState;
+  verification_status: VerificationStatus;
+}
+
+export interface ExternalRealityView {
+  availability?: "AVAILABLE" | "EVIDENCE_UNAVAILABLE";
+  incident_id: string;
+  resources?: ExternalResourceView[];
+  revision: number;
+}
+
+export interface ExternalResourceView {
+  action_id: string;
+  authority?: string;
+  checked_at?: string | null;
+  evidence_id: string;
+  expected: ExternalEventState;
+  fresh_read_status: "NOT_REQUESTED" | "READ_BACK" | "NOT_FOUND" | "TIMEOUT" | "UNAVAILABLE";
+  latest_readback: ExternalObservation | null;
+  presentation_label?: string;
+  receipt_id: string;
+  receipt_readback: ExternalObservation | null;
+  receipt_status: "PENDING" | "WRITE_ACKNOWLEDGED" | "VERIFIED" | "VERIFICATION_FAILED" | "FAILED" | "UNAVAILABLE";
+  recovery_attempt?: number;
+  resource_id: string;
+  resource_type?: string;
+  write_acknowledged_at: string | null;
+}
+
 export interface GraphEdgeView {
   relation: string;
   source: string;

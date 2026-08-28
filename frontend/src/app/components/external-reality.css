@@ -1,0 +1,69 @@
+.external-reality {
+  margin: var(--space-5) 0;
+}
+.calendar-proof {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: var(--space-4);
+  background: var(--surface);
+}
+.calendar-proof-head,
+.calendar-proof-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.calendar-proof-head h3 {
+  margin: 0;
+}
+.calendar-proof-head > span:last-child {
+  margin-left: auto;
+  font-size: 12px;
+}
+.calendar-proof p {
+  margin: var(--space-2) 0;
+  font-size: 13px;
+}
+.calendar-proof .mono {
+  font-size: 12px;
+}
+.calendar-proof-links {
+  margin-top: var(--space-3);
+  font-size: 12px;
+}
+.calendar-truth-ladder {
+  padding-left: var(--space-5);
+  font-size: 13px;
+}
+.calendar-truth-ladder li {
+  padding: var(--space-2) 0;
+}
+.calendar-truth-ladder strong,
+.calendar-truth-ladder time {
+  display: block;
+}
+.calendar-comparison {
+  font-size: 13px;
+}
+.calendar-comparison div {
+  padding: var(--space-2) 0;
+}
+.calendar-comparison dt {
+  font-weight: 600;
+}
+.calendar-comparison dd {
+  margin: 0;
+}
+.calendar-truth-note {
+  border-left: 2px solid currentColor;
+  padding-left: var(--space-3);
+}
+.calendar-proof code {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+.calendar-proof details {
+  margin-top: var(--space-3);
+  font-size: 12px;
+}

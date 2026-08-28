@@ -1,5 +1,6 @@
 import type {
   EvidencePageView,
+  ExternalRealityView,
   ExecutionEventsView,
   ObjectiveFilter,
   ObjectivesView,
@@ -9,6 +10,7 @@ import type {
 } from "../contract/uiContract";
 import {
   EvidencePageView as validateEvidencePage,
+  ExternalRealityView as validateExternalReality,
   ExecutionEventsView as validateExecutionEvents,
   ObjectivesView as validateObjectives,
   OperatorContextView as validateOperatorContext,
@@ -23,6 +25,7 @@ import {
 } from "./UiDataProvider";
 
 type PresentationResource =
+  | ExternalRealityView
   | OverviewView
   | ObjectivesView
   | RecoveryCaseView
@@ -31,6 +34,7 @@ type PresentationResource =
   | OperatorContextView;
 
 type ResourceName =
+  | "ExternalRealityView"
   | "OverviewView"
   | "ObjectivesView"
   | "RecoveryCaseView"
@@ -46,6 +50,7 @@ interface CachedResource {
 type Validator = (data: unknown) => boolean;
 
 const validators: Record<ResourceName, Validator> = {
+  ExternalRealityView: validateExternalReality,
   OverviewView: validateOverview,
   ObjectivesView: validateObjectives,
   RecoveryCaseView: validateRecoveryCase,
@@ -182,6 +187,17 @@ export class ApiUiDataProvider implements UiDataProvider {
 
   getOverview(signal?: AbortSignal): Promise<Provenanced<OverviewView>> {
     return this.#get("/api/v1/ui/overview", "OverviewView", signal);
+  }
+
+  getExternalReality(
+    incidentId: string,
+    signal?: AbortSignal,
+  ): Promise<Provenanced<ExternalRealityView>> {
+    return this.#get(
+      `/api/v1/ui/recoveries/${encodeURIComponent(incidentId)}/external-reality`,
+      "ExternalRealityView",
+      signal,
+    );
   }
 
   getObjectives(
