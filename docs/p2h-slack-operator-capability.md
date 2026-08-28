@@ -1,6 +1,20 @@
 # P2H — bounded Slack Operator capability
 
-## Current checkpoint — model qualification repair, 29 August 2026
+## Current checkpoint — pre-live Slack qualification, 29 August 2026
+
+**P2H SLACK READY FOR LIVE MESSAGE QUALIFICATION.** Slack identity, exact scopes, public/unshared
+channel membership, actual adapter INSPECT and deployed Viewer INSPECT passed. Backend and BFF
+now serve the already-qualified `113a307` source. The frozen **24/24 + 8/8** model gates were
+verified from preserved evidence, **not rerun**. No Agent 6/7 instruction, model, timeout, grader,
+adapter, authorization or runtime source changed in this continuation. **Slack message writes: 0.**
+
+Section 18 contains the current pre-live proof, deployment provenance and remaining boundary.
+Sections 1–17 preserve earlier checkpoints, including genuine failures and the subsequent repair.
+The proposed message below is **not sent** and requires new explicit user authorization:
+
+> Backend engineer unavailable. SCRUM-6 is blocked.
+
+## Previous checkpoint — model qualification repair, 29 August 2026
 
 **P2H MODEL QUALIFICATION READY.** The one authorized final expanded run passed **24/24 raw**;
 the one authorized frozen recovery run passed **8/8 raw**. Both unchanged formal graders report
@@ -728,3 +742,198 @@ Safe current claim: “The bounded Slack Operator implementation is model-qualif
 24/24 expanded and 8/8 frozen regression cases under unchanged criteria. Authorized live Slack
 proof and deployment have not occurred.” Human Slack setup was **not** required for this model
 qualification. **FINAL VERDICT: P2H MODEL QUALIFICATION READY. STOP.**
+
+## 18. Human-setup continuation: pre-live only
+
+### 18.1 Authority and frozen qualification
+
+The user supplied channel `C0BTKPVEM25`, expected name `reflow-release-demo`, workspace Reflow Demo,
+and Secret Manager `objective-recovery-slack-bot-token:1`. They authorized read-only Slack
+qualification and required configuration/deployment, explicitly prohibiting `chat.postMessage`,
+message edits/deletes, DMs and Git push. A subsequent update explicitly froze the completed model
+qualification and prohibited restarting either full suite or changing Agent 6/7 reasoning.
+
+Starting HEAD was `f07e9b2c788376c4e0bc8dee8f53d87a50883b62`, following repair source
+`113a307a7867e29751137b1fef0b61be50c4a562`. Both commits and their qualification evidence were
+verified. No runtime source, model settings, schemas, timeout policy, cases or grading changed.
+The only new source files are local operational verification scripts and their safety tests.
+The pre-existing untracked `frontend/op-input.mjs` remains untouched and excluded from commits
+and build context. ADK workflow/deployment/observability skills guided staged deployment,
+configuration/IAM comparison and metadata-only proof; no observability infrastructure was added.
+
+### 18.2 Live read-only Slack preflight
+
+`scripts/preflight_p2h_slack.py` accesses the pinned version using short-lived impersonation of
+the existing backend identity
+`objective-recovery-app@project-f334c42b-7a03-4194-932.iam.gserviceaccount.com`. The payload is held
+only in process memory. No token is passed on a command line, saved in an environment file,
+logged, persisted as proof, placed in a build argument or read into the BFF/frontend.
+No IAM permission or secret version was added.
+
+The preflight transport rejects every method except `auth.test`, `conversations.info` and
+`conversations.history`, with exact channel/parameter checks, four-call ceiling, no redirects,
+the unchanged four-second adapter timeout and a 15-message history limit. It cannot call
+`chat.postMessage`, discover other channels, paginate history or target another channel.
+
+| Verified property | Result |
+|---|---|
+| `auth.test` | HTTP 200, `ok=true` |
+| Workspace | **Reflow Demo**, `https://reflowdemo.slack.com/` |
+| Team ID | **`T0BT2EP259V`** |
+| Bot username | **`reflow_operator`** (installed Reflow Operator app) |
+| Bot user ID | **`U0BTDNEQBBP`** |
+| Bot ID | **`B0BTFTQFW22`** |
+| Configured channel | **`C0BTKPVEM25` / `#reflow-release-demo`** |
+| Channel safety | `is_channel=true`, `is_private=false`, `is_archived=false`, `is_shared=false`; external/org/pending-share flags false |
+| Membership | `is_member=true` |
+| Effective OAuth scopes | Exactly **`chat:write`, `channels:read`, `channels:history`**; no added scopes |
+| Actual registry/adapter INSPECT | Passed, semantic resource `configured-release-channel` |
+| History bound/result | Limit 15; 2 messages in the window; no matching Reflow-bot message found |
+| Persisted history content | None; only bounded counts and own-bot timestamp presence |
+| Message mutations | **0** |
+
+Evidence: `artifacts/p2h-prelive-slack-preflight.json`. The first `auth.test` discovers the team;
+the actual adapter then performs its own identity/scope validation, channel info and bounded
+history call. HTTP POST for **`auth.test` is a read-only identity operation**, not a message post;
+see [Slack auth.test](https://docs.slack.dev/reference/methods/auth.test/).
+The channel/history access follows [conversations.info](https://docs.slack.dev/reference/methods/conversations.info/)
+and [conversations.history](https://docs.slack.dev/reference/methods/conversations.history/).
+
+### 18.3 Pre-build gates and immutable deployment provenance
+
+Pre-build backend tests passed **405 / 1 skipped** after seven new transport/identity safety tests.
+Two additional deployed-probe tests later brought the exact final local total to **407 passed,
+1 existing cloud skip**. The original 398 qualified tests remain unchanged. Focused Slack stays
+**77 passed**, new operational safety tests **9 passed**, configured coverage **96.01%**.
+Strict mypy (48 configured files plus both explicit scripts), Ruff, formatting (51 files),
+contract consistency, Terraform fmt/validate and whitespace checks passed. No frontend or shared
+contract source changed; no frontend rebuild/publication is claimed. The pre-build credential
+scan passed with zero findings; final scan is preserved separately.
+
+Build context was extracted from **exact committed source `113a307a7867e29751137b1fef0b61be50c4a562`**,
+not the dirty working directory. The archive contains only reviewed backend/BFF build inputs.
+The local tar SHA-256 is
+`675a0e004828154b00ff19169f96866b4e649e3e433af8be18ade36a2030f978`.
+Cloud Build uploaded 85 allowlisted files / approximately 1.5 MiB. No credential, untracked helper,
+proof output or frontend asset entered the source archive.
+
+The first submit uploaded an archive but was rejected before build creation: unquoted PowerShell
+commas merged the substitutions. Correct quoting fixed that CLI invocation. It was not a code,
+model or deployment failure; it was not hidden or followed by model reruns.
+
+Successful Cloud Build: **`fe37f168-afd4-45b8-bf67-81c5c4213ca8`**, us-central1,
+completed `2026-08-28T22:43:29.813284Z`. Both image build arguments and deployed COMMIT_SHA equal
+the exact source commit above. Images were deployed **by digest**, not mutable tag:
+
+| Service | New revision | Immutable digest |
+|---|---|---|
+| Backend `objective-recovery` | **`objective-recovery-00027-jah`** | `sha256:f2c237d84c2806a893fc56f16d2497b14e0dd93589d93e8367cbd8bc97234459` |
+| BFF `reflow-web-bff` | **`reflow-web-bff-00007-gix`** | `sha256:c5b0860419bd19016a95ea4aa72afc74ec97a8b15db94ce9e242bd9531237cad` |
+
+Both are in `us-central1-docker.pkg.dev/project-f334c42b-7a03-4194-932/objective-recovery/`,
+packages `app` and `reflow-web-bff` respectively. They were initially staged with **zero production
+traffic** and tag `p2h-prelive`; old revisions retained 100% until candidate verification passed.
+Both verified revisions were then promoted to **100%**. Tags remain attached to the same revisions.
+Rollback targets remain `objective-recovery-00026-n6c` and `reflow-web-bff-00006-xpk`; no rollback
+was needed and no old revision was deleted.
+
+### 18.4 Server-owned configuration, security and read-only deployed proof
+
+Backend configuration now includes only these P2H additions plus truthful COMMIT_SHA:
+
+```text
+SLACK_DEMO_CHANNEL_ID=C0BTKPVEM25
+SLACK_TEAM_ID=T0BT2EP259V
+SLACK_BOT_TOKEN <- Secret Manager objective-recovery-slack-bot-token:1
+```
+
+The BFF receives only the new image/COMMIT_SHA: **no Slack token, secret reference or Slack
+environment variable**. Existing secret accessor remains backend-only. Existing service accounts,
+unrelated environment values/secret references, runtime/resource/scaling settings, ingress,
+authentication policy and IAM bindings were compared via canonical hashes and remained identical.
+Backend prompt-content capture remains `false`. The existing Terraform optional Slack variable
+already describes this configuration; the broad Terraform configuration was not applied, because
+doing so would also reconcile unrelated historical defaults. No broad IAM, auth, or configuration
+reset occurred. Runtime secrets use pinned references per
+[Cloud Run secret configuration](https://docs.cloud.google.com/run/docs/configuring/services/secrets).
+
+`scripts/verify_p2h_prelive.py` verified the candidate against the before-deployment metadata,
+the successful build's image digests and exact commit. Only after those checks passed, it made
+**one deployed Operator request**, not a model-evaluation rerun:
+
+```text
+POST /api/v1/operator/query
+Role: VIEWER
+Message: Inspect the configured release channel.
+No action idempotency key supplied.
+Request ID: 119c1ef6-1f39-48bf-a586-5bd8485c8393
+```
+
+The probe uses authenticated Cloud Run invocation and Viewer authority, not forged Operator
+privilege or an altered service. No action key means an unintended ACT classification fails
+before action creation/execution. Its exact tagged origin is allowlisted and redirects disabled.
+The standard endpoint may update internal quota bookkeeping; it created **no Operator action
+receipt** and performed no Slack/business mutation or canonical recovery write.
+
+Result: **HTTP 200, SUPPORTED / INSPECT**, correct team/channel/bot, `public_unshared`, membership
+true, `external_effects_executed=false`, no action, snapshot fingerprint unchanged
+`912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402`. Agent 6 completed in **4,330 ms**,
+**one attempt**, input/output/total tokens **7,964 / 160 / 8,124**, typed validation PASSED.
+Cloud operational metadata independently associates the request with **`objective-recovery-00027-jah`**:
+start `2026-08-28T22:45:57.797994Z`, completion `2026-08-28T22:46:02.127589Z`.
+Agent 7 was not invoked. No full model suite was run in this phase.
+
+Backend root health returned **200 / ready**. BFF Cloud Run readiness passed, and its real
+`/api/auth/session` route returned the expected **401 JSON authentication-required** without a
+session. `/api/v1/ui/overview` likewise correctly returned 401 without a session; no guest session
+was fabricated. The initially attempted public BFF `/healthz` returned **404 before reaching
+revision request logs**, both on the old service and new tagged revision. This is consistent with
+the documented [Cloud Run reserved URL paths ending in z](https://docs.cloud.google.com/run/docs/known-issues#reserved-url-paths).
+It is retained as pre-existing health-route debt, **not claimed as a successful 200 health check**.
+The actual authentication-route response and Cloud Run readiness checks verify the BFF without a
+runtime/source change to evade the reserved path. Browser-authenticated end-to-end Slack UI
+qualification and frontend asset publication are not claimed by this backend pre-live proof.
+
+### 18.5 Final pre-live gate ledger
+
+| Required gate | Result |
+|---|---|
+| 1–3. Slack auth/team/bot | PASS; IDs in §18.2 |
+| 4–6. Channel identity/safety/membership | PASS; exact configured channel, public/unshared/active/member |
+| 7. Effective scopes | PASS; exactly the required three |
+| 8. Read-only Slack INSPECT | PASS locally through actual registry/adapter and on deployed Operator |
+| 9–10. Expanded model and formal grade | **Frozen 24/24; 24 valid, 0 errors, mean 1.0. Not rerun.** |
+| 11–12. Existing regression and formal grade | **Frozen 8/8; 8 valid, 0 errors, mean 1.0. Not rerun.** |
+| 13. Reasoning agents | Exactly **7**, unchanged |
+| 14. Slack deterministic tests | **77 passed**, unchanged |
+| 15. Backend deterministic tests | **407 passed, 1 skipped** (398 prior + 9 local operational safety tests) |
+| 16. Secret scan | PASS; no findings; token never persisted/exposed |
+| 17. Canonical recovery | Revision **16**, **28** events, **objective_restored / RESOLVED**, plan **2**, unchanged document fingerprint |
+| 18. Deployment health | Backend **200 / ready**; exact source/digests and preserved configuration/IAM; both revisions Ready and serving 100% |
+| 19. No Slack write | **0** message posts/edits/deletes/DMs; no `chat.postMessage` call |
+
+Canonical Firestore document fingerprint remains:
+
+```text
+4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c
+```
+
+Proof artifacts under `artifacts/`:
+
+- `p2h-prelive-slack-preflight.json`: actual Slack identity/scopes/channel/read inspection.
+- `p2h-prelive-before-audit.json`, `p2h-prelive-after-audit.json`: canonical/runtime/secret metadata.
+- `p2h-prelive-config-before.json`, `p2h-prelive-deployed-inspect.json`, `p2h-prelive-config-after.json`:
+  configuration/IAM hashes, deployment source/image provenance and the one deployed read-only query.
+- `p2h-prelive-before-secret-scan.json`, `p2h-prelive-final-secret-scan.json`: credential scans.
+
+No Git push occurred. No Slack write is authorized by this proof. Operational helpers/tests are
+committed as `3d9ec33176902e403c91bd6b17e27bd1f816fbe0`; proof/docs are in the following local
+commit, whose exact hash is in the handoff. The deployed
+source remains the independently verified frozen **`113a307a7867e29751137b1fef0b61be50c4a562`**.
+
+**STOP — explicit authorization required before `chat.postMessage`.** Proposed message, unsent:
+
+> Backend engineer unavailable. SCRUM-6 is blocked.
+
+**FINAL VERDICT: P2H SLACK READY FOR LIVE MESSAGE QUALIFICATION.** This is pre-live readiness,
+not a live Slack write/read-back/replay GO claim.
