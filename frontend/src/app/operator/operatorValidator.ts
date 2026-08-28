@@ -152,7 +152,7 @@ const schema36 = {
   type: "object",
 };
 const func1 = Object.prototype.hasOwnProperty;
-import func3 from "ajv/dist/runtime/ucs2length.js";
+const func3 = (value) => Array.from(value).length;
 const schema37 = {
   additionalProperties: false,
   properties: {
