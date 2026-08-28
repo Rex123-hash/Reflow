@@ -178,7 +178,7 @@ function ActionBeat() {
 function IncompleteBeat() {
   return (
     <section className="story-beat beat-incomplete" data-beat="incomplete" aria-labelledby="incomplete-title">
-      <div className="beat-heading" data-sequence="incomplete-heading">
+      <div className="incomplete-copy" data-sequence="incomplete-heading">
         <EvidenceBadge stage="incomplete" />
         <p className="eyebrow">Objective verification</p>
         <ReflowRule />

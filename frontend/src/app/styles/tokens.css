@@ -93,9 +93,10 @@
   --workspace-max: 1500px;
   --workspace-gutter: clamp(20px, 3.2vw, 44px);
   /**
-   * A reading column for the surfaces that are prose-led rather than data-led.
-   * It starts at the workspace's left rule like everything else — only its right
-   * edge stops early, because an answer set in a 1400px measure is unreadable.
+   * The working canvas for surfaces that are prose-led rather than data-led.
+   * An answer set in a 1400px measure is unreadable, so the canvas stops short
+   * of the full workspace — and is centred inside it, so the shorter measure
+   * reads as a deliberate column rather than as a page hugging the left edge.
    */
-  --workspace-reading: 1080px;
+  --workspace-reading: 1180px;
 }

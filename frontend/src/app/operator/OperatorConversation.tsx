@@ -68,7 +68,44 @@ export function OperatorConversation({
   const [error, setError] = useState<string | null>(null);
   const pending = useRef<AbortController | null>(null);
   const idempotency = useRef<{ message: string; key: string } | null>(null);
+  /** Which chip just handed its text over, and the field it handed it to. */
+  const [sending, setSending] = useState<string | null>(null);
+  const [activating, setActivating] = useState(false);
+  const field = useRef<HTMLInputElement>(null);
+  const activation = useRef<number | null>(null);
   useEffect(() => () => pending.current?.abort(), []);
+  useEffect(
+    () => () => {
+      if (activation.current !== null) window.clearTimeout(activation.current);
+    },
+    [],
+  );
+
+  /**
+   * A chip hands its text to the console.
+   *
+   * The causal chain is the point: the chip acknowledges, the text lands, the
+   * field takes focus, and the perimeter runs one pass of light before settling
+   * into the ordinary focused state. The chip does not stay selected — the state
+   * belongs to the input from that moment on.
+   */
+  const useExample = (example: string) => {
+    setMessage(example);
+    setSending(example);
+    setActivating(true);
+    field.current?.focus();
+    // Caret to the end, so the field reads as ready to edit rather than selected.
+    window.requestAnimationFrame(() => {
+      const input = field.current;
+      if (input) input.setSelectionRange(example.length, example.length);
+    });
+    if (activation.current !== null) window.clearTimeout(activation.current);
+    activation.current = window.setTimeout(() => {
+      setActivating(false);
+      setSending(null);
+      activation.current = null;
+    }, 620);
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -149,13 +186,19 @@ export function OperatorConversation({
         </p>
       )}
 
-      <form className="operator-form" onSubmit={submit}>
+      <form
+        className={`operator-form${activating ? " is-activating" : ""}${
+          busy ? " is-reasoning" : ""
+        }`}
+        onSubmit={submit}
+      >
         <label className="visually-hidden" htmlFor="operator-query">
           Ask Reflow
         </label>
         <Icon name="search" size={17} />
         <input
           id="operator-query"
+          ref={field}
           value={message}
           maxLength={1200}
           disabled={!live || busy}
@@ -179,9 +222,9 @@ export function OperatorConversation({
           <button
             key={example}
             type="button"
-            className="operator-example"
+            className={`operator-example${sending === example ? " is-sending" : ""}`}
             disabled={!live || busy}
-            onClick={() => setMessage(example)}
+            onClick={() => useExample(example)}
           >
             {example}
           </button>

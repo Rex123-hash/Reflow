@@ -580,9 +580,11 @@ a {
  * symmetric padding so centred compositions stay centred.
  */
 .sticky-stage {
-  --story-rail-width: 190px;
-  --story-rail-inset: 20px;
-  --story-rail-clearance: 22px;
+  /* Wider than the old dot rail: the rows carry real state names now, and the
+     labels grow leftward into this width rather than off the right edge. */
+  --story-rail-width: 208px;
+  --story-rail-inset: 22px;
+  --story-rail-clearance: 26px;
   --story-rail-safe: calc(
     var(--story-rail-width) + var(--story-rail-inset) +
       var(--story-rail-clearance)
@@ -866,10 +868,17 @@ a {
   background: #f7efe1;
 }
 
+/**
+ * The hero is centred on the viewport, per the approved reference, and its measure
+ * is capped by the rail rather than by a bare viewport fraction: at 1440 and 1280 a
+ * 76vw block reached into the rail's gutter and set the headline over the state
+ * names. Subtracting the safe gutter from *both* sides keeps the block genuinely
+ * centred while guaranteeing the clearance.
+ */
 .hero-copy {
   position: relative;
   z-index: 4;
-  width: min(1160px, 76vw);
+  width: min(1160px, 76vw, calc(100vw - 2 * var(--story-rail-safe)));
   margin: 42px auto 0;
   text-align: center;
   pointer-events: auto;
@@ -1306,13 +1315,47 @@ a {
   margin-bottom: 18px;
 }
 
+/**
+ * RECOVERY INCOMPLETE: a left-anchored narrative beat.
+ *
+ * This state used to borrow `.beat-heading` — the shared centred class the PLAN
+ * beat needs — and that single reused class is the whole reason the composition
+ * drifted: a generic layout decided where a specific headline went. The claim
+ * "an action can succeed while recovery remains incomplete" is the argument the
+ * product is built on, and it belongs in the left narrative column with the
+ * instrument owning the centre-right field, not laid across the instrument.
+ *
+ * It is authored per phase, alongside `.replan-copy` and `.restored-copy`, rather
+ * than being handed to a responsive grid.
+ */
+.incomplete-copy {
+  position: absolute;
+  top: calc(var(--header-height) + 58px);
+  left: clamp(38px, 8vw, 135px);
+  z-index: 4;
+  /* Capped well short of the instrument so a clear corridor stays between the
+     text column and the 3D at every width the beat is shown at. */
+  width: min(620px, 46vw);
+}
+
 .action-copy h2,
 .replan-copy h2,
-.restored-copy h2 {
+.restored-copy h2,
+.incomplete-copy h2 {
   margin-bottom: 16px;
   font-size: clamp(2.7rem, 4.6vw, 5rem);
   line-height: 0.97;
   letter-spacing: -0.048em;
+}
+
+.incomplete-copy .evidence-badge {
+  margin-bottom: 18px;
+}
+
+.incomplete-copy > p:not(.eyebrow) {
+  max-width: 480px;
+  color: rgba(23, 33, 28, 0.68);
+  line-height: 1.6;
 }
 
 .action-copy > p:not(.eyebrow) {
@@ -1616,35 +1659,167 @@ a {
   width: var(--story-rail-width);
 }
 
-.story-progress span {
-  display: flex;
-  min-height: 18px;
+/**
+ * The rail is a route, not a set of points.
+ *
+ * A hairline spine runs behind the nodes and is drawn twice: a faint full-length
+ * one for the whole journey, and a forest one clipped to the distance already
+ * travelled. Every label is right-aligned against the spine and grows leftward, so
+ * a long state name lengthens into the composition rather than off the screen.
+ */
+.story-rail {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 11px;
+}
+
+.story-rail::before,
+.story-rail::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+}
+
+.story-rail::before {
+  background: var(--sage);
+  opacity: 0.34;
+}
+
+/* Travelled portion: scaled from the top by the furthest node reached. */
+.story-rail::after {
+  background: var(--forest);
+  opacity: 0.5;
+  transform-origin: top;
+  transform: scaleY(var(--rail-travelled, 0));
+  transition: transform 220ms ease;
+}
+
+.rail-state {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9px;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  color: var(--forest);
-  opacity: calc(0.28 + var(--progress-weight, 0) * 0.72);
-  font-size: 0.58rem;
+  gap: 11px;
+  min-height: 16px;
+}
+
+.rail-text {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+  gap: 1px;
+  min-width: 0;
+}
+
+/* The operational phase: Reflow's five-word cycle, riding above the story state
+   it belongs to. Only revealed on the current row — as a permanent fixture it
+   would compete with the state names it is meant to qualify. */
+.rail-phase {
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.story-progress b {
-  width: calc(var(--story-rail-width) - 20px);
-  opacity: 0;
+  color: var(--brass);
   white-space: nowrap;
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
 }
 
-.story-progress i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  transform: scale(1);
-}
-
-.story-progress span.is-active {
+.rail-phase.is-outcome-kicker {
   color: var(--forest);
+}
+
+.rail-name {
+  font-size: 0.575rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--forest);
+  white-space: nowrap;
+  opacity: calc(0.2 + var(--progress-weight, 0) * 0.8);
+  transition: opacity 200ms ease;
+}
+
+.rail-node {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--sage);
+  background: var(--canvas);
+  justify-self: center;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+/* Travelled: a filled node, so the rail reads as a route already partly walked. */
+.rail-state[data-rail-state="done"] .rail-node {
+  background: var(--forest);
+  border-color: var(--forest);
+  opacity: 0.55;
+}
+
+.rail-state[data-rail-state="active"] .rail-node {
+  background: var(--brass);
+  border-color: var(--brass);
+  transform: scale(1.32);
+  box-shadow: 0 0 0 4px rgba(184, 154, 100, 0.18);
+}
+
+.rail-state[data-rail-state="active"] .rail-phase {
+  opacity: 1;
+  transform: none;
+}
+
+.rail-state[data-rail-state="active"] .rail-name {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Outcomes are not phases. They sit slightly heavier so RECOVERY INCOMPLETE and
+   OBJECTIVE RESTORED read as results of the cycle rather than steps within it. */
+.rail-state.is-outcome .rail-name {
+  letter-spacing: 0.11em;
+}
+
+.rail-state.is-outcome[data-rail-state="done"] .rail-node,
+.rail-state.is-outcome[data-rail-state="active"] .rail-node {
+  border-radius: 2px;
+}
+
+/* The second pass through the loop is set off by a short brass tick, which is
+   what makes "recovery ran twice" visible at a glance. */
+.rail-state.is-second-pass .rail-text::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  width: 5px;
+  height: 1px;
+  background: var(--brass);
+  opacity: 0.55;
+}
+
+.rail-state.is-second-pass {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-rail::after,
+  .rail-phase,
+  .rail-name,
+  .rail-node {
+    transition: none;
+  }
 }
 
 .viewport-label {
@@ -1743,6 +1918,21 @@ a {
   position: relative;
 }
 
+/* Between a laptop and a large desktop the rail tightens, so the beats do not
+   have to give up measure for a full-width one. */
+@media (min-width: 1100px) and (max-width: 1500px) {
+  .sticky-stage {
+    --story-rail-width: 172px;
+    --story-rail-inset: 18px;
+    --story-rail-clearance: 22px;
+  }
+
+  .rail-name {
+    font-size: 0.545rem;
+    letter-spacing: 0.07em;
+  }
+}
+
 @media (max-width: 1099px) {
   :root {
     --header-height: 70px;
@@ -1752,17 +1942,25 @@ a {
     height: 780svh;
   }
 
-  /* A 190px rail would claim a quarter of a tablet's width once the beats keep
-     clear of it, so the labels tighten rather than the copy being squeezed. */
+  /**
+   * Below 1100px the rail is retired rather than shrunk.
+   *
+   * The tablet layouts already use the whole width — the ACT beat sets a 39vw copy
+   * column beside a 53vw receipt — so any vertical rail either sits on the receipt
+   * or pushes the receipt onto the copy. Measured at 834px, both alternatives
+   * collide. A ten-state progression is a desktop affordance, and carrying a
+   * crippled version of it into a layout with no room for it would be worse than
+   * not showing it; the beats themselves already name every state they represent.
+   *
+   * Collapsing the safe gutter to zero hands that width straight back to the
+   * beats, because every right-anchored card asks for max(its own inset, gutter).
+   */
   .sticky-stage {
-    --story-rail-width: 132px;
-    --story-rail-inset: 14px;
-    --story-rail-clearance: 16px;
+    --story-rail-safe: 0px;
   }
 
-  .story-progress span {
-    font-size: 0.53rem;
-    letter-spacing: 0.06em;
+  .story-progress {
+    display: none;
   }
 
   .site-header {
@@ -1854,7 +2052,8 @@ a {
   .beat-heading,
   .action-copy,
   .replan-copy,
-  .restored-copy {
+  .restored-copy,
+  .incomplete-copy {
     position: relative;
     top: auto;
     left: auto;
@@ -1867,7 +2066,8 @@ a {
   .beat-heading h2,
   .action-copy h2,
   .replan-copy h2,
-  .restored-copy h2 {
+  .restored-copy h2,
+  .incomplete-copy h2 {
     font-size: clamp(2.45rem, 11vw, 3.6rem);
     line-height: 0.98;
   }

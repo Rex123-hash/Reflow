@@ -19,6 +19,7 @@ import {
   STORY_TIMELINE_DURATION,
   beatWeight,
 } from "../data/storySchedule";
+import { RAIL_WINDOWS, railIndexAt } from "../data/storyRail";
 import { INITIAL_ORB_POSE, type OrbPose, type StoryController } from "./storyTypes";
 import { useReducedMotion } from "./useReducedMotion";
 
@@ -224,16 +225,43 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
           root.style.setProperty("--restored-route-opacity", enterRamp(value, "restored", 0, 0.6).toFixed(4));
           root.style.setProperty("--restored-route-progress", enterRamp(value, "restored", 0.22, 1).toFixed(4));
 
-          progressItems.forEach((item) => {
-            const id = item.dataset.progressStage as StoryStageId;
-            const weight = beatWeight(STORY_BEATS[id], value);
-            item.style.setProperty("--progress-weight", weight.toFixed(4));
-            const label = item.querySelector<HTMLElement>("b");
-            const dot = item.querySelector<HTMLElement>("i");
-            if (label) {
-              label.style.opacity = weight.toFixed(4);
+          /**
+           * The rail advances *inside* a beat, not once per beat: the ACT beat
+           * contains both the action and its independent read-back, and the
+           * REPLAN beat contains replanning, the new action and the second
+           * verification. Each of those is a real story state with its own slice
+           * of the beat's window, so the reader watches the rail travel while the
+           * thing it names is actually happening.
+           */
+          const currentRail = railIndexAt(value);
+          // Fraction of the spine already travelled, used to draw the forest
+          // overlay over the faint full-length one.
+          root.style.setProperty(
+            "--rail-travelled",
+            (
+              (currentRail + 0.5) /
+              Math.max(1, RAIL_WINDOWS.length - 0.0)
+            ).toFixed(4),
+          );
+          progressItems.forEach((item, index) => {
+            const state =
+              index < currentRail ? "done" : index === currentRail ? "active" : "next";
+            if (item.dataset.railState !== state) {
+              item.dataset.railState = state;
+              if (state === "active") item.setAttribute("aria-current", "step");
+              else item.removeAttribute("aria-current");
             }
-            if (dot) dot.style.transform = `scale(${(1 + weight * 0.6).toFixed(4)})`;
+            // Weight fades a row in as its own slice approaches, so the rail
+            // breathes with the scroll instead of snapping between rows.
+            const window = RAIL_WINDOWS[index];
+            const distance =
+              value < window.fromP
+                ? window.fromP - value
+                : value > window.toP
+                  ? value - window.toP
+                  : 0;
+            const weight = clamp01(1 - distance / 0.06);
+            item.style.setProperty("--progress-weight", weight.toFixed(4));
           });
 
           const nextStage = stageFromProgress(value);

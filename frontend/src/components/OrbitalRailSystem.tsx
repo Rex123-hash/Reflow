@@ -176,15 +176,43 @@ export function OrbitalRailSystem({ activeStage }: { activeStage: StoryStageId }
       });
 
       // ── Hero labels (just outside outer rail) ────────────────
+      //
+      // The orbital labels travel with the instrument, so on the beats that push
+      // it toward the right of frame they can reach the story rail's gutter — ACT
+      // landed on top of a rail row on the RECOVERY INCOMPLETE beat. Rather than
+      // nudging the instrument's authored pose, a label yields when it enters the
+      // rail's territory: it fades out over the last stretch before the gutter.
+      // Measured from the rail element itself, so it stays correct at every
+      // breakpoint where the rail changes width or is hidden entirely.
+      const rail = document.querySelector<HTMLElement>(".story-progress");
+      const railLeft =
+        rail && getComputedStyle(rail).display !== "none"
+          ? rail.getBoundingClientRect().left - svg.getBoundingClientRect().left
+          : Number.POSITIVE_INFINITY;
+      const fadeEnd = railLeft - 10;
+      const fadeStart = railLeft - 104;
+
       const labelRx = outerRx * 1.08;
       const labelRy = outerRy * 1.12;
       HERO_LABELS.forEach(({ text, deg, anchor, dx, dy }) => {
         const el = svg.querySelector<SVGTextElement>(`[data-label='${text}']`);
         if (el) {
           const p = ellipsePoint(cx, cy, labelRx, labelRy, deg);
-          el.setAttribute("x", (p.x + dx).toFixed(1));
+          const x = p.x + dx;
+          el.setAttribute("x", x.toFixed(1));
           el.setAttribute("y", (p.y + dy).toFixed(1));
           el.setAttribute("text-anchor", anchor);
+          // `end`-anchored labels sit to the left of their point, so the edge
+          // that matters is the point itself for `start` and the point for `end`
+          // too — the text never extends further right than its anchor there.
+          const reach = anchor === "start" ? x + 52 : x;
+          const yield_ =
+            reach <= fadeStart
+              ? 1
+              : reach >= fadeEnd
+                ? 0
+                : (fadeEnd - reach) / (fadeEnd - fadeStart);
+          el.style.opacity = yield_.toFixed(3);
         }
       });
     },

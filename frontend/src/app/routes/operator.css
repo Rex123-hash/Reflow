@@ -1,37 +1,64 @@
 /**
- * The console sits on the shared workspace container's left rule, so the page
- * begins exactly where Overview, Objectives and Evidence begin. Only its measure
- * is shorter: this is a reading surface, and the answer, the input and the incident
- * context all belong to one column rather than being stretched across the full
- * desktop canvas.
+ * The Operator working canvas is centred, not left-hugging.
+ *
+ * Pinning the console to the workspace's left rule kept it consistent with the
+ * data-led routes, but on a wide display it left a large empty field down the
+ * right and the route stopped reading as part of the same application. The whole
+ * working area — eyebrow, title, description, state badge, input, chips, status,
+ * answer and the objective/verification/evidence context — now sits in one
+ * balanced canvas centred on the shell's own centre line.
+ *
+ * The container is what is centred. Everything inside it stays left-aligned.
  */
 .operator > * {
   max-width: var(--workspace-reading);
+  margin-inline: auto;
 }
 
+/**
+ * The console's masthead is centred on the canvas, the way every titled surface in
+ * the Reflow visual language is. The state badge keeps the header's own geometry —
+ * it is pulled out of the centred flow and pinned to the canvas's right edge, so
+ * centring the title does not shove it off-axis.
+ *
+ * The input below is untouched by this: it keeps its own position and full width.
+ */
 .operator-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-5);
-  flex-wrap: wrap;
+  position: relative;
+  text-align: center;
   margin-bottom: var(--space-5);
 }
 
 .operator-head h1 {
-  margin: var(--space-2) 0 var(--space-2);
+  margin: var(--space-2) 0 var(--space-3);
   font-family: var(--serif);
   font-weight: 400;
   font-size: 2.35rem;
   letter-spacing: -0.03em;
 }
 
+/* Allowed the full canvas measure so the sentence sets on as few lines as it can
+   rather than being folded into a narrow column beside empty space. */
 .operator-lede {
-  margin: 0;
-  font-size: 0.88rem;
+  margin: 0 auto;
+  font-size: 0.85rem;
   color: var(--body);
   line-height: 1.6;
-  max-width: 62ch;
+  max-width: none;
+  text-wrap: balance;
+}
+
+.operator-head .operator-readonly {
+  position: absolute;
+  top: 2px;
+  right: 0;
+}
+
+@media (max-width: 900px) {
+  .operator-head .operator-readonly {
+    position: static;
+    margin-bottom: var(--space-3);
+  }
 }
 
 .operator-readonly {
@@ -59,7 +86,27 @@
  * engaging: the whole plate lifts and takes a forest ring, rather than the input
  * growing a browser outline inside a silent container.
  */
+/**
+ * The luminous perimeter.
+ *
+ * Three layers, all inside the frozen palette — warm ivory, forest, sage, brass.
+ * Nothing here is a neon ring or a fuzzy drop shadow:
+ *
+ *   the plate itself carries the border and an inset ivory highlight, which is
+ *   what gives the edge its machined lift rather than a flat outline;
+ *
+ *   `::before` is a gradient edge — a brass-through-sage-through-forest sweep
+ *   painted only on the 1px perimeter via a mask, so the border has colour
+ *   along its length instead of one uniform stroke;
+ *
+ *   `::after` is the bloom: a soft, tightly-bounded halo that stops well before
+ *   it becomes a glow around the page.
+ *
+ * Idle keeps all of it at zero. The field is calm until it is being used.
+ */
 .operator-form {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -70,15 +117,158 @@
   box-shadow: var(--elev-card);
   margin-bottom: var(--space-3);
   transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.operator-form::before,
+.operator-form::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+/* Gradient edge, masked to the perimeter only. */
+.operator-form::before {
+  z-index: 1;
+  padding: 1px;
+  background: linear-gradient(
+    100deg,
+    var(--brass) 0%,
+    var(--forest) 34%,
+    var(--sage) 62%,
+    var(--brass) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Bloom: bounded, warm, and deliberately short-range. */
+.operator-form::after {
+  z-index: -1;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--forest) 9%, transparent),
+    0 2px 18px color-mix(in srgb, var(--brass) 26%, transparent),
+    0 8px 34px color-mix(in srgb, var(--forest) 12%, transparent);
 }
 
 .operator-form:focus-within {
-  border-color: var(--forest);
+  border-color: transparent;
   box-shadow:
     var(--elev-raised),
-    0 0 0 3px color-mix(in srgb, var(--forest) 12%, transparent);
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.operator-form:focus-within::before,
+.operator-form:focus-within::after {
+  opacity: 1;
+}
+
+/**
+ * Chip activation.
+ *
+ * A suggested prompt is dropped into the field and the field takes focus, so the
+ * perimeter needs to acknowledge that it just received something rather than
+ * simply appearing lit. One pass of light travels the gradient edge and settles
+ * into the ordinary focused state — a precision instrument engaging, not a pulse.
+ */
+.operator-form.is-activating::before {
+  opacity: 1;
+  background: linear-gradient(
+    100deg,
+    var(--brass) 0%,
+    var(--forest) 34%,
+    var(--sage) 62%,
+    var(--brass) 100%
+  );
+  background-size: 260% 100%;
+  animation: operator-edge-sweep 620ms cubic-bezier(0.22, 0.61, 0.36, 1) 1;
+}
+
+.operator-form.is-activating::after {
+  opacity: 1;
+  animation: operator-bloom-settle 620ms ease-out 1;
+}
+
+@keyframes operator-edge-sweep {
+  from {
+    background-position: 130% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+@keyframes operator-bloom-settle {
+  0% {
+    transform: scale(0.985);
+    opacity: 0.35;
+  }
+  45% {
+    transform: scale(1.004);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/**
+ * Reasoning.
+ *
+ * While a real model request is in flight the perimeter keeps a very
+ * low-amplitude breath. It never flashes and never implies an outcome — the
+ * status strip carries what is actually happening.
+ */
+.operator-form.is-reasoning::before,
+.operator-form.is-reasoning::after {
+  opacity: 1;
+}
+
+.operator-form.is-reasoning::after {
+  animation: operator-breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes operator-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* The glow is never the only focus cue: the field keeps a real focus ring. */
+.operator-form input:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 4px;
+  border-radius: var(--radius-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operator-form,
+  .operator-form::before,
+  .operator-form::after {
+    transition: none;
+  }
+
+  .operator-form.is-activating::before,
+  .operator-form.is-activating::after,
+  .operator-form.is-reasoning::after {
+    animation: none;
+  }
 }
 
 .operator-form svg {
@@ -132,6 +322,7 @@
 
 .operator-example {
   appearance: none;
+  position: relative;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
@@ -143,7 +334,8 @@
   transition:
     border-color 140ms ease,
     color 140ms ease,
-    background-color 140ms ease;
+    background-color 140ms ease,
+    transform 140ms ease;
 }
 
 .operator-example:hover:not(:disabled) {
@@ -152,9 +344,31 @@
   color: var(--forest);
 }
 
+.operator-example:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+  color: var(--forest);
+  border-color: var(--verified-line);
+}
+
+/* The chip hands its text to the field, so it acknowledges the transfer and lets
+   go — the state belongs to the input from that moment, not to the chip. */
+.operator-example.is-sending {
+  border-color: var(--brass);
+  background: var(--motion-fill);
+  color: var(--motion-ink);
+  transform: translateY(-1px);
+}
+
 .operator-example:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operator-example {
+    transition: none;
+  }
 }
 
 /* --------------------------------------------------------- transient notes --- */

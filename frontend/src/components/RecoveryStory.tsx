@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { STORY_CAPABILITIES } from "../data/proofManifest";
+import { RAIL_STATES, railKicker } from "../data/storyRail";
 import { useStoryController } from "../story/useStoryController";
 import { ReflowInstrument } from "./ReflowInstrument";
 import { StoryBeats } from "./StoryBeats";
@@ -10,6 +10,54 @@ import { ThreeFuturesRoute } from "./ThreeFuturesRoute";
 import { RestoredRoute } from "./RestoredRoute";
 import { ReplanRoute } from "./ReplanRoute";
 import { ReflowIcon } from "./ReflowIcon";
+
+/**
+ * The story rail.
+ *
+ * It used to be seven anonymous dots with a single label appearing beside
+ * whichever one was current, and the labels were laid out to the *right* of their
+ * dot, so they grew toward the viewport edge and clipped.
+ *
+ * It is now a named progression on a spine. Each row is a real story state, and
+ * the operational phase — Reflow's five-word cycle — rides above it as a brass
+ * kicker. The two lists are deliberately different lengths: the cycle runs twice,
+ * and RECOVERY INCOMPLETE and OBJECTIVE RESTORED are outcomes rather than phases,
+ * so they carry no phase kicker at all. Flattening them into a five-item list
+ * would erase the exact claim the product is built on.
+ *
+ * Labels are right-aligned and extend left from the spine, so nothing can run off
+ * the right edge however long a state name becomes. The live done/active/next
+ * state is written by the story controller against `data-progress-stage`, because
+ * a beat can own several states and the rail has to advance inside a beat rather
+ * than once per beat.
+ */
+function StoryRail() {
+  return (
+    <aside className="story-progress" aria-label="Recovery story progress">
+      <ol className="story-rail">
+        {RAIL_STATES.map((state) => (
+          <li
+            key={state.id}
+            data-progress-stage={state.id}
+            className={`rail-state${state.outcome ? " is-outcome" : ""}${
+              state.attempt === 2 ? " is-second-pass" : ""
+            }`}
+          >
+            <span className="rail-text">
+              <b
+                className={`rail-phase${state.outcome ? " is-outcome-kicker" : ""}`}
+              >
+                {railKicker(state)}
+              </b>
+              <b className="rail-name">{state.label}</b>
+            </span>
+            <i className="rail-node" aria-hidden="true" />
+          </li>
+        ))}
+      </ol>
+    </aside>
+  );
+}
 
 function RecoveryStoryContent() {
   const rootRef = useRef<HTMLElement>(null);
@@ -43,19 +91,7 @@ function RecoveryStoryContent() {
           <RestoredRoute />
           <StoryTopology />
           <StoryBeats />
-          <aside className="story-progress" aria-label="Recovery story progress">
-            {STORY_CAPABILITIES.map((stage) => (
-              <span
-                key={stage.id}
-                data-progress-stage={stage.id}
-                className={controller.activeStage === stage.id ? "is-active" : ""}
-                aria-current={controller.activeStage === stage.id ? "step" : undefined}
-              >
-                <i aria-hidden="true" />
-                <b>{stage.label}</b>
-              </span>
-            ))}
-          </aside>
+          <StoryRail />
         </div>
         <span className="story-anchor" id="recovery-impact" aria-hidden="true" />
       </div>
