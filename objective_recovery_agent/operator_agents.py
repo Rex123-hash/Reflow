@@ -9,6 +9,7 @@ from typing import Literal, TypeVar
 
 from google.adk import Agent, Workflow
 from google.adk.models import Gemini
+from google.adk.workflow._errors import NodeTimeoutError
 from google.genai import types
 from pydantic import BaseModel
 
@@ -34,6 +35,23 @@ OPERATOR_AGENT_NAMES: tuple[AgentName, AgentName] = (
 OPERATOR_AGENT_TIMEOUT_SECONDS = 25
 SIMULATION_AGENT_TIMEOUT_SECONDS = 30
 OUTER_TIMEOUT_MARGIN_SECONDS = 2
+
+"""
+Deadline for a single provider request.
+
+Until this existed there was no deadline on the HTTP call at all: `HttpOptions.timeout`
+defaults to `None`, and neither ADK's `Gemini` wrapper nor this module set one, so the only
+thing that could stop a stalled request was the ADK node watchdog. That produced the exact
+failure signature seen in qualification — a bimodal distribution where the call either
+finished in 7–11 s or ran until the watchdog killed it, which is also why raising the
+watchdog from 25 s to 30 s did not help. It simply moved the wall.
+
+14 s is chosen from the observed distribution, not guessed: across every preserved genuine
+Agent 7 sample the slowest successful call was 11,200 ms, so this is ~1.25x the worst
+legitimate completion. Two full attempts (28 s) still fit inside the 30 s node watchdog, so
+a stalled first request fails fast and leaves room for exactly one retry.
+"""
+PROVIDER_REQUEST_TIMEOUT_SECONDS = 14
 T = TypeVar("T", bound=BaseModel)
 
 INTENT_INSTRUCTION = """
@@ -118,7 +136,12 @@ def _workflow(
 ) -> Workflow:
     agent = Agent(
         name=name,
-        model=Gemini(model=MODEL_ID, retry_options=types.HttpRetryOptions(attempts=1)),
+        model=Gemini(
+            model=MODEL_ID,
+            # attempts=1 is the total including the original request, so the SDK never
+            # retries underneath us and a recorded attempt count is a real request count.
+            retry_options=types.HttpRetryOptions(attempts=1),
+        ),
         mode="single_turn",
         input_schema=incoming,
         output_schema=outgoing,
@@ -201,9 +224,20 @@ class AdkOperatorAgents:
                 install_operator_privacy_filter()
                 token = operator_active.set(True)
                 try:
+                    # The per-attempt deadline is ours, not the SDK's.
+                    #
+                    # Passing `http_options` to ADK's `Gemini` does nothing — it has no
+                    # such field and pydantic drops it — and routing one through
+                    # `client_kwargs` would replace ADK's own http options wholesale,
+                    # discarding its tracking headers, base URL and the `attempts=1`
+                    # retry cap. Enforcing the bound here cancels the in-flight task at a
+                    # deadline we control, below the node watchdog, using only stdlib.
                     result = await asyncio.wait_for(
                         run_workflow(factory(), payload),
-                        timeout=timeout_seconds + OUTER_TIMEOUT_MARGIN_SECONDS,
+                        timeout=min(
+                            PROVIDER_REQUEST_TIMEOUT_SECONDS,
+                            timeout_seconds + OUTER_TIMEOUT_MARGIN_SECONDS,
+                        ),
                     )
                 finally:
                     operator_active.reset(token)
@@ -220,7 +254,7 @@ class AdkOperatorAgents:
                 )
                 emit_operational_event("OPERATOR_AGENT_COMPLETED", **trace.model_dump())
                 return value, trace
-            except (ValueError, TimeoutError) as error:
+            except (ValueError, TimeoutError, NodeTimeoutError) as error:
                 emit_operational_event(
                     "OPERATOR_AGENT_FAILED",
                     agent_id=name,
@@ -230,12 +264,24 @@ class AdkOperatorAgents:
                     validation="FAILED",
                     error_type=type(error).__name__,
                 )
-                if attempt == 2 or isinstance(error, TimeoutError):
+                # ADK's NodeTimeoutError derives from Exception alone, so it used to fall
+                # through to the generic handler and be reported as a `runtime` failure.
+                # A watchdog firing is a timeout and is now recorded as one.
+                timed_out = isinstance(error, TimeoutError | NodeTimeoutError)
+                elapsed = time.perf_counter() - started
+                # One retry, and only when a whole further provider attempt genuinely fits
+                # inside the remaining node budget. A provider deadline at 14 s leaves room;
+                # a watchdog that has already consumed the budget does not. This is what
+                # keeps a bounded retry from becoming retry-until-green.
+                budget_remains = (
+                    timeout_seconds - elapsed >= PROVIDER_REQUEST_TIMEOUT_SECONDS + 1
+                )
+                if attempt == 2 or (timed_out and not budget_remains):
                     raise OperatorReasoningError(
                         "Operator reasoning unavailable.",
                         agent_name=name,
-                        category="timeout" if isinstance(error, TimeoutError) else "validation",
-                        elapsed_ms=int((time.perf_counter() - started) * 1000),
+                        category="timeout" if timed_out else "validation",
+                        elapsed_ms=int(elapsed * 1000),
                     ) from error
             except Exception as error:
                 emit_operational_event(

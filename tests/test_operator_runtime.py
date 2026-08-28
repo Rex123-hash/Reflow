@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import ast
+import asyncio
 import json
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
 import pytest
+from google.adk.workflow._errors import NodeTimeoutError
 from objective_recovery_agent import operator_agents
 from objective_recovery_agent.operator_agents import AdkOperatorAgents, OperatorReasoningError
 from objective_recovery_agent.operator_context import build_snapshot, safe_text
@@ -321,7 +324,16 @@ async def test_real_adk_workflow_boundary_and_safe_metadata(
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "error,expected",
-    [(ValueError("bad JSON"), 2), (TimeoutError(), 1), (RuntimeError("network secret"), 1)],
+    [
+        (ValueError("bad JSON"), 2),
+        # A timeout is retried only when a whole further provider attempt still fits in the
+        # node budget. These mocks raise immediately, so the budget is untouched and the
+        # single permitted retry is taken. The no-budget case is covered separately by
+        # test_watchdog_timeout_is_not_retried, and two attempts remains the hard ceiling.
+        (TimeoutError(), 2),
+        (NodeTimeoutError(node_name="simulation_agent_workflow", timeout=30.0), 2),
+        (RuntimeError("network secret"), 1),
+    ],
 )
 async def test_bounded_attempts_and_safe_failure(
     monkeypatch: Any, error: Exception, expected: int
@@ -345,13 +357,82 @@ async def test_bounded_attempts_and_safe_failure(
     assert caught.value.agent_name == "operator_intent_interpreter"
     expected_category = (
         "timeout"
-        if isinstance(error, TimeoutError)
+        if isinstance(error, TimeoutError | NodeTimeoutError)
         else "validation"
         if isinstance(error, ValueError)
         else "runtime"
     )
     assert caught.value.category == expected_category
     assert caught.value.elapsed_ms is not None
+
+
+@pytest.mark.asyncio
+async def test_watchdog_timeout_is_not_retried(monkeypatch: Any) -> None:
+    """A watchdog that has already spent the node budget must not start another attempt.
+
+    This is what keeps the bounded retry from becoming retry-until-green: the decision is
+    made from the remaining budget, not from the error type alone.
+    """
+    calls = 0
+
+    async def run(*args: Any, **kwargs: Any) -> Any:
+        nonlocal calls
+        calls += 1
+        # Consume the whole node budget, as a real watchdog firing would.
+        await asyncio.sleep(0)
+        raise NodeTimeoutError(node_name="simulation_agent_workflow", timeout=30.0)
+
+    monkeypatch.setattr(operator_agents, "run_workflow", run)
+    monkeypatch.setattr(operator_agents, "PROVIDER_REQUEST_TIMEOUT_SECONDS", 10**6)
+    with pytest.raises(OperatorReasoningError) as caught:
+        await AdkOperatorAgents().simulate(
+            SimulationInput(snapshot=snapshot(), intent=intent("SIMULATE")), REQUEST
+        )
+    assert calls == 1
+    assert caught.value.category == "timeout"
+
+
+def test_provider_request_deadline_sits_below_the_node_watchdog() -> None:
+    """Two provider attempts must fit beneath the node watchdog.
+
+    Before this bound existed the provider call had no deadline of its own — the genai
+    default is None and neither ADK nor this module set one — so a stalled request ran until
+    the ADK node watchdog. That is the P2G stall signature, and it is why raising the
+    watchdog from 25s to 30s did not help.
+    """
+    provider = operator_agents.PROVIDER_REQUEST_TIMEOUT_SECONDS
+    node = operator_agents.SIMULATION_AGENT_TIMEOUT_SECONDS
+    assert 0 < provider < node
+    assert provider * 2 <= node
+    # The SDK must still never retry underneath us, so a recorded attempt count stays a
+    # real provider request count.
+    edges: Any = operator_agents.create_simulation_workflow().edges
+    model = edges[0][1].model
+    assert model.retry_options is not None and model.retry_options.attempts == 1
+
+
+@pytest.mark.asyncio
+async def test_each_attempt_is_bounded_by_the_provider_deadline(monkeypatch: Any) -> None:
+    """A hung provider call is abandoned at the provider deadline, not at the watchdog."""
+    monkeypatch.setattr(operator_agents, "PROVIDER_REQUEST_TIMEOUT_SECONDS", 0.05)
+    attempts = 0
+
+    async def run(*args: Any, **kwargs: Any) -> Any:
+        nonlocal attempts
+        attempts += 1
+        await asyncio.sleep(30)  # never completes; must be cancelled by our deadline
+
+    monkeypatch.setattr(operator_agents, "run_workflow", run)
+    started = time.perf_counter()
+    with pytest.raises(OperatorReasoningError) as caught:
+        await AdkOperatorAgents().simulate(
+            SimulationInput(snapshot=snapshot(), intent=intent("SIMULATE")), REQUEST
+        )
+    elapsed = time.perf_counter() - started
+    # Two bounded attempts, and nowhere near the 30s node watchdog.
+    assert attempts == 2
+    assert elapsed < 5
+    assert caught.value.category == "timeout"
 
 
 def test_simulation_transitive_project_imports_have_no_effect_module() -> None:
