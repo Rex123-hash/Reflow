@@ -226,7 +226,7 @@ export function AuthoredStudioEnvironment({
     addReflectionPanel(studio, [2.7, 6.7, -1.8], [0.9, 0.9], "#fff2ce", 1.3);
     const environment = generator.fromScene(studio, 0.04).texture;
     scene.environment = environment;
-    scene.environmentIntensity = 0.34;
+    scene.environmentIntensity = 0.46;
     onReady?.();
     invalidate();
     return () => {
@@ -255,7 +255,7 @@ export function AuthoredStudioEnvironment({
  */
 export function AuthoredStudioLights() {
   return <>
-    <hemisphereLight args={["#fff3e2", "#9b9080", 0.42]} />
+    <hemisphereLight args={["#fff3e2", "#9b9080", 0.72]} />
     <spotLight
       castShadow
       position={[-4.9, 8.4, 5.4]}

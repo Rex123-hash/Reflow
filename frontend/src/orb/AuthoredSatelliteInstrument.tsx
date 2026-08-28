@@ -4,7 +4,7 @@ import * as THREE from "three";
 /**
  * The three orbiting bodies.
  *
- * The approved reference shows these as smooth, pale sage-white spheres — no
+ * The approved reference shows these as smooth spheres — no
  * brass, no equatorial channel, no mechanical detailing. An earlier pass here
  * added all three (a forest channel, brass index pin, actuator cap and aperture
  * ring, one per satellite echoing Plan/Act/Verify). It read as authored, but it
@@ -36,17 +36,24 @@ export const SATELLITE_PROFILES: Record<SatelliteKind, SatelliteProfile> = {
 };
 
 /**
- * Pale sage-white porcelain. Read from the reference, which is markedly lighter
- * and more luminous than the mid-sage these used to be.
+ * Sampled from the approved hero reference rather than guessed.
+ *
+ * REFERENCE PAGES/1.png reads #c5c4ac on the lit sphere and #9d9b79 where it
+ * falls into shadow — a warm khaki-sage. Both previous values were wrong on the
+ * same axis: #9ead99 was too cool and went muddy once tone mapping was
+ * corrected, and #dde2d5 (an over-correction after misreading a current-state
+ * screenshot as reference) was too pale and too cool again. The lit sample is
+ * used as the target, with the albedo scaled back to #b3b29b so that the scene's
+ * ambient lands the rendered pixel on the reference value rather than above it.
  */
-const SHELL = "#dde2d5";
+const SHELL = "#b3b29b";
 
 export function useSatelliteMaterials() {
   return useMemo(
     () => ({
       shell: new THREE.MeshPhysicalMaterial({
         color: SHELL,
-        roughness: 0.58,
+        roughness: 0.62,
         metalness: 0,
         // A light coat gives the soft, slightly waxy highlight the reference
         // beads have, without turning them glossy.
