@@ -1,0 +1,6 @@
+metrics_to_run:
+  - p2g_act_behavior
+custom_metrics:
+  - name: p2g_act_behavior
+    execution: local
+    custom_function_file: operator_act_metric.py

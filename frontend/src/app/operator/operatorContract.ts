@@ -4,6 +4,38 @@ export type HypotheticalChange = {
   target: string;
   value: string;
 };
+export type OperatorActionView = {
+  adapter_proof?: Record<string, string>;
+  authenticated_subject_hash: string;
+  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW";
+  authorization_result: "AUTO_EXECUTABLE" | "APPROVAL_REQUIRED" | "DENIED";
+  created_at: string;
+  error_category?: string | null;
+  execution_acknowledgement?: Record<string, string>;
+  expected_state?: Record<string, string | null>;
+  external_effects_possible?: boolean;
+  lifecycle:
+    | "REQUESTED"
+    | "AUTHORIZED"
+    | "APPROVAL_REQUIRED"
+    | "APPROVED"
+    | "EXECUTING"
+    | "EXECUTED"
+    | "READ_BACK"
+    | "VERIFIED"
+    | "VERIFICATION_FAILED"
+    | "DENIED"
+    | "FAILED";
+  observed_state?: Record<string, string | null>;
+  operations: RequestedOperation[];
+  operator_action_id: string;
+  request_fingerprint?: string | null;
+  request_id: string;
+  resource_identifier: string;
+  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE";
+  updated_at: string;
+  verification_result?: "NOT_RUN" | "PASSED" | "FAILED";
+};
 export type OperatorAgentTrace = {
   agent_id: "operator_intent_interpreter" | "simulation_agent";
   attempts: number;
@@ -25,6 +57,13 @@ export type OperatorFact = {
   fact_id: string;
   text: string;
 };
+export type OperatorInspection = {
+  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW";
+  observed_at: string;
+  observed_state: Record<string, string | null>;
+  resource_identifier: string;
+  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE";
+};
 export type OperatorIntent = {
   clarification?: string | null;
   constraints: string[];
@@ -32,28 +71,57 @@ export type OperatorIntent = {
   fact_ids: string[];
   hypothetical_changes: HypotheticalChange[];
   incident_id: string;
-  intent_type?: "INSPECT" | "EXPLAIN" | "SIMULATE" | null;
+  intent_type?: "INSPECT" | "EXPLAIN" | "SIMULATE" | "ACT" | null;
   question: string;
   recovery_attempt?: number | null;
-  subject: "OBJECTIVE" | "RECOVERY" | "CALENDAR" | "EVIDENCE" | "CHRONOLOGY";
+  requested_operations?: RequestedOperation[];
+  subject:
+    "OBJECTIVE" | "RECOVERY" | "CALENDAR" | "JIRA" | "EVIDENCE" | "CHRONOLOGY";
+  target?: OperatorTarget | null;
 };
-export type OperatorQuery = { incident_id: string; message: string };
+export type OperatorQuery = {
+  idempotency_key?: string | null;
+  incident_id: string;
+  message: string;
+};
 export type OperatorResponse = {
+  action?: OperatorActionView | null;
   agents: OperatorAgentTrace[];
   answer: string;
   disposition: "SUPPORTED" | "CLARIFICATION_REQUIRED" | "UNSUPPORTED";
   evidence: OperatorEvidence[];
-  external_effects_executed?: false;
+  external_effects_executed?: boolean;
   facts: OperatorFact[];
   generated_at: string;
   hypothetical_deadline?: string | null;
   incident_id: string;
+  inspection?: OperatorInspection | null;
   intent: OperatorIntent;
-  provenance: "AUTHORITATIVE_SNAPSHOT" | "HYPOTHETICAL_NO_ACTION";
+  provenance:
+    "AUTHORITATIVE_SNAPSHOT" | "HYPOTHETICAL_NO_ACTION" | "OPERATOR_ACTION";
   request_id: string;
   revision: number;
   simulation?: SimulationResult | null;
   snapshot_fingerprint: string;
+};
+export type OperatorTarget = {
+  authority: "JIRA" | "GOOGLE_CALENDAR" | "REFLOW";
+  resource_identifier: string;
+  resource_type: "ISSUE" | "EVENT" | "OBJECTIVE";
+};
+export type RequestedOperation = {
+  comment?: string | null;
+  operation:
+    | "JIRA_TRANSITION"
+    | "JIRA_SET_PRIORITY"
+    | "JIRA_ASSIGN"
+    | "JIRA_SET_DUE_DATE"
+    | "JIRA_ADD_COMMENT"
+    | "CALENDAR_RESCHEDULE"
+    | "CALENDAR_UPDATE_TITLE"
+    | "CALENDAR_UPDATE_DESCRIPTION"
+    | "MOVE_PROTECTED_DEADLINE";
+  value?: string | null;
 };
 export type SimulationFuture = {
   consequence: string;

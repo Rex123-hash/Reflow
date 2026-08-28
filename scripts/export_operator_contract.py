@@ -4,7 +4,11 @@ import argparse
 import json
 from pathlib import Path
 
-from objective_recovery_agent.operator_schemas import OperatorQuery, OperatorResponse
+from objective_recovery_agent.operator_schemas import (
+    OperatorActionView,
+    OperatorQuery,
+    OperatorResponse,
+)
 
 
 def main() -> None:
@@ -12,7 +16,7 @@ def main() -> None:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     schemas = {}
-    for model in (OperatorQuery, OperatorResponse):
+    for model in (OperatorQuery, OperatorResponse, OperatorActionView):
         schema = model.model_json_schema(ref_template="#/components/schemas/{model}")
         schemas.update(schema.pop("$defs", {}))
         schemas[model.__name__] = schema
@@ -32,7 +36,7 @@ def main() -> None:
                     },
                     "responses": {
                         "200": {
-                            "description": "Validated read-only reasoning",
+                            "description": "Validated reasoning or controlled action result",
                             "content": {
                                 "application/json": {
                                     "schema": {"$ref": "#/components/schemas/OperatorResponse"}
@@ -41,7 +45,31 @@ def main() -> None:
                         }
                     },
                 }
-            }
+            },
+            "/api/v1/operator/actions/{action_id}/approve": {
+                "post": {
+                    "parameters": [
+                        {
+                            "in": "path",
+                            "name": "action_id",
+                            "required": True,
+                            "schema": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Approved action result after execution and read-back",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/OperatorActionView"
+                                    }
+                                }
+                            },
+                        }
+                    },
+                }
+            },
         },
         "components": {"schemas": schemas},
     }

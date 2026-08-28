@@ -27,6 +27,12 @@ variable "calendar_id" {
   default     = ""
 }
 
+variable "operator_demo_calendar_event_id" {
+  description = "Dedicated safe Calendar event ID for human-directed Operator actions."
+  type        = string
+  default     = ""
+}
+
 variable "github_p1c_repository" {
   type        = string
   description = "Single GitHub proof repository authorized for P1C."

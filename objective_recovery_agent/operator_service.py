@@ -1,23 +1,33 @@
-"""Deterministic read-only routing. Simulation only receives immutable value objects."""
+"""Operator routing: model interpretation followed by deterministic control."""
 
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from typing import Literal, Protocol
 
 from objective_recovery_agent.external_reality_schemas import ExternalRealityView
+from objective_recovery_agent.operator_actions import (
+    CapabilityRegistry,
+    OperatorActionCoordinator,
+    OperatorAdapterError,
+)
 from objective_recovery_agent.operator_agents import AdkOperatorAgents, OperatorReasoningError
 from objective_recovery_agent.operator_context import safe_text
 from objective_recovery_agent.operator_schemas import (
     IntentInput,
+    OperatorActionView,
     OperatorAgentTrace,
     OperatorFact,
+    OperatorInspection,
     OperatorIntent,
     OperatorQuery,
     OperatorResponse,
     OperatorSnapshot,
+    OperatorTarget,
     SimulationInput,
     SimulationResult,
 )
@@ -32,7 +42,11 @@ class ReasoningAgents(Protocol):
     ) -> tuple[SimulationResult, OperatorAgentTrace]: ...
 
 
-def validate_intent(intent: OperatorIntent, snapshot: OperatorSnapshot) -> str | None:
+def validate_intent(
+    intent: OperatorIntent,
+    snapshot: OperatorSnapshot,
+    registry: CapabilityRegistry | None = None,
+) -> str | None:
     if intent.incident_id != snapshot.incident_id:
         raise OperatorReasoningError("Intent changed the incident scope")
     if (
@@ -42,6 +56,27 @@ def validate_intent(intent: OperatorIntent, snapshot: OperatorSnapshot) -> str |
         raise OperatorReasoningError("Unknown recovery attempt")
     if not set(intent.fact_ids) <= {fact.fact_id for fact in snapshot.facts}:
         raise OperatorReasoningError("Unknown fact reference")
+    if intent.disposition == "SUPPORTED" and intent.target is not None:
+        capability = next(
+            (
+                item
+                for item in (registry.capabilities() if registry else ())
+                if item.authority == intent.target.authority
+                and item.resource_type == intent.target.resource_type
+            ),
+            None,
+        )
+        if capability is None:
+            raise OperatorReasoningError("Unknown external authority")
+        if (
+            capability.resource_identifiers
+            and intent.target.resource_identifier not in capability.resource_identifiers
+        ):
+            raise OperatorReasoningError("Unknown external target")
+        if intent.intent_type == "ACT" and not {
+            item.operation for item in intent.requested_operations
+        } <= set(capability.operations):
+            raise OperatorReasoningError("Unknown action capability")
     deadline = None
     kinds = [item.kind for item in intent.hypothetical_changes]
     if len(kinds) != len(set(kinds)):
@@ -80,23 +115,78 @@ class OperatorService:
         snapshot_reader: Callable[[str], Awaitable[OperatorSnapshot]],
         calendar_reader: Callable[[str], Awaitable[ExternalRealityView]],
         agents: ReasoningAgents | None = None,
+        action_coordinator: OperatorActionCoordinator | None = None,
     ) -> None:
         self._snapshot_reader = snapshot_reader
         self._calendar_reader = calendar_reader
         self._agents = agents or AdkOperatorAgents()
+        self._actions = action_coordinator
+        self._registry = action_coordinator.registry if action_coordinator else CapabilityRegistry()
 
-    async def query(self, query: OperatorQuery, request_id: str) -> OperatorResponse:
+    async def approve_action(
+        self, action_id: str, subject_hash: str, role: str
+    ) -> OperatorActionView:
+        if self._actions is None:
+            raise OperatorAdapterError("action_control_plane_unavailable")
+        return await asyncio.to_thread(self._actions.approve, action_id, subject_hash, role)
+
+    async def query(
+        self,
+        query: OperatorQuery,
+        request_id: str,
+        subject_hash: str = "0" * 64,
+        role: str = "VIEWER",
+    ) -> OperatorResponse:
         async with asyncio.timeout(70):
             snapshot = await self._snapshot_reader(query.incident_id)
+            fingerprint = hashlib.sha256(
+                json.dumps(
+                    {"incident": query.incident_id, "message": query.message}, sort_keys=True
+                ).encode()
+            ).hexdigest()
+            replay = None
+            if query.idempotency_key and self._actions:
+                replay = await asyncio.to_thread(
+                    self._actions.replay, subject_hash, query.idempotency_key, fingerprint
+                )
             bounded_query = OperatorQuery(
-                incident_id=query.incident_id, message=safe_text(query.message, 1200)
+                incident_id=query.incident_id,
+                message=safe_text(query.message, 1200),
+                idempotency_key=query.idempotency_key,
             )
-            intent, trace = await self._agents.interpret(
-                IntentInput(request=bounded_query, snapshot=snapshot), request_id
-            )
+            if replay:
+                intent = OperatorIntent(
+                    disposition="SUPPORTED",
+                    intent_type="ACT",
+                    subject={"JIRA": "JIRA", "GOOGLE_CALENDAR": "CALENDAR", "REFLOW": "OBJECTIVE"}[
+                        replay.authority
+                    ],
+                    incident_id=query.incident_id,
+                    question="Previously recorded Operator request",
+                    hypothetical_changes=(),
+                    constraints=(),
+                    fact_ids=(),
+                    target=OperatorTarget(
+                        authority=replay.authority,
+                        resource_type=replay.resource_type,
+                        resource_identifier=replay.resource_identifier,
+                    ),
+                    requested_operations=replay.operations,
+                )
+                traces = []  # A durable replay is not another model invocation.
+            else:
+                intent, trace = await self._agents.interpret(
+                    IntentInput(
+                        request=bounded_query,
+                        snapshot=snapshot,
+                        capabilities=self._registry.capabilities(),
+                    ),
+                    request_id,
+                )
+                traces = [trace]
             # Validate even injected implementations; no unvalidated model output is used.
             intent = OperatorIntent.model_validate(intent)
-            deadline = validate_intent(intent, snapshot)
+            deadline = None if replay else validate_intent(intent, snapshot, self._registry)
             facts = tuple(
                 fact
                 for key in dict.fromkeys(intent.fact_ids)
@@ -104,19 +194,68 @@ class OperatorService:
                 if fact.fact_id == key
             )
             evidence_ids = {ref for fact in facts for ref in fact.evidence_ids}
-            traces = [trace]
             simulation = None
-            provenance: Literal["AUTHORITATIVE_SNAPSHOT", "HYPOTHETICAL_NO_ACTION"] = (
-                "AUTHORITATIVE_SNAPSHOT"
-            )
+            inspection: OperatorInspection | None = None
+            action = None
+            external_effects = False
+            response_disposition = intent.disposition
+            provenance: Literal[
+                "AUTHORITATIVE_SNAPSHOT", "HYPOTHETICAL_NO_ACTION", "OPERATOR_ACTION"
+            ] = "AUTHORITATIVE_SNAPSHOT"
             if intent.disposition != "SUPPORTED":
                 facts = ()
                 evidence_ids = set()
                 answer = (
-                    "Production mutations are not supported. "
+                    "This request is not a supported Operator capability. "
                     if intent.disposition == "UNSUPPORTED"
                     else "Please clarify the request. "
                 ) + str(intent.clarification)
+            elif intent.intent_type == "ACT":
+                if intent.target is None or self._actions is None:
+                    raise OperatorReasoningError("Action control plane unavailable")
+                if not query.idempotency_key:
+                    raise OperatorAdapterError("action_idempotency_key_required")
+                action = replay or await asyncio.to_thread(
+                    self._actions.request,
+                    request_id=request_id,
+                    idempotency_key=query.idempotency_key,
+                    subject_hash=subject_hash,
+                    role=role,
+                    target=intent.target,
+                    operations=intent.requested_operations,
+                    request_fingerprint=fingerprint,
+                )
+                provenance = "OPERATOR_ACTION"
+                external_effects = bool(action.execution_acknowledgement)
+                if action.error_category in {
+                    "jira_assignee_ambiguous",
+                    "jira_assignee_not_found",
+                    "jira_transition_ambiguous",
+                    "jira_transition_unavailable",
+                }:
+                    response_disposition = "CLARIFICATION_REQUIRED"
+                answer = {
+                    "VERIFIED": "The authorized action was independently read back and VERIFIED.",
+                    "VERIFICATION_FAILED": (
+                        "The external write was acknowledged, but read-back did not match. "
+                        "The action is not verified."
+                    ),
+                    "APPROVAL_REQUIRED": (
+                        "This action requires explicit confirmation before execution."
+                    ),
+                    "DENIED": (
+                        "Deterministic policy denied this action. No external action occurred."
+                    ),
+                    "FAILED": (
+                        "The action is not verified. Some operations may have taken effect; "
+                        "review the receipt. Retrying this request will not repeat writes."
+                    ),
+                }.get(action.lifecycle, f"Operator action state: {action.lifecycle}.")
+                if response_disposition == "CLARIFICATION_REQUIRED":
+                    answer = (
+                        "Please clarify the Jira assignee or choose an actually available "
+                        "workflow transition. No action occurred."
+                    )
             elif intent.intent_type == "SIMULATE":
                 # Agent 7 has values only: no reader, gateway, service, ledger or callback.
                 simulation, simulation_trace = await self._agents.simulate(
@@ -138,7 +277,32 @@ class OperatorService:
                     + simulation.scenario_summary
                 )
             else:
-                if intent.subject == "CALENDAR":
+                if intent.subject == "JIRA":
+                    if intent.target is None:
+                        raise OperatorReasoningError("Jira inspection target missing")
+                    try:
+                        inspection = await asyncio.to_thread(self._registry.inspect, intent.target)
+                    except OperatorAdapterError as error:
+                        raise OperatorReasoningError("External inspection unavailable") from error
+                    state = inspection.observed_state
+                    facts = (
+                        OperatorFact(
+                            fact_id=f"jira:{intent.target.resource_identifier}",
+                            text=safe_text(
+                                (
+                                    f"Jira {intent.target.resource_identifier}: summary "
+                                    f"{state.get('summary')}; status {state.get('status')}; "
+                                    f"priority {state.get('priority')}; assignee "
+                                    f"{state.get('assignee_display_name')}; due date "
+                                    f"{state.get('due_date')}."
+                                ),
+                                800,
+                            ),
+                            evidence_ids=(),
+                        ),
+                    )
+                    answer = facts[0].text
+                elif intent.subject == "CALENDAR":
                     calendar = await self._calendar_reader(query.incident_id)
                     if calendar.revision != snapshot.revision:
                         raise OperatorReasoningError("Calendar context revision changed")
@@ -165,15 +329,17 @@ class OperatorService:
                             ),
                         )
                         evidence_ids.add(resource.evidence_id)
-                # The model selects relevant authoritative facts; prose cannot manufacture truth.
-                answer = "\n\n".join(fact.text for fact in facts)
+                    # Selected facts remain the only source of answer prose.
+                    answer = "\n\n".join(fact.text for fact in facts)
+                else:
+                    answer = "\n\n".join(fact.text for fact in facts)
             return OperatorResponse(
                 request_id=request_id,
                 incident_id=snapshot.incident_id,
                 revision=snapshot.revision,
                 snapshot_fingerprint=snapshot.fingerprint,
                 generated_at=datetime.now(UTC).isoformat(),
-                disposition=intent.disposition,
+                disposition=response_disposition,
                 intent=intent,
                 answer=answer,
                 facts=facts,
@@ -181,7 +347,10 @@ class OperatorService:
                     item for item in snapshot.evidence if item.evidence_id in evidence_ids
                 ),
                 simulation=simulation,
+                inspection=inspection,
+                action=action,
                 hypothetical_deadline=deadline,
                 provenance=provenance,
+                external_effects_executed=external_effects,
                 agents=tuple(traces),
             )

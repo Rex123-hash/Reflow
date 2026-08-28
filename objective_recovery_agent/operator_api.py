@@ -13,11 +13,24 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from objective_recovery_agent.calendar_gateway import GoogleCalendarGateway
+from objective_recovery_agent.calendar_operator_adapter import (
+    CalendarOperatorAdapter,
+    OperatorCalendarGateway,
+)
 from objective_recovery_agent.external_reality import ExternalRealityService
+from objective_recovery_agent.jira_operator_adapter import JiraOperatorAdapter
+from objective_recovery_agent.operator_actions import (
+    CapabilityRegistry,
+    FirestoreOperatorActionStore,
+    OperatorActionAdapter,
+    OperatorActionCoordinator,
+    OperatorAdapterError,
+)
 from objective_recovery_agent.operator_agents import OperatorReasoningError
 from objective_recovery_agent.operator_context import build_snapshot
 from objective_recovery_agent.operator_quota import FirestoreOperatorQuota, OperatorRateLimited
 from objective_recovery_agent.operator_schemas import (
+    OperatorActionView,
     OperatorQuery,
     OperatorResponse,
     OperatorSnapshot,
@@ -28,6 +41,15 @@ from objective_recovery_agent.ui_store import FirestorePresentationStore
 
 router = APIRouter()
 _slots = asyncio.Semaphore(2)
+
+
+def authorized_role(subject: str, requested_role: str) -> str:
+    allowed = {
+        value.strip()
+        for value in os.environ.get("OPERATOR_ALLOWED_SUBJECT_HASHES", "").split(",")
+        if value.strip()
+    }
+    return "OPERATOR" if requested_role == "OPERATOR" and subject in allowed else "VIEWER"
 
 
 @lru_cache(maxsize=1)
@@ -55,7 +77,39 @@ def get_operator_service() -> OperatorService:
         if account
         else None,
     )
-    return OperatorService(read_snapshot, calendar.read)
+    adapters: list[OperatorActionAdapter] = []
+    calendar_id = os.environ.get("GOOGLE_CALENDAR_ID", "").strip()
+    demo_event_id = os.environ.get("OPERATOR_DEMO_CALENDAR_EVENT_ID", "").strip()
+    if account and calendar_id and demo_event_id:
+        adapters.append(
+            CalendarOperatorAdapter(
+                calendar_id=calendar_id,
+                demo_event_id=demo_event_id,
+                gateway=OperatorCalendarGateway(service_account_email=account, request_timeout=15),
+            )
+        )
+    jira_base_url = os.environ.get("JIRA_BASE_URL", "").strip()
+    jira_email = os.environ.get("JIRA_EMAIL", "").strip()
+    jira_api_token = os.environ.get("JIRA_API_TOKEN", "").strip()
+    jira_demo_issue_key = os.environ.get("JIRA_DEMO_ISSUE_KEY", "").strip()
+    jira_values = (jira_base_url, jira_email, jira_api_token, jira_demo_issue_key)
+    if all(jira_values):
+        adapters.append(
+            JiraOperatorAdapter(
+                base_url=jira_base_url,
+                email=jira_email,
+                api_token=jira_api_token,
+                demo_issue_key=jira_demo_issue_key,
+                allowed_account_ids=frozenset(
+                    item.strip()
+                    for item in os.environ.get("JIRA_ALLOWED_ACCOUNT_IDS", "").split(",")
+                    if item.strip()
+                ),
+            )
+        )
+    registry = CapabilityRegistry(tuple(adapters))
+    coordinator = OperatorActionCoordinator(registry, FirestoreOperatorActionStore(project))
+    return OperatorService(read_snapshot, calendar.read, action_coordinator=coordinator)
 
 
 @lru_cache(maxsize=1)
@@ -94,17 +148,21 @@ async def operator_query(
 ) -> JSONResponse:
     subject = request.headers.get("X-Reflow-Operator-Subject", "")
     correlation = request.headers.get("X-Reflow-Request-Id", "")
+    role = request.headers.get("X-Reflow-Operator-Role", "VIEWER")
     if not re.fullmatch(r"[a-f0-9]{64}", subject) or not re.fullmatch(
         r"[a-f0-9-]{36}", correlation
     ):
         raise HTTPException(403, "Authenticated Operator context required.")
+    if role not in {"VIEWER", "OPERATOR"}:
+        raise HTTPException(403, "Authenticated Operator role required.")
+    role = authorized_role(subject, role)
     payload = await bounded_query(request)
     try:
         await asyncio.wait_for(asyncio.to_thread(quota.consume, subject), timeout=8)
         if _slots.locked():
             raise OperatorRateLimited("Operator is busy")
         async with _slots:
-            result = await service.query(payload, correlation)
+            result = await service.query(payload, correlation, subject, role)
         return JSONResponse(result.model_dump(mode="json"), headers={"Cache-Control": "no-store"})
     except OperatorRateLimited as error:
         raise HTTPException(
@@ -115,6 +173,68 @@ async def operator_query(
     except KeyError as error:
         raise HTTPException(404, "Incident context unavailable.") from error
     except (OperatorReasoningError, TimeoutError, ValueError) as error:
-        raise HTTPException(503, "Operator reasoning unavailable; no action occurred.") from error
+        raise HTTPException(
+            503,
+            "Result unavailable. Retry with the same idempotency key; "
+            "action outcome may be pending.",
+        ) from error
     except Exception as error:
-        raise HTTPException(503, "Operator temporarily unavailable; no action occurred.") from error
+        raise HTTPException(
+            503,
+            "Result unavailable. Retry with the same idempotency key; "
+            "action outcome may be pending.",
+        ) from error
+
+
+@router.post(
+    "/api/v1/operator/actions/{action_id}/approve",
+    response_model=OperatorActionView,
+)
+async def approve_operator_action(
+    action_id: str,
+    request: Request,
+    service: Annotated[OperatorService, Depends(get_operator_service)],
+    quota: Annotated[FirestoreOperatorQuota, Depends(get_operator_quota)],
+) -> JSONResponse:
+    subject = request.headers.get("X-Reflow-Operator-Subject", "")
+    correlation = request.headers.get("X-Reflow-Request-Id", "")
+    role = request.headers.get("X-Reflow-Operator-Role", "VIEWER")
+    if (
+        not re.fullmatch(r"[a-f0-9]{64}", subject)
+        or not re.fullmatch(r"[a-f0-9-]{36}", correlation)
+        or not re.fullmatch(r"[a-f0-9]{64}", action_id)
+        or role not in {"VIEWER", "OPERATOR"}
+    ):
+        raise HTTPException(403, "Authenticated Operator approval context required.")
+    if authorized_role(subject, role) != "OPERATOR":
+        raise HTTPException(403, "Operator approval permission required.")
+    if request.headers.get("content-type", "").split(";")[0] != "application/json":
+        raise HTTPException(415, "JSON required.")
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > 256:
+            raise HTTPException(413, "Operator approval too large.")
+    if bytes(body).strip() not in {b"", b"{}"}:
+        raise HTTPException(400, "Approval body must be empty.")
+    try:
+        await asyncio.wait_for(asyncio.to_thread(quota.consume, subject), timeout=8)
+        if _slots.locked():
+            raise OperatorRateLimited("Operator is busy")
+        async with _slots:
+            result = await asyncio.wait_for(
+                service.approve_action(action_id, subject, role), timeout=70
+            )
+        action = OperatorActionView.model_validate(result)
+        return JSONResponse(action.model_dump(mode="json"), headers={"Cache-Control": "no-store"})
+    except OperatorRateLimited as error:
+        raise HTTPException(
+            429, "Operator budget reached or busy.", headers={"Retry-After": "60"}
+        ) from error
+    except OperatorAdapterError as error:
+        status = 404 if error.category == "missing_action" else 403
+        raise HTTPException(status, "Operator approval unavailable.") from error
+    except Exception as error:
+        raise HTTPException(
+            503, "Approval result unavailable; retry this approval to retrieve its durable state."
+        ) from error

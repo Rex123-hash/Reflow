@@ -1,4 +1,4 @@
-"""P2F's bounded, read-only Operator contracts; no execution/action request type."""
+"""Bounded Operator reasoning, action, and verification contracts."""
 
 from __future__ import annotations
 
@@ -8,16 +8,72 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 ShortText = Annotated[str, Field(min_length=1, max_length=800)]
 Reference = Annotated[str, Field(min_length=1, max_length=200)]
-IntentType = Literal["INSPECT", "EXPLAIN", "SIMULATE"]
+IntentType = Literal["INSPECT", "EXPLAIN", "SIMULATE", "ACT"]
+Authority = Literal["JIRA", "GOOGLE_CALENDAR", "REFLOW"]
+ResourceType = Literal["ISSUE", "EVENT", "OBJECTIVE"]
+OperationType = Literal[
+    "JIRA_TRANSITION",
+    "JIRA_SET_PRIORITY",
+    "JIRA_ASSIGN",
+    "JIRA_SET_DUE_DATE",
+    "JIRA_ADD_COMMENT",
+    "CALENDAR_RESCHEDULE",
+    "CALENDAR_UPDATE_TITLE",
+    "CALENDAR_UPDATE_DESCRIPTION",
+    "MOVE_PROTECTED_DEADLINE",
+]
 
 
 class OperatorModel(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, revalidate_instances="always")
 
 
 class OperatorQuery(OperatorModel):
     incident_id: str = Field(pattern=r"^incident-[a-zA-Z0-9-]{1,80}$")
     message: str = Field(min_length=3, max_length=1200)
+    idempotency_key: str | None = Field(
+        default=None, pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._:-]{7,127}$"
+    )
+
+
+class OperatorTarget(OperatorModel):
+    authority: Authority
+    resource_type: ResourceType
+    resource_identifier: str = Field(min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def matching_resource(self) -> OperatorTarget:
+        expected = {"JIRA": "ISSUE", "GOOGLE_CALENDAR": "EVENT", "REFLOW": "OBJECTIVE"}
+        if expected[self.authority] != self.resource_type:
+            raise ValueError("Authority and resource type do not match")
+        return self
+
+
+class RequestedOperation(OperatorModel):
+    operation: OperationType
+    value: str | None = Field(default=None, min_length=1, max_length=800)
+    comment: str | None = Field(default=None, min_length=1, max_length=1000)
+
+    @model_validator(mode="after")
+    def operation_payload(self) -> RequestedOperation:
+        text = self.comment if self.comment is not None else self.value
+        if text is not None and (
+            not text.strip() or any(ord(c) < 32 and c not in "\n\t" for c in text)
+        ):
+            raise ValueError("Action text must be nonempty and contain no control characters")
+        if self.operation == "JIRA_ADD_COMMENT":
+            if self.comment is None or self.value is not None:
+                raise ValueError("A Jira comment requires only comment text")
+        elif self.comment is not None or self.value is None:
+            raise ValueError("This operation requires only a typed value")
+        return self
+
+
+class OperatorCapability(OperatorModel):
+    authority: Authority
+    resource_type: ResourceType
+    operations: tuple[OperationType, ...] = Field(min_length=1, max_length=10)
+    resource_identifiers: tuple[str, ...] = Field(default=(), max_length=5)
 
 
 class OperatorFact(OperatorModel):
@@ -52,13 +108,15 @@ class HypotheticalChange(OperatorModel):
 class OperatorIntent(OperatorModel):
     disposition: Literal["SUPPORTED", "CLARIFICATION_REQUIRED", "UNSUPPORTED"]
     intent_type: IntentType | None = None
-    subject: Literal["OBJECTIVE", "RECOVERY", "CALENDAR", "EVIDENCE", "CHRONOLOGY"]
+    subject: Literal["OBJECTIVE", "RECOVERY", "CALENDAR", "JIRA", "EVIDENCE", "CHRONOLOGY"]
     incident_id: str
     recovery_attempt: int | None = None
     question: ShortText
     hypothetical_changes: tuple[HypotheticalChange, ...] = Field(max_length=3)
     constraints: tuple[ShortText, ...] = Field(max_length=5)
     fact_ids: tuple[Reference, ...] = Field(max_length=8)
+    target: OperatorTarget | None = None
+    requested_operations: tuple[RequestedOperation, ...] = Field(default=(), max_length=5)
     clarification: ShortText | None = None
 
     @model_validator(mode="after")
@@ -70,9 +128,22 @@ class OperatorIntent(OperatorModel):
                 raise ValueError("Simulation needs an explicit hypothetical")
             if self.intent_type != "SIMULATE" and self.hypothetical_changes:
                 raise ValueError("Hypotheticals cannot become observed facts")
-            if not self.fact_ids:
+            if self.intent_type == "ACT":
+                if self.target is None or not self.requested_operations or self.fact_ids:
+                    raise ValueError("ACT requires one target and typed operations, not facts")
+            elif self.requested_operations:
+                raise ValueError("Only ACT may request mutations")
+            elif self.subject == "JIRA" and self.intent_type == "INSPECT":
+                if self.target is None or self.fact_ids:
+                    raise ValueError("Jira inspection requires an external target")
+            elif not self.fact_ids:
                 raise ValueError("Supported intent must select authoritative facts")
-        elif self.intent_type is not None or not self.clarification or self.hypothetical_changes:
+        elif (
+            self.intent_type is not None
+            or not self.clarification
+            or self.hypothetical_changes
+            or self.requested_operations
+        ):
             raise ValueError("Unsupported/ambiguous requests cannot authorize a reasoning path")
         return self
 
@@ -80,6 +151,62 @@ class OperatorIntent(OperatorModel):
 class IntentInput(OperatorModel):
     request: OperatorQuery
     snapshot: OperatorSnapshot
+    capabilities: tuple[OperatorCapability, ...] = Field(default=(), max_length=8)
+
+
+class OperatorInspection(OperatorModel):
+    authority: Authority
+    resource_type: ResourceType
+    resource_identifier: str
+    observed_state: dict[str, str | None]
+    observed_at: str
+
+
+class OperatorActionView(OperatorModel):
+    operator_action_id: str
+    request_id: str
+    authenticated_subject_hash: str
+    authority: Authority
+    resource_type: ResourceType
+    resource_identifier: str
+    operations: tuple[RequestedOperation, ...]
+    expected_state: dict[str, str | None] = Field(default_factory=dict)
+    authorization_result: Literal["AUTO_EXECUTABLE", "APPROVAL_REQUIRED", "DENIED"]
+    lifecycle: Literal[
+        "REQUESTED",
+        "AUTHORIZED",
+        "APPROVAL_REQUIRED",
+        "APPROVED",
+        "EXECUTING",
+        "EXECUTED",
+        "READ_BACK",
+        "VERIFIED",
+        "VERIFICATION_FAILED",
+        "DENIED",
+        "FAILED",
+    ]
+    execution_acknowledgement: dict[str, str] = Field(default_factory=dict)
+    observed_state: dict[str, str | None] = Field(default_factory=dict)
+    verification_result: Literal["NOT_RUN", "PASSED", "FAILED"] = "NOT_RUN"
+    adapter_proof: dict[str, str] = Field(default_factory=dict)
+    created_at: str
+    updated_at: str
+    error_category: str | None = None
+    request_fingerprint: str | None = None
+    external_effects_possible: bool = False
+
+    @model_validator(mode="after")
+    def verified_requires_evidence(self) -> OperatorActionView:
+        if (self.lifecycle == "VERIFIED") != (self.verification_result == "PASSED"):
+            raise ValueError("Only VERIFIED actions may report a passed verification")
+        if self.lifecycle == "VERIFIED" and (
+            not self.expected_state
+            or not self.observed_state
+            or not self.execution_acknowledgement
+            or self.authorization_result == "DENIED"
+        ):
+            raise ValueError("Verification requires authorization, acknowledgement and read-back")
+        return self
 
 
 class SimulationInput(OperatorModel):
@@ -141,7 +268,9 @@ class OperatorResponse(OperatorModel):
     facts: tuple[OperatorFact, ...] = Field(max_length=12)
     evidence: tuple[OperatorEvidence, ...] = Field(max_length=40)
     simulation: SimulationResult | None = None
+    inspection: OperatorInspection | None = None
+    action: OperatorActionView | None = None
     hypothetical_deadline: str | None = None
-    provenance: Literal["AUTHORITATIVE_SNAPSHOT", "HYPOTHETICAL_NO_ACTION"]
-    external_effects_executed: Literal[False] = False
-    agents: tuple[OperatorAgentTrace, ...] = Field(min_length=1, max_length=2)
+    provenance: Literal["AUTHORITATIVE_SNAPSHOT", "HYPOTHETICAL_NO_ACTION", "OPERATOR_ACTION"]
+    external_effects_executed: bool = False
+    agents: tuple[OperatorAgentTrace, ...] = Field(max_length=2)

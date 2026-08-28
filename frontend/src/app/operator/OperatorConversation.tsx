@@ -6,13 +6,14 @@ import {
   formatObservedAt,
   truncateId,
 } from "../semantics/format";
-import { queryOperator } from "./client";
-import type { OperatorResponse } from "./operatorContract";
+import { approveOperator, operatorRequestKey, queryOperator } from "./client";
+import type { OperatorActionView, OperatorResponse } from "./operatorContract";
 
 const EXAMPLES = [
   "Why did Recovery 1 fail?",
   "What did Reflow change in Google Calendar?",
   "What if Candidate A had passed CI?",
+  "Move the Operator demo coordination event by one hour.",
 ];
 
 /**
@@ -28,7 +29,15 @@ const INTENT_LABELS: Record<string, string> = {
   INSPECT: "Inspect",
   EXPLAIN: "Explain",
   SIMULATE: "Simulation",
+  ACT: "Act",
 };
+
+function operationValue(action: OperatorActionView) {
+  return action.operations.map((item) => ({
+    label: item.operation.replaceAll("_", " ").toLowerCase(),
+    value: item.comment ?? item.value ?? "",
+  }));
+}
 
 /**
  * Renders a backend timestamp in the readable form the rest of the product uses,
@@ -58,6 +67,7 @@ export function OperatorConversation({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pending = useRef<AbortController | null>(null);
+  const idempotency = useRef<{ message: string; key: string } | null>(null);
   useEffect(() => () => pending.current?.abort(), []);
 
   const submit = async (event: FormEvent) => {
@@ -67,10 +77,21 @@ export function OperatorConversation({
     setBusy(true);
     setError(null);
     setResponse(null);
-    setSubmitted(message.trim());
+    const requested = message.trim();
+    setSubmitted(requested);
     try {
+      if (idempotency.current?.message !== requested)
+        idempotency.current = {
+          message: requested,
+          key: await operatorRequestKey(incidentId, requested),
+        };
       setResponse(
-        await queryOperator(incidentId, message.trim(), pending.current.signal),
+        await queryOperator(
+          incidentId,
+          requested,
+          idempotency.current.key,
+          pending.current.signal,
+        ),
       );
     } catch (cause) {
       if (!pending.current.signal.aborted)
@@ -82,7 +103,38 @@ export function OperatorConversation({
     }
   };
 
+  const approve = async () => {
+    if (!response?.action || busy) return;
+    pending.current = new AbortController();
+    setBusy(true);
+    setError(null);
+    try {
+      const action = await approveOperator(
+        response.action.operator_action_id,
+        pending.current.signal,
+      );
+      setResponse({
+        ...response,
+        action,
+        answer:
+          action.lifecycle === "VERIFIED"
+            ? "The approved action was independently read back and VERIFIED."
+            : `Action state: ${action.lifecycle}. Not verified.`,
+        external_effects_executed:
+          Object.keys(action.execution_acknowledgement ?? {}).length > 0,
+      });
+    } catch (cause) {
+      if (!pending.current.signal.aborted)
+        setError(
+          cause instanceof Error ? cause.message : "Approval unavailable.",
+        );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const simulated = response?.provenance === "HYPOTHETICAL_NO_ACTION";
+  const acted = response?.provenance === "OPERATOR_ACTION";
   const intentLabel = response?.intent.intent_type
     ? INTENT_LABELS[response.intent.intent_type]
     : null;
@@ -140,8 +192,7 @@ export function OperatorConversation({
         {busy && (
           <p className="operator-note is-busy" role="status">
             <span className="operator-pulse" aria-hidden="true" />
-            Reading incident context and reasoning with Gemini. No production
-            actions are permitted.
+            Interpreting the request and applying deterministic controls.
           </p>
         )}
 
@@ -153,7 +204,7 @@ export function OperatorConversation({
 
         {response && (
           <section
-            className={`operator-result${simulated ? " is-simulation" : ""}`}
+            className={`operator-result${simulated ? " is-simulation" : ""}${acted ? " is-action" : ""}`}
           >
             <div className="operator-result-bar">
               {intentLabel && (
@@ -166,7 +217,9 @@ export function OperatorConversation({
               <span className="operator-provenance-state">
                 {simulated
                   ? "Hypothetical · no external action"
-                  : "Read only · no production action"}
+                  : acted
+                    ? `Controlled action · ${response.action?.lifecycle.toLowerCase().replaceAll("_", " ")}`
+                    : "Authoritative inspection"}
               </span>
             </div>
 
@@ -181,6 +234,88 @@ export function OperatorConversation({
                     <p key={index}>{text}</p>
                   ))}
                 </div>
+
+                {response.action && (
+                  <div className="operator-action-proof">
+                    {response.action.adapter_proof?.assignee_account_id && (
+                      <p>
+                        Resolved assignee:{" "}
+                        {response.action.adapter_proof.assignee_display_name} ·{" "}
+                        <code>
+                          {response.action.adapter_proof.assignee_account_id}
+                        </code>
+                      </p>
+                    )}
+                    {response.action.external_effects_possible &&
+                      response.action.lifecycle !== "VERIFIED" && (
+                        <p>
+                          External changes may have occurred. Review this
+                          receipt; retrying the same request will not repeat
+                          writes.
+                        </p>
+                      )}
+                    <div>
+                      <p className="field-label">Action</p>
+                      <h3>
+                        {response.action.authority.replaceAll("_", " ")} ·{" "}
+                        <span className="mono">
+                          {response.action.resource_identifier}
+                        </span>
+                      </h3>
+                      {operationValue(response.action).map((item) => (
+                        <p key={`${item.label}:${item.value}`}>
+                          <b>{item.label}</b> → {item.value}
+                        </p>
+                      ))}
+                    </div>
+                    <dl>
+                      <div>
+                        <dt>Authorization</dt>
+                        <dd>
+                          {response.action.authorization_result
+                            .replaceAll("_", " ")
+                            .toLowerCase()}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Execution</dt>
+                        <dd>
+                          {Object.keys(
+                            response.action.execution_acknowledgement ?? {},
+                          ).length
+                            ? "Acknowledged"
+                            : "Not executed"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Read-back</dt>
+                        <dd>
+                          {Object.entries(response.action.observed_state ?? {})
+                            .filter(([key]) => key !== "etag")
+                            .map(([key, value]) => `${key}: ${value ?? "none"}`)
+                            .join(" · ") || "Not run"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Result</dt>
+                        <dd>
+                          {response.action.lifecycle.replaceAll("_", " ")}
+                        </dd>
+                      </div>
+                    </dl>
+                    {response.action.lifecycle === "APPROVAL_REQUIRED" && (
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={busy}
+                        onClick={approve}
+                      >
+                        Confirm and execute
+                        <Icon name="arrow-right" size={14} />
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {response.simulation && (
                   <div className="operator-simulation">
@@ -300,7 +435,9 @@ export function OperatorConversation({
                     </div>
                   </dl>
                   <p className="operator-no-action">
-                    No production action occurred.
+                    {response.action
+                      ? `Action ${truncateId(response.action.operator_action_id, 8, 6)} · ${response.action.verification_result}`
+                      : "No production action occurred."}
                   </p>
                 </section>
               </aside>

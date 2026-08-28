@@ -16,6 +16,8 @@ function typeOf(s) {
   if (s.enum) return s.enum.map(JSON.stringify).join(" | ");
   if (s.anyOf) return s.anyOf.map(typeOf).join(" | ");
   if (s.type === "array") return `(${typeOf(s.items)})[]`;
+  if (s.type === "object" && s.additionalProperties)
+    return `Record<string, ${typeOf(s.additionalProperties)}>`;
   if (s.type === "object")
     return `{${Object.entries(s.properties ?? {})
       .map(
@@ -46,8 +48,13 @@ ajv.addSchema({
   $id: "operator-response",
   $ref: "operator-contract#/components/schemas/OperatorResponse",
 });
+ajv.addSchema({
+  $id: "operator-action",
+  $ref: "operator-contract#/components/schemas/OperatorActionView",
+});
 const validator = standaloneCode(ajv, {
   validateOperatorResponse: "operator-response",
+  validateOperatorAction: "operator-action",
 }).replace(
   /const (\w+) = require\("ajv\/dist\/runtime\/ucs2length"\)\.default;/g,
   "const $1 = (value) => Array.from(value).length;",

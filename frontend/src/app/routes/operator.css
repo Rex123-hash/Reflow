@@ -615,6 +615,47 @@
   color: var(--secondary);
 }
 
+.operator-action-proof {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: var(--space-4);
+  background: var(--surface-soft);
+}
+
+.operator-action-proof h3,
+.operator-action-proof p {
+  margin: 0;
+}
+
+.operator-action-proof dl {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.operator-action-proof dl > div {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.operator-action-proof dt {
+  color: var(--secondary);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.operator-action-proof dd {
+  margin: 0;
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1080px) {
   .operator-answer-grid {
     grid-template-columns: minmax(0, 1fr);

@@ -207,6 +207,10 @@ resource "google_cloud_run_v2_service" "app" {
         value = var.calendar_id
       }
       env {
+        name  = "OPERATOR_DEMO_CALENDAR_EVENT_ID"
+        value = var.operator_demo_calendar_event_id
+      }
+      env {
         name  = "OBJECTIVE_RECOVERY_SERVICE_ACCOUNT"
         value = google_service_account.app.email
       }

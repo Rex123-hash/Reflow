@@ -105,10 +105,12 @@ describe("real Operator conversation", () => {
     expect(url).toBe("/api/v1/operator/query");
     expect(options.method).toBe("POST");
     expect(options.credentials).toBe("same-origin");
-    expect(JSON.parse(String(options.body))).toEqual({
+    const body = JSON.parse(String(options.body));
+    expect(body).toMatchObject({
       incident_id: "incident-abc",
       message: "Why did Recovery 1 fail?",
     });
+    expect(body.idempotency_key).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it("never invokes the model endpoint for Guest/fixture context", () => {
@@ -125,7 +127,7 @@ describe("real Operator conversation", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  it("contains transport/contract failures and preserves no-action language", async () => {
+  it("contains transport failures without claiming an unknown result", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("{}", { status: 503 })),
@@ -142,7 +144,89 @@ describe("real Operator conversation", () => {
       screen.getByRole("button", { name: /Ask Reflow/ }).closest("form")!,
     );
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("No action occurred"),
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "could not confirm the result",
+      ),
+    );
+  });
+
+  it("renders approval state and replaces it with verified read-back", async () => {
+    const pendingAction = {
+      operator_action_id: "b".repeat(64),
+      request_id: response.request_id,
+      authenticated_subject_hash: "c".repeat(64),
+      authority: "JIRA",
+      resource_type: "ISSUE",
+      resource_identifier: "API-42",
+      operations: [{ operation: "JIRA_ASSIGN", value: "Srishti" }],
+      expected_state: {},
+      authorization_result: "APPROVAL_REQUIRED",
+      lifecycle: "APPROVAL_REQUIRED",
+      execution_acknowledgement: {},
+      observed_state: {},
+      verification_result: "NOT_RUN",
+      adapter_proof: { policy_reason: "cross_person_assignment" },
+      created_at: "2026-08-28T12:00:00Z",
+      updated_at: "2026-08-28T12:00:00Z",
+      error_category: null,
+    };
+    const actionResponse = {
+      ...response,
+      answer: "This action requires explicit confirmation before execution.",
+      evidence: [],
+      facts: [],
+      intent: {
+        ...response.intent,
+        intent_type: "ACT",
+        subject: "JIRA",
+        fact_ids: [],
+        target: {
+          authority: "JIRA",
+          resource_type: "ISSUE",
+          resource_identifier: "API-42",
+        },
+        requested_operations: pendingAction.operations,
+      },
+      provenance: "OPERATOR_ACTION",
+      action: pendingAction,
+    };
+    const verified = {
+      ...pendingAction,
+      lifecycle: "VERIFIED",
+      expected_state: { assignee_display_name: "Srishti" },
+      execution_acknowledgement: { assignee: "accepted" },
+      observed_state: { assignee_display_name: "Srishti" },
+      verification_result: "PASSED",
+      adapter_proof: { comparison: "PASSED", difference_count: "0" },
+      updated_at: "2026-08-28T12:01:00Z",
+    };
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(actionResponse), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(verified), { status: 200 }),
+      );
+    vi.stubGlobal("fetch", fetcher);
+    render(
+      <MemoryRouter>
+        <OperatorConversation incidentId="incident-abc" live />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByLabelText("Ask Reflow"), {
+      target: { value: "Assign API-42 to Srishti" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Ask Reflow/ }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Confirm and execute/ }),
+    );
+    expect(await screen.findByText("VERIFIED")).toBeInTheDocument();
+    expect(
+      screen.getByText(/assignee_display_name: Srishti/),
+    ).toBeInTheDocument();
+    expect(fetcher.mock.calls[1][0]).toBe(
+      `/api/v1/operator/actions/${pendingAction.operator_action_id}/approve`,
     );
   });
 });

@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from objective_recovery_agent import operator_api
 from objective_recovery_agent.fast_api_app import app
 from objective_recovery_agent.operator_quota import OperatorRateLimited
+from objective_recovery_agent.operator_schemas import OperatorActionView, RequestedOperation
 
 from objective_recovery.web_bff.backend import BackendResponse, GoogleIdentityBackendGateway
 from test_operator_runtime import INCIDENT, REQUEST, FakeAgents, intent, service
@@ -132,8 +133,8 @@ def test_bff_private_backend_chain_with_exact_response_and_correlation(
     client, _, backend = make_client()
     captured: list[Any] = []
 
-    def post(payload: bytes, subject: str, request_id: str) -> BackendResponse:
-        captured.append((payload, subject, request_id))
+    def post(payload: bytes, subject: str, request_id: str, role: str) -> BackendResponse:
+        captured.append((payload, subject, request_id, role))
         response = private.post(
             "/api/v1/operator/query",
             content=payload,
@@ -141,6 +142,7 @@ def test_bff_private_backend_chain_with_exact_response_and_correlation(
                 "Content-Type": "application/json",
                 "X-Reflow-Operator-Subject": subject,
                 "X-Reflow-Request-Id": request_id,
+                "X-Reflow-Operator-Role": role,
             },
         )
         return BackendResponse(response.status_code, response.content, response.headers)
@@ -155,6 +157,7 @@ def test_bff_private_backend_chain_with_exact_response_and_correlation(
     assert result.status_code == 200
     assert result.headers["cache-control"] == "no-store"
     assert captured[0][1] == hashlib.sha256(b"google-user").hexdigest()
+    assert captured[0][3] == "VIEWER"
     assert result.json()["request_id"] == captured[0][2]
     assert "Authorization" not in result.text and "access_token" not in result.text
 
@@ -237,3 +240,92 @@ def test_fixed_post_gateway_mints_private_audience_identity(monkeypatch: Any) ->
     assert options["allow_redirects"] is False
     assert options["timeout"] == (3.05, 85)
     assert options["headers"]["Authorization"] == "Bearer server-id-token"
+    assert options["headers"]["X-Reflow-Operator-Role"] == "VIEWER"
+
+
+def action_view() -> OperatorActionView:
+    return OperatorActionView(
+        operator_action_id="b" * 64,
+        request_id=REQUEST,
+        authenticated_subject_hash="a" * 64,
+        authority="JIRA",
+        resource_type="ISSUE",
+        resource_identifier="API-42",
+        operations=(RequestedOperation(operation="JIRA_ASSIGN", value="Srishti"),),
+        authorization_result="APPROVAL_REQUIRED",
+        lifecycle="APPROVAL_REQUIRED",
+        created_at="2026-08-28T12:00:00+00:00",
+        updated_at="2026-08-28T12:00:00+00:00",
+    )
+
+
+def test_private_approval_requires_operator_role_and_bounded_body(
+    private_client: Any, monkeypatch: Any
+) -> None:
+    monkeypatch.setenv("OPERATOR_ALLOWED_SUBJECT_HASHES", "a" * 64)
+    client, _ = private_client
+
+    class ApprovalService:
+        async def approve_action(self, action_id: str, subject: str, role: str) -> Any:
+            assert action_id == "b" * 64 and subject == "a" * 64 and role == "OPERATOR"
+            return action_view().model_copy(
+                update={
+                    "lifecycle": "VERIFIED",
+                    "verification_result": "PASSED",
+                    "expected_state": {"assignee_account_id": "1"},
+                    "observed_state": {"assignee_account_id": "1"},
+                    "execution_acknowledgement": {"assignee": "accepted"},
+                }
+            )
+
+    app.dependency_overrides[operator_api.get_operator_service] = lambda: ApprovalService()
+    path = f"/api/v1/operator/actions/{'b' * 64}/approve"
+    assert client.post(path, json={}, headers=headers()).status_code == 403
+    operator_headers = {**headers(), "X-Reflow-Operator-Role": "OPERATOR"}
+    assert client.post(path, content="text", headers=operator_headers).status_code == 415
+    assert client.post(path, json={"unexpected": True}, headers=operator_headers).status_code == 400
+    response = client.post(path, json={}, headers=operator_headers)
+    assert response.status_code == 200 and response.json()["lifecycle"] == "VERIFIED"
+
+
+def test_bff_operator_allowlist_and_approval_path_are_server_derived(
+    monkeypatch: Any,
+) -> None:
+    monkeypatch.setenv(
+        "OPERATOR_ALLOWED_SUBJECT_HASHES", hashlib.sha256(b"google-user").hexdigest()
+    )
+    client, _, backend = make_client()
+    calls: list[Any] = []
+
+    def approve(action_id: str, subject: str, request_id: str, role: str) -> BackendResponse:
+        calls.append((action_id, subject, request_id, role))
+        value = action_view().model_copy(
+            update={
+                "request_id": request_id,
+                "authenticated_subject_hash": subject,
+                "lifecycle": "VERIFIED",
+                "verification_result": "PASSED",
+                "expected_state": {"assignee_account_id": "1"},
+                "observed_state": {"assignee_account_id": "1"},
+                "execution_acknowledgement": {"assignee": "accepted"},
+            }
+        )
+        return BackendResponse(200, value.model_dump_json().encode(), {})
+
+    monkeypatch.setattr(backend, "approve_operator", approve, raising=False)
+    sign_in(client, "google-id-token")
+    path = f"/api/v1/operator/actions/{'b' * 64}/approve"
+    response = client.post(path, json={}, headers={"Origin": ORIGIN})
+    assert response.status_code == 200
+    assert calls[0][0] == "b" * 64 and calls[0][3] == "OPERATOR"
+    assert calls[0][1] == hashlib.sha256(b"google-user").hexdigest()
+    assert client.post(path, json={}).status_code == 403
+
+
+def test_backend_downgrades_forged_operator_header_without_allowlist(monkeypatch: Any) -> None:
+    monkeypatch.delenv("OPERATOR_ALLOWED_SUBJECT_HASHES", raising=False)
+    assert operator_api.authorized_role("a" * 64, "OPERATOR") == "VIEWER"
+    monkeypatch.setenv("OPERATOR_ALLOWED_SUBJECT_HASHES", "b" * 64)
+    assert operator_api.authorized_role("a" * 64, "OPERATOR") == "VIEWER"
+    assert operator_api.authorized_role("b" * 64, "OPERATOR") == "OPERATOR"
+    assert operator_api.authorized_role("b" * 64, "VIEWER") == "VIEWER"

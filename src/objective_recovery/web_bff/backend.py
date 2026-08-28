@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Protocol
@@ -61,7 +62,9 @@ class GoogleIdentityBackendGateway:
             headers=response.headers,
         )
 
-    def query_operator(self, payload: bytes, subject: str, request_id: str) -> BackendResponse:
+    def query_operator(
+        self, payload: bytes, subject: str, request_id: str, role: str = "VIEWER"
+    ) -> BackendResponse:
         """The sole admitted POST; no caller-controlled path, URL, auth, or execution endpoint."""
         audience_token = id_token.fetch_id_token(  # type: ignore[no-untyped-call]
             self._auth_request, self._base_url
@@ -74,8 +77,32 @@ class GoogleIdentityBackendGateway:
                 "Content-Type": "application/json",
                 "X-Reflow-Operator-Subject": subject,
                 "X-Reflow-Request-Id": request_id,
+                "X-Reflow-Operator-Role": role,
             },
             timeout=(3.05, 85),
+            allow_redirects=False,
+        )
+        return BackendResponse(response.status_code, response.content, response.headers)
+
+    def approve_operator(
+        self, action_id: str, subject: str, request_id: str, role: str
+    ) -> BackendResponse:
+        if not re.fullmatch(r"[a-f0-9]{64}", action_id):
+            raise ValueError("Invalid fixed-path action identifier")
+        audience_token = id_token.fetch_id_token(  # type: ignore[no-untyped-call]
+            self._auth_request, self._base_url
+        )
+        response = self._session.post(
+            f"{self._base_url}/api/v1/operator/actions/{action_id}/approve",
+            data=b"{}",
+            headers={
+                "Authorization": f"Bearer {audience_token}",
+                "Content-Type": "application/json",
+                "X-Reflow-Operator-Subject": subject,
+                "X-Reflow-Request-Id": request_id,
+                "X-Reflow-Operator-Role": role,
+            },
+            timeout=(3.05, 50),
             allow_redirects=False,
         )
         return BackendResponse(response.status_code, response.content, response.headers)

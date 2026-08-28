@@ -13,7 +13,7 @@ import { OperatorConversation } from "../operator/OperatorConversation";
 import { formatObservedAt } from "../semantics/format";
 import "./operator.css";
 
-/** Read-only reasoning over a bounded incident; execution remains unavailable. */
+/** Reasoning and policy-controlled action over a bounded authenticated context. */
 export function OperatorRoute() {
   const [params] = useSearchParams();
   const choices = useIncidentChoices();
@@ -80,14 +80,14 @@ export function OperatorRoute() {
           <p className="field-label">Operator</p>
           <h1>Ask Reflow</h1>
           <p className="operator-lede">
-            Inspect evidence, explain a recovery, or explore an explicitly
-            hypothetical scenario. Gemini reasons over the selected incident;
-            Operator cannot execute production actions.
+            Inspect evidence, explain or simulate recovery, and request bounded
+            operational changes. Gemini interprets intent; server policy,
+            adapters, and independent read-back control every action.
           </p>
         </div>
         <span className="operator-readonly">
           <Icon name="lock" size={13} />
-          Read-only
+          Controlled
         </span>
       </header>
 

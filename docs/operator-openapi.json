@@ -34,6 +34,182 @@
         "title": "HypotheticalChange",
         "type": "object"
       },
+      "OperatorActionView": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_proof": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Adapter Proof",
+            "type": "object"
+          },
+          "authenticated_subject_hash": {
+            "title": "Authenticated Subject Hash",
+            "type": "string"
+          },
+          "authority": {
+            "enum": [
+              "JIRA",
+              "GOOGLE_CALENDAR",
+              "REFLOW"
+            ],
+            "title": "Authority",
+            "type": "string"
+          },
+          "authorization_result": {
+            "enum": [
+              "AUTO_EXECUTABLE",
+              "APPROVAL_REQUIRED",
+              "DENIED"
+            ],
+            "title": "Authorization Result",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error Category"
+          },
+          "execution_acknowledgement": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Execution Acknowledgement",
+            "type": "object"
+          },
+          "expected_state": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Expected State",
+            "type": "object"
+          },
+          "external_effects_possible": {
+            "default": false,
+            "title": "External Effects Possible",
+            "type": "boolean"
+          },
+          "lifecycle": {
+            "enum": [
+              "REQUESTED",
+              "AUTHORIZED",
+              "APPROVAL_REQUIRED",
+              "APPROVED",
+              "EXECUTING",
+              "EXECUTED",
+              "READ_BACK",
+              "VERIFIED",
+              "VERIFICATION_FAILED",
+              "DENIED",
+              "FAILED"
+            ],
+            "title": "Lifecycle",
+            "type": "string"
+          },
+          "observed_state": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Observed State",
+            "type": "object"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/RequestedOperation"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
+          "operator_action_id": {
+            "title": "Operator Action Id",
+            "type": "string"
+          },
+          "request_fingerprint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Request Fingerprint"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "resource_identifier": {
+            "title": "Resource Identifier",
+            "type": "string"
+          },
+          "resource_type": {
+            "enum": [
+              "ISSUE",
+              "EVENT",
+              "OBJECTIVE"
+            ],
+            "title": "Resource Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          },
+          "verification_result": {
+            "default": "NOT_RUN",
+            "enum": [
+              "NOT_RUN",
+              "PASSED",
+              "FAILED"
+            ],
+            "title": "Verification Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operator_action_id",
+          "request_id",
+          "authenticated_subject_hash",
+          "authority",
+          "resource_type",
+          "resource_identifier",
+          "operations",
+          "authorization_result",
+          "lifecycle",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OperatorActionView",
+        "type": "object"
+      },
       "OperatorAgentTrace": {
         "additionalProperties": false,
         "properties": {
@@ -162,6 +338,60 @@
         "title": "OperatorFact",
         "type": "object"
       },
+      "OperatorInspection": {
+        "additionalProperties": false,
+        "properties": {
+          "authority": {
+            "enum": [
+              "JIRA",
+              "GOOGLE_CALENDAR",
+              "REFLOW"
+            ],
+            "title": "Authority",
+            "type": "string"
+          },
+          "observed_at": {
+            "title": "Observed At",
+            "type": "string"
+          },
+          "observed_state": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Observed State",
+            "type": "object"
+          },
+          "resource_identifier": {
+            "title": "Resource Identifier",
+            "type": "string"
+          },
+          "resource_type": {
+            "enum": [
+              "ISSUE",
+              "EVENT",
+              "OBJECTIVE"
+            ],
+            "title": "Resource Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authority",
+          "resource_type",
+          "resource_identifier",
+          "observed_state",
+          "observed_at"
+        ],
+        "title": "OperatorInspection",
+        "type": "object"
+      },
       "OperatorIntent": {
         "additionalProperties": false,
         "properties": {
@@ -226,7 +456,8 @@
                 "enum": [
                   "INSPECT",
                   "EXPLAIN",
-                  "SIMULATE"
+                  "SIMULATE",
+                  "ACT"
                 ],
                 "type": "string"
               },
@@ -255,16 +486,37 @@
             "default": null,
             "title": "Recovery Attempt"
           },
+          "requested_operations": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RequestedOperation"
+            },
+            "maxItems": 5,
+            "title": "Requested Operations",
+            "type": "array"
+          },
           "subject": {
             "enum": [
               "OBJECTIVE",
               "RECOVERY",
               "CALENDAR",
+              "JIRA",
               "EVIDENCE",
               "CHRONOLOGY"
             ],
             "title": "Subject",
             "type": "string"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OperatorTarget"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -282,6 +534,19 @@
       "OperatorQuery": {
         "additionalProperties": false,
         "properties": {
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{7,127}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Idempotency Key"
+          },
           "incident_id": {
             "pattern": "^incident-[a-zA-Z0-9-]{1,80}$",
             "title": "Incident Id",
@@ -304,12 +569,22 @@
       "OperatorResponse": {
         "additionalProperties": false,
         "properties": {
+          "action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OperatorActionView"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "agents": {
             "items": {
               "$ref": "#/components/schemas/OperatorAgentTrace"
             },
             "maxItems": 2,
-            "minItems": 1,
             "title": "Agents",
             "type": "array"
           },
@@ -337,7 +612,6 @@
             "type": "array"
           },
           "external_effects_executed": {
-            "const": false,
             "default": false,
             "title": "External Effects Executed",
             "type": "boolean"
@@ -370,13 +644,25 @@
             "title": "Incident Id",
             "type": "string"
           },
+          "inspection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OperatorInspection"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "intent": {
             "$ref": "#/components/schemas/OperatorIntent"
           },
           "provenance": {
             "enum": [
               "AUTHORITATIVE_SNAPSHOT",
-              "HYPOTHETICAL_NO_ACTION"
+              "HYPOTHETICAL_NO_ACTION",
+              "OPERATOR_ACTION"
             ],
             "title": "Provenance",
             "type": "string"
@@ -420,6 +706,95 @@
           "agents"
         ],
         "title": "OperatorResponse",
+        "type": "object"
+      },
+      "OperatorTarget": {
+        "additionalProperties": false,
+        "properties": {
+          "authority": {
+            "enum": [
+              "JIRA",
+              "GOOGLE_CALENDAR",
+              "REFLOW"
+            ],
+            "title": "Authority",
+            "type": "string"
+          },
+          "resource_identifier": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Resource Identifier",
+            "type": "string"
+          },
+          "resource_type": {
+            "enum": [
+              "ISSUE",
+              "EVENT",
+              "OBJECTIVE"
+            ],
+            "title": "Resource Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authority",
+          "resource_type",
+          "resource_identifier"
+        ],
+        "title": "OperatorTarget",
+        "type": "object"
+      },
+      "RequestedOperation": {
+        "additionalProperties": false,
+        "properties": {
+          "comment": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Comment"
+          },
+          "operation": {
+            "enum": [
+              "JIRA_TRANSITION",
+              "JIRA_SET_PRIORITY",
+              "JIRA_ASSIGN",
+              "JIRA_SET_DUE_DATE",
+              "JIRA_ADD_COMMENT",
+              "CALENDAR_RESCHEDULE",
+              "CALENDAR_UPDATE_TITLE",
+              "CALENDAR_UPDATE_DESCRIPTION",
+              "MOVE_PROTECTED_DEADLINE"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Value"
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "title": "RequestedOperation",
         "type": "object"
       },
       "SimulationFuture": {
@@ -582,6 +957,33 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/operator/actions/{action_id}/approve": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatorActionView"
+                }
+              }
+            },
+            "description": "Approved action result after execution and read-back"
+          }
+        }
+      }
+    },
     "/api/v1/operator/query": {
       "post": {
         "requestBody": {
@@ -603,7 +1005,7 @@
                 }
               }
             },
-            "description": "Validated read-only reasoning"
+            "description": "Validated reasoning or controlled action result"
           }
         }
       }
