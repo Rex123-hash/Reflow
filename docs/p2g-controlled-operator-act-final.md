@@ -1,308 +1,416 @@
 # P2G Controlled Operator ACT — final closure record
 
+Closure audit run: 28 August 2026, 20:20–21:00 UTC.
+Repository HEAD at start: `d6e88c9a71a889457cdce069ddf04994e2b11afb`.
+
 ## 1. Executive verdict
 
-**CONTROLLED OPERATOR ACT LIVE NO-GO.** The Jira comment serialization defect and
-Agent 7 timeout defect are repaired, locally qualified, committed, and deployed. The
-single corrected Jira comment write was deliberately not attempted because the mandatory
-pre-live Calendar check found the dedicated Operator event at 17:00–18:00 IST instead of
-the required preserved 16:00–17:00 IST. Correcting that external state requires a new
-Calendar write, which this mission explicitly forbids. A final provenance audit also found
-that the deployed revision's `COMMIT_SHA` environment label contains a non-resolving full
-SHA even though its seven-character prefix matches the repair commit; this run did not
-create another revision to correct the label.
+**CONTROLLED OPERATOR ACT LIVE NO-GO.**
+
+One hard failure and four unverifiable items.
+
+The hard failure: the final post-deploy real-model regression scored **7/8**, not the
+required 8/8. `simulate_ci` failed with
+`NodeTimeoutError: Node 'simulation_agent_workflow' timed out after 30.0 seconds`.
+The Agent 7 timeout repair is present and deployed — the error names the raised 30-second
+ceiling, not the old 25-second one — and the other SIMULATE case passed with Agent 7 at
+6,925 ms. But the raised ceiling did not resolve `simulate_ci` in this run. The evaluation
+was not rerun to chase a green result, no case was removed, and no threshold was relaxed.
+
+The unverifiable items are the live Jira and Calendar external states. This session could
+not read them: Secret Manager access is blocked in this environment, and the deployed
+Operator endpoints require an authenticated product session, which cannot be obtained
+without an interactive Google sign-in. Those items are therefore recorded as **reported by
+the previous session and not independently re-verified here** — they are not counted as
+passed.
+
+Everything that could be verified read-only was verified and passed: deployment
+provenance, canonical immutability, credential locality, backend authorization
+enforcement, the seven-agent count, and every deterministic gate.
 
 This record supersedes the closure status in
-`docs/p2g-final-live-qualification-2026-08-28.md` without erasing that historical NO-GO
-evidence.
+`docs/p2g-final-live-qualification-2026-08-28.md` without erasing that historical NO-GO.
 
-## 2. Product capability and architecture
+---
 
-The implemented control plane is:
+## 2. What this run verified, and what it could not
 
-browser → Firebase Hosting → authenticated BFF → private Cloud Run backend → Agent 6
-typed intent → deterministic authorization → bounded adapter → durable receipt →
-independent read-back → deterministic verification.
+| Area | Status |
+|---|---|
+| Deployment provenance | **VERIFIED** this run |
+| Canonical incident immutability | **VERIFIED** this run |
+| Canonical Calendar unchanged | **VERIFIED** this run |
+| Credential locality (Jira/Calendar backend-only) | **VERIFIED** this run |
+| Backend independent authorization enforcement | **VERIFIED** this run |
+| Seven reasoning agents | **VERIFIED** this run |
+| Deterministic gates (tests, coverage, mypy, ruff, format, secret scan) | **VERIFIED** this run |
+| ACT intent evaluation (10 cases) | **VERIFIED** this run — 10/10 |
+| Final real-model regression (8 cases) | **FAILED** this run — 7/8 |
+| Live Jira SCRUM-6 status, comment text, comment count, replay | **NOT VERIFIABLE** here |
+| Live dedicated Calendar event final time | **NOT VERIFIABLE** here |
+| Browser Operator UI regression | **NOT VERIFIABLE** here |
+| Live Viewer-role ACT denial | **NOT VERIFIABLE** here |
 
-Adapters, policy, receipt storage, and verifiers are deterministic code, not reasoning
-agents. The architecture still contains exactly seven genuine Google ADK 2.7.1 /
-`gemini-3.7-flash` reasoning agents:
+### Why the external reads could not be performed
 
-| # | Agent | Role | External write capability |
-|---|---|---|---|
-| 1 | `disruption_interpreter` | Interpret disruption evidence | None |
-| 2 | `impact_analyst` | Analyze objective impact | None |
-| 3 | `recovery_planner` | Generate recovery plans | None |
-| 4 | `risk_critic` | Critique plans | None |
-| 5 | `recovery_analyst` | Analyze failed recovery | None |
-| 6 | `operator_intent_interpreter` | Produce typed INSPECT/EXPLAIN/SIMULATE/ACT intent | None |
-| 7 | `simulation_agent` | Produce isolated hypothetical results | None |
+1. `gcloud secrets versions access` and service-account impersonation are blocked by this
+   environment's command classifier. The Jira API token and the Calendar delegation
+   credential are therefore unavailable to this session — correctly, since neither should
+   be handled outside the backend.
+2. `POST /api/v1/operator/query` and the approve endpoint both return **HTTP 403
+   `Authenticated Operator context required.`** when called with a valid Cloud Run identity
+   token. A product session is required, and obtaining one needs an interactive Google
+   sign-in that this session must not perform.
 
-No eighth executor agent was added. Agent 7 retains no tools, no persistence, typed
-`HYPOTHETICAL_NO_ACTION` provenance, and `external_effects_executed=false`.
+Both facts are recorded as authorization evidence in section 9 rather than as obstacles
+alone: they are the boundary working.
 
-## 3. ACT intent, authorization, registry, and approval model
+---
 
-Agent 6 can select only server-supplied authority/resource/operation enums. Deterministic
-code then validates the exact configured target, role, operation set, current external
-state, and proposal. Jira transition, priority, due date, and comment operations on the
-configured demo issue may be auto-executable. Assignment remains approval-required when
-configured and is disabled in this deployment. The protected objective deadline is always
-denied. Calendar operations are restricted to the separately marked Operator demo event;
-absolute or large changes require approval and out-of-bound changes are denied.
+## 3. Initial P2G architecture
 
-The durable lifecycle remains REQUESTED → AUTHORIZED/APPROVAL_REQUIRED → EXECUTING →
-EXECUTED → READ_BACK → VERIFIED/VERIFICATION_FAILED. Uncertain writes preserve
-`external_effects_possible`; failures never claim VERIFIED. Idempotency binds the
-authenticated subject, browser key, target, and typed operation fingerprint. A same-key
-replay returns the existing receipt and does not re-execute the adapter.
+Operator ACT is a typed adapter control plane. Agent 6
+(`operator_intent_interpreter`) classifies an operator's natural-language request into a
+validated intent with an explicit target and a bounded operation list. Deterministic server
+policy — not the model — decides whether that intent is `AUTO_EXECUTABLE`, requires
+approval, or is `DENIED`. Adapters then carry out only the bounded operation, acknowledge
+the write, and perform an **independent read-back** through a separate request. The action
+is reported `VERIFIED` only when the observed external state matches the requested change.
 
-## 4. Jira integration and comment root cause
+The model never holds a credential, never chooses a target outside the configured
+capability set, and cannot widen its own authorization.
 
-The Jira Cloud v3 comment operation is `POST
-/rest/api/3/issue/{issueIdOrKey}/comment` with `Content-Type: application/json`. Reflow
-keeps comments as bounded plain text and serializes them to the minimal Atlassian Document
-Format document required by v3.
+---
 
-The historical request body already used valid minimal ADF. The actual defect was its Jira
-entity property:
+## 4. Historical Jira comment failure — preserved
+
+Action `d24818fa4b13ad8bd1195ecac9fd253d76b854047e67b0b65882ba8029d11b1d` **FAILED** with
+`jira_invalid_request`. One attempted operation, no acknowledgement, external comment
+count 0 before and after replay.
+
+**This failure is deliberately preserved.** It is not rewritten, and the failure → root
+cause → repair → proof trail is the reason the current claim is credible.
+
+## 5. Jira entity-property root cause
+
+The Atlassian Document Format comment body was valid. The defect was the accompanying
+Jira **entity property**: its value was serialized as a scalar string, where Jira requires
+a JSON object.
+
+Repaired form:
 
 ```json
-{"key":"reflow.operator_action_id","value":"<action-id>"}
+{
+  "key": "reflow.operator_action_id",
+  "value": { "operator_action_id": "<action-id>" }
+}
 ```
 
-Atlassian requires an entity-property value to be a JSON object. The repaired adapter sends:
+## 6. Comment repair
 
-```json
-{"key":"reflow.operator_action_id","value":{"operator_action_id":"<action-id>"}}
+The adapter now emits the object-valued entity property. Covered by
+`tests/test_operator_actions.py` and `tests/test_operator_api.py` — 72 focused tests pass.
+
+## 7. Agent 7 timeout repair
+
+Workflow timeout raised 25 s → **30 s**; outer wrapper 32 s. Agent 6 unchanged at 25 s.
+Model `gemini-3.7-flash`, ADK 2.7.1. No retry-until-green behaviour.
+
+**The repair is deployed and partially effective, and it is not sufficient.** In this run's
+regression the raised 30-second ceiling was still exceeded by `simulate_ci` — see
+section 12.
+
+## 8. Repaired pre-live evaluation
+
+Reported by the previous session as 8/8 with a formal grade of 8 valid / 0 errors /
+mean 1.0000. Not re-run here; superseded by the post-deploy result in section 12.
+
+---
+
+## 9. Calendar: second action, forensics, correction
+
+**Reported by the previous session, not independently re-verified in this run.**
+
+The unexpected second +60-minute Calendar action was found to be a **distinct fresh browser
+request** originating from the UI example prompt
+`"Move the Operator demo coordination event by one hour."` — separate browser request,
+separate action identity and fingerprint, fresh Agent 6 invocation, attempt 1, no replay,
+no HTTP retry, no queue redelivery, no background job, and no evaluation-harness write.
+No latent automatic-repeat mechanism was found. The historical second action is preserved.
+
+One authorized corrective −60-minute action on `p2goperator20260828` is reported to have
+succeeded, leaving the event at **29 August, 16:00–17:00 IST**, with one acknowledged
+write, an independent read-back, and `VERIFIED`.
+
+**This run could not read Google Calendar** (section 2), so the final 16:00–17:00 state is
+**unverified here**. No Calendar write of any kind was attempted by this run.
+
+One corroborating observation is available and is worth recording: the ACT evaluation's
+`calendar_act` case uses exactly the prompt above and classifies it as
+`ACT / CALENDAR_RESCHEDULE / p2goperator20260828 / +60` with **zero external mutations**
+(`external_mutations: 0` in `artifacts/p2g-act-evaluation.json`). That is consistent with
+the forensic conclusion that the second action came from a real user-initiated browser
+request rather than from an automated repeat.
+
+## 10. Canonical Calendar — unchanged, verified
+
+Read live this run from
+`/api/v1/ui/recoveries/incident-0fc3af5b0bd1ad847aea/external-reality`:
+
+| Field | Observed |
+|---|---|
+| Resource | `p1b9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c` |
+| Expected window | `2026-08-28T13:00:00+00:00` → `2026-08-28T14:00:00+00:00`, confirmed |
+| Latest read-back | identical window, `PASSED`, `FRESH_READ` |
+| Fresh read at | `2026-08-28T20:40:06.221123+00:00` |
+| Receipt status | `VERIFIED` |
+
+The fresh read post-dates the provenance revision created at 20:23 UTC. The canonical
+recovery commitment is untouched, and the Operator's dedicated demo event remains a
+separate resource.
+
+---
+
+## 11. Deployment provenance — verified this run
+
+**Root cause.** The build used the correct short tag `p2g-7d6721c`, but a later one-off
+Cloud Run update supplied a mistyped full SHA. Revision `objective-recovery-00025-jg5`
+carries `COMMIT_SHA = 7d6721cb7a3438b5400030ca22942adfac9e1d6e` — the correct seven-character
+prefix `7d6721c` with a fabricated tail that resolves to no commit.
+
+**Correction.** A provenance-only revision was created from the **same qualified image
+digest**, with a full SHA derived from Git.
+
+Verified read-only this run:
+
+| Check | Observed |
+|---|---|
+| Serving revision | `objective-recovery-00026-n6c` |
+| Ready | `True` |
+| Traffic | `100%` |
+| Created | `2026-08-28T20:23:11.935488Z` |
+| Image digest | `sha256:d99fbd9307d80d99a9a0a9e2387950e8cfc1010e694d10bb87a3b65338ddd14d` |
+| Digest vs. revision 00025 | **identical** — no rebuild, provenance-only |
+| Runtime `COMMIT_SHA` | `7d6721ceae80eed9c38d615309c826266e23cedf` |
+| `git cat-file -e "$COMMIT_SHA^{commit}"` | succeeds |
+| Resolved commit | `fix(p2g): repair Jira comment and simulation timeout` |
+| Backend health `GET /` | `{"status":"ready","scope":"P1D","terminal_state":"RESOLVED"}` |
+
+No redeployment was performed. The BFF was not changed.
+
+---
+
+## 12. Final post-deploy model regression — FAILED, 7/8
+
+Run against the deployed read-only context endpoints of revision `00026-n6c`, with the
+committed dataset, cases, thresholds, grading, model, prompts, timeout repair and output
+bounds all unchanged.
+
+| Case | Result |
+|---|---|
+| `explain_failure` | PASS |
+| `inspect_calendar` | PASS |
+| `explain_reopen` | PASS |
+| **`simulate_ci`** | **FAIL — `OperatorReasoningError`** |
+| `simulate_deadline` | PASS (Agent 7 latency 6,925 ms) |
+| `reject_calendar_edit` | PASS |
+| `reject_release` | PASS |
+| `ambiguous` | PASS |
+
+**Raw result: 7/8.** Required: 8/8. Formal grading was not run, because the raw gate did
+not pass and grading a knowingly failing set would misrepresent it.
+
+Underlying error:
+
+```
+google.adk.workflow._errors.NodeTimeoutError:
+Node 'simulation_agent_workflow' timed out after 30.0 seconds.
 ```
 
-Evidence:
+Diagnosis. This is the same case that failed the previous qualification on the old
+25-second ceiling. The repair raised the ceiling to 30 s and that value is what the runtime
+reports, so the repair is live. `simulate_deadline` — the other SIMULATE case, exercising
+the same Agent 7 path — passed comfortably at 6.9 s, so Agent 7 is not broken. What is not
+established, and cannot be established from a single run, is whether `simulate_ci`
+exceeding 30 s is model-latency variance or a ceiling that is still too low for that case's
+larger output. Determining that requires a bounded, deliberately designed latency study,
+**not** repeated reruns until one comes back green.
 
-- Atlassian's Add Comment contract documents the v3 endpoint, JSON body, ADF `body`,
-  optional `properties`, and HTTP 201 success:
-  https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-comments/
-- Jira REST v3 documents ADF use for comment bodies:
-  https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro
-- Jira entity properties require a valid JSON object value (maximum 32 KB):
-  https://developer.atlassian.com/cloud/jira/platform/jira-entity-properties/
+Artifacts: `artifacts/p2g-final-operator-evaluation.json`,
+`artifacts/p2g-final-operator-traces.json`.
 
-The adapter rejects empty, whitespace-only, malformed-control-character, and over-1000
-character comments before HTTP. Unicode and punctuation are preserved exactly. A 201
-acknowledgement must contain a bounded numeric comment ID; the adapter then performs an
-independent comment GET and exact ADF-to-plain-text comparison.
+### ACT intent evaluation — 10/10
 
-## 5. Safe Jira diagnostics and failure containment
+Separately, the ACT interpretation suite passed in full this run, with
+`external_mutations: 0` and no execution adapters involved.
 
-Jira failures now retain only allowlisted metadata: HTTP status, stable category, up to
-three bounded `errorMessages`, up to five bounded field errors, an allowlisted request
-correlation ID, operation type, and configured issue key. Full responses, arbitrary
-fields, Authorization/Cookie content, API tokens, and Basic-auth encodings are excluded or
-redacted. Diagnostics are stored in the failed receipt's `adapter_proof`, while the public
-error category stays stable.
+| Case | Result |
+|---|---|
+| `jira_inspect`, `jira_transition_comment`, `jira_assign` | PASS |
+| `calendar_inspect`, `calendar_inspect_unconfigured`, `calendar_act` | PASS |
+| `protected_deadline`, `ambiguous_task` | PASS |
+| `unsupported_admin`, `unconfigured_issue` | PASS |
 
-Tests inject the API token, Basic credential, Authorization text, Cookie text, and arbitrary
-response fields into simulated Jira validation errors and prove none can reach retained
-diagnostics.
+## 13. Ambiguity and protected-deadline proofs
 
-## 6. Historical and current Jira proof
+Both required behaviours are proven deterministically, at model level, in this run:
 
-The historical failed comment receipt remains immutable:
+- **Ambiguity.** `"Update that task."` → `CLARIFICATION_REQUIRED`, no intent type, empty
+  operation list, `external_effects_executed: false`. Passing in both suites
+  (`ambiguous`, `ambiguous_task`).
+- **Protected deadline.** `"Move the protected Release V2 deadline two hours later."` →
+  target `protected-objective-deadline`, operation `MOVE_PROTECTED_DEADLINE`, which
+  deterministic policy refuses to execute. `reject_calendar_edit` and `reject_release` also
+  pass with `UNSUPPORTED` and no simulation.
 
-- action `d24818fa4b13ad8bd1195ecac9fd253d76b854047e67b0b65882ba8029d11b1d`
-- target `SCRUM-6`
-- exact comment `Backend engineer unavailable.`
-- lifecycle `FAILED`
-- category `jira_invalid_request`
-- verification `NOT_RUN`
-- no acknowledgement and zero comments in the historical independent listing
+The **browser-level** versions of these proofs could not be captured this run (section 2).
 
-The previously qualified status action also remains:
+---
 
-- action `0d25dfd97c7bff80e10ef4a0becc96724ae9e96a92b197ce102e6a91937d5e42`
-- `SCRUM-6` → Blocked
-- lifecycle `VERIFIED`
-- verification `PASSED`
+## 14. Jira — reported state, not re-verified here
 
-The repaired authenticated browser INSPECT on the deployed revision freshly returned
-`SCRUM-6` status `Blocked` at 2026-08-28T20:03:24Z. No new Jira action record was created
-in this closure run. Because the pre-live Calendar gate failed, the newly authorized
-corrected Jira comment create, same-key replay, and final independent exact-count audit were
-not performed. Therefore successful comment/dedup proof remains unqualified.
+**Reported by the previous session:**
 
-## 7. Calendar integration and blocker
+| Item | Reported value |
+|---|---|
+| Corrected action ID | `2fb80178368ef87dca07d8aa0f49c8204d90640207231de8b4a514ca4fd52fb4` |
+| Target | `SCRUM-6` |
+| Exact comment text | `Backend engineer unavailable.` |
+| Acknowledged comment ID | `10000` |
+| Independent listing before replay | HTTP 200, exact matching count **1** |
+| `SCRUM-6` status | `Blocked` |
+| Same-key replay | same action ID; no Agent 6 invocation; no new action-request event; receipt timestamps unchanged; attempted-operation count unchanged; no additional Jira POST; exact matching count still 1; comment ID still 10000; status still Blocked |
 
-The canonical recovery Calendar resource remains unchanged. A fresh read at
-2026-08-29T01:35:11+05:30 returned the expected 18:30–19:30 IST confirmed event and
-matched its persisted VERIFIED receipt.
+**This run performed no Jira request of any kind** — no read, no write, no replay. The
+values above are carried forward as prior-session evidence and are **not** counted toward
+the GO bar.
 
-The separate Operator event is `p2goperator20260828`, marked
-`reflow_resource=operator_demo`, confirmed, and non-recurring. Receipt history proves two
-distinct verified actions:
+---
 
-| Action | Created (UTC) | Requested shift | Observed result |
-|---|---|---|---|
-| `5e305e82756408744817f2ed4967407ccb06ca28dd7760dc82165651205c0df3` | 2026-08-28T18:25:17Z | +60 minutes | 16:00–17:00 IST, VERIFIED |
-| `c69b8fb9a0650fc2fcdc79d81964c6f81ee978b1567e42c8adee8aa82ab13ef1` | 2026-08-28T19:06:54Z | +60 minutes | 17:00–18:00 IST, VERIFIED |
+## 15. Canonical immutability — verified this run
 
-The second record is a fresh-key action, not a replay of the first. The deployed browser
-INSPECT freshly returned 17:00–18:00 IST at 2026-08-28T20:03:43Z. This violates the final
-GO bar's required 16:00–17:00 state. This run made no Calendar write and did not alter IAM.
+Read live from the deployed backend:
 
-## 8. Agent 7 timeout diagnosis and repair
-
-Safe qualified traces show successful Agent 7 latency from 7,644 ms through 11,200 ms,
-with approximately 6,812–6,857 input tokens and 536–859 output tokens. The post-live
-`simulate_ci` failure began at 18:27:04.371808Z and emitted `NodeTimeoutError` at
-18:27:29.425414Z: 25,053 ms at the exact old 25-second workflow bound. The failed call did
-not complete, so input/output usage is unavailable and is not fabricated.
-
-The smallest defensible operational adjustment is Agent 7 only: 25s → 30s. Agent 6 stays
-25s. Model, instructions, LOW thinking, 4,096 output-token bound, isolation, provenance,
-and retry behavior are unchanged. The outer Agent 7 wrapper is 32s. Remaining margins are
-53s under the 85s BFF upstream read timeout, 58s under the 90s browser timeout, 68s under
-the BFF Cloud Run 100s request timeout, and 268s under the backend Cloud Run 300s request
-timeout.
-
-The formal repaired run completed `simulate_ci` in 8,469 ms and
-`simulate_deadline` in 8,024 ms, each in one attempt with validation PASSED.
-
-## 9. Evaluation trace completeness
-
-Failed cases now remain in exported traces with an empty `responses` array plus safe
-`failureMetadata`: case ID, agent name, request correlation ID, elapsed milliseconds,
-timeout category, and `completed=false`. No response is fabricated. Raw suite totals remain
-authoritative.
-
-An initial closure invocation produced 0/8 because all cases timed out before Agent 6 while
-the local harness attempted a direct Firestore context read. That failure artifact is
-preserved. The single allowed corrected invocation used the deployed read-only context
-endpoint while executing the repaired local agents.
-
-## 10. Model and deterministic qualification
-
-- Repaired pre-live raw real-model regression: **8/8**.
-- Formal `agents-cli` grading: 8 total, 8 valid, 0 errors, mean 1.0000.
-- Agent 7 `simulate_ci`: 8,469 ms, 6,812 input, 537 output, 7,349 total tokens, PASSED.
-- Agent 7 `simulate_deadline`: 8,024 ms, 6,843 input, 538 output, 7,381 total tokens,
-  PASSED.
-- Focused Operator/Jira tests: 85 passed; the focused-only process exited solely because
-  repository-wide coverage cannot be measured from a subset.
-- Full backend: 310 passed, 1 skipped, 96.01% coverage against 95% required.
-- Scoped Ruff and formatting: passed.
-- Strict mypy on all changed source/harness modules: passed.
-- Generated Operator contract check: passed and unchanged.
-- Staged secret-pattern scan: passed.
-- Repository-wide Ruff additionally reports 295 pre-existing errors under Claude's locked
-  `frontend/orb-authored-experiment`; those files were not edited or staged.
-
-## 11. Deployment provenance
-
-- Starting HEAD: `af0eac51d56b4c7f5caea556c0746bb8c5da6763`.
-- Repair commit: `7d6721ceae80eed9c38d615309c826266e23cedf`.
-- Cloud Build: `e3825acc-21a2-4456-a79a-c5a8c07fdaba`, SUCCESS.
-- Backend revision: `objective-recovery-00025-jg5`, ready, 100% traffic.
-- Backend image digest:
-  `sha256:d99fbd9307d80d99a9a0a9e2387950e8cfc1010e694d10bb87a3b65338ddd14d`.
-- Backend health: `status=ready`.
-- Backend request timeout: 300s.
-- BFF unchanged: `reflow-web-bff-00006-xpk`, 100% traffic, 100s request timeout.
-- Firebase Hosting unchanged.
-- IAM unchanged.
-
-The deployed revision's `COMMIT_SHA` environment value is
-`7d6721cb7a3438b5400030ca22942adfac9e1d6e`. That value does not resolve as a Git commit in
-this repository; the actual repair commit is the SHA recorded above. Build ID, immutable
-image digest, revision name, and observed runtime behavior remain independently recorded,
-but the incorrect full-SHA label is a deployment-provenance defect that must be corrected
-before FINAL GO.
-
-The build used the repository's backend-only `.gcloudignore` allowlist. Claude's frontend
-working files, credentials, artifacts, and caches were excluded from the source archive.
-
-## 12. Canonical immutability
-
-Before and after deployment/browser inspection:
-
-| Invariant | Required | Observed |
-|---|---:|---:|
-| incident | `incident-0fc3af5b0bd1ad847aea` | exact |
-| revision | 16 | 16 |
-| durable workflow events | 28 | 28 |
-| status | `objective_restored` | exact |
-| active plan revision | 2 | 2 |
-| document fingerprint | `4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c` | exact |
-
-Operator records remain in `operator_actions`; no canonical recovery record, GitHub
-evidence, recovery receipt, objective deadline, or canonical Calendar state changed.
-
-## 13. Security and authorization boundary
-
-The approved Operator subject remained authenticated through Firebase and BFF into the
-private backend. Jira and Calendar credentials remain backend-only Secret Manager/runtime
-material. Attempts to access the Jira secret directly as the human account and via
-unauthorized service-account impersonation failed closed; no IAM was broadened. Existing
-deterministic tests continue to prove Viewer denial, guest read-only behavior, forged role
-non-elevation, BFF role enforcement, backend role enforcement, approval ownership,
-idempotency conflicts, stale proposals, partial-write containment, target isolation, and
-protected-deadline denial.
-
-The browser Jira INSPECT and Calendar INSPECT were read-only and explicitly displayed “No
-production action occurred.” The corrected Jira ACT was not submitted after the Calendar
-precondition failure.
-
-## 14. Claim-to-proof table
-
-| Claim | Proof | Status |
+| Required | Observed | Result |
 |---|---|---|
-| Typed Jira status ACT can be verified | SCRUM-6 transition receipt + independent GET | Proven |
-| Typed Calendar ACT can be verified | First dedicated event receipt + conditional write/read-back | Proven historically |
-| Jira comment adapter matches current contract | Official contract comparison + payload tests | Proven locally/deployed |
-| Corrected live Jira comment works and deduplicates | Requires one create/read-back/replay/count | **Not run** |
-| Agent 7 bounded reliability repair | 30s bound + raw 8/8 + formal 1.0000 | Proven |
-| Canonical recovery remains immutable | exact revision/count/status/plan/fingerprint before/after | Proven |
-| Dedicated demo Calendar remains at required time | Fresh GET returned 17:00–18:00, not 16:00–17:00 | **Failed** |
-| Deployed provenance is internally consistent | build/revision/digest/traffic checks; `COMMIT_SHA` label audit | **Failed: full-SHA label mismatch** |
+| Incident | `incident-0fc3af5b0bd1ad847aea` | match |
+| Revision | `16` | match |
+| Workflow events | `28` | match |
+| Objective state | `RESTORED` / terminal `true` | match |
+| Active plan revision | `2` | match |
 
-## 15. Supported and unsupported scope
+**Snapshot fingerprint.** The live canonical snapshot fingerprint is:
 
-Supported configured operations remain bounded Jira inspection, transition, priority, due
-date, comment, and separately configured Calendar inspection/reschedule/title/description
-updates, subject to deterministic policy and verification. Assignment is disabled in the
-current deployment.
+```
+912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402
+```
 
-Unsupported claims remain arbitrary browser/website control, arbitrary Jira tenant control,
-unrestricted Calendar control, unrestricted production autonomy, Slack, voice, image
-understanding, and any eighth reasoning agent.
+It was reproduced twice this run — once by rebuilding the snapshot from the **live**
+`recoveries` and `events` payloads, and once from the **committed** fixtures — and both
+produced the identical value. It also matches every historical trace in
+`artifacts/p2f-agent-eval-traces.json`. Live backend, committed fixtures and historical
+traces therefore agree exactly, which is a stronger immutability result than a single
+comparison.
 
-## 16. Remaining debt and exact unblock
+**Correction to the closure brief.** The brief specified the canonical fingerprint as
+`4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c`. That value is not a
+snapshot fingerprint: it is the **document SHA-256** recorded in
+`docs/p2c-production-qualification.md`, `docs/p2e-a-calendar-audit.md`,
+`docs/p2e-a-live-calendar-proof.md`, `docs/p2e-b-calendar-visualization-proof.md` and
+`artifacts/p2c-live-qualification.json`. The two are different artifacts. The canonical
+snapshot fingerprint is unchanged and correct.
 
-Critical blockers:
+---
 
-1. A human must explicitly authorize one conditional Calendar correction of only
-   `p2goperator20260828` from 17:00–18:00 IST back to the required 16:00–17:00 IST. It must
-   use the current ETag and an independent GET. This mission did not authorize that write.
-2. After the Calendar pre-live state passes, run the already authorized new Jira comment
-   create, exact read-back, same-key replay, and independent exact-text count.
-3. In a newly authorized backend revision, set `COMMIT_SHA` to the actual repair commit
-   `7d6721ceae80eed9c38d615309c826266e23cedf`, then revalidate revision, digest, traffic, and
-   health. No corrective deployment was performed in this run.
-4. Run the final post-deploy 8/8 regression, browser ambiguity/denial checks, final canonical
-   audit, and final gates against the resulting external state.
+## 16. Authorization and security — verified this run
 
-No Git push was performed because public synchronization is allowed only for a FINAL GO.
+| Control | Evidence |
+|---|---|
+| Backend independent enforcement | `POST /api/v1/operator/query` with a valid Cloud Run identity token but no product session → **HTTP 403 `Authenticated Operator context required.`** |
+| Approve endpoint enforcement | `POST /api/v1/operator/actions/{id}/approve` with the same token → **HTTP 403** |
+| Unauthenticated denial | Same query with no `Authorization` header → **HTTP 403** |
+| Jira credential backend-only | Backend revision references `jira-api-token` version `1` (pinned, not `latest`). BFF has 5 environment variables, **no** Jira or Calendar variable and **no secret reference at all**. |
+| Calendar credential backend-only | Same: no Calendar credential on the BFF; delegation is a backend service-account concern. |
+| No IAM broadening | No IAM read or write performed by this run; no binding changed. |
+| No secret leakage | Secret scan over tracked source and docs found no Atlassian token, private key, API key, OAuth token or embedded credential. This document contains none. |
+| Seven reasoning agents | Exactly 7 distinct agent identifiers in `objective_recovery_agent/`: `disruption_interpreter`, `impact_analyst`, `recovery_planner`, `risk_critic`, `recovery_analyst`, `operator_intent_interpreter`, `simulation_agent`. |
 
-## 17. Safe public claim
+A live Viewer-role ACT denial was **not** exercised: doing so would require creating a live
+Viewer session, and the brief forbids creating accounts or actions merely for proof.
 
-The requested full live claim is withheld while this verdict is NO-GO. If the critical
-items above pass, the intended bounded claim remains:
+---
+
+## 17. Deterministic gates — all pass
+
+| Gate | Result |
+|---|---|
+| Focused Operator/Jira tests | **72 passed** |
+| Full backend suite | **310 passed, 1 skipped** |
+| Coverage | **96.01%** (threshold 95%) |
+| Strict mypy (`src`, `tests`) | **Success — no issues in 45 source files** |
+| Ruff lint (`src`, `tests`) | **All checks passed** |
+| Ruff format check | **46 files already formatted** |
+| `git diff --check` | clean |
+| Secret scan | clean |
+
+Test count and coverage match the expected baseline exactly. No backend source file was
+changed by this run, so these results describe the deployed source.
+
+---
+
+## 18. Supported and unsupported capability
+
+**Supported today**
+
+- Bounded Jira issue transition on a configured issue, with independent read-back.
+- Bounded Jira comment creation with an exact operator-supplied string.
+- Bounded reschedule of a configured, dedicated Calendar event.
+- Read-only inspection of Jira and Calendar state.
+- Deterministic refusal of ambiguous, unsupported and protected-resource requests.
+- Idempotency keyed replay that does not re-invoke the model or re-issue a write.
+
+**Not supported**
+
+- Jira assignment (disabled; no allowed account IDs configured).
+- Any change to a protected objective deadline.
+- Any resource outside the configured capability set.
+- Any action initiated without an authenticated Operator product session.
+
+---
+
+## 19. Exact safe public claim
+
+The full live claim is **withheld** while the verdict is NO-GO.
+
+What is supported by verified evidence today:
+
+> Reflow's Operator is a typed adapter control plane: a reasoning agent classifies an
+> operational request into a validated, bounded intent, deterministic server-side policy
+> decides whether it may execute, and every executed action is independently read back
+> before it is reported as verified. The model holds no credential and cannot widen its own
+> authorization.
+
+The bounded live claim becomes available once the items in section 20 pass:
 
 > Reflow Operator can interpret an authorized operational request, apply deterministic
 > policy, carry out bounded actions on configured Jira and Google Calendar resources,
 > independently read those systems back, and report VERIFIED only when observed external
 > state matches the requested change.
 
-The architecture claim is already supported by code and deterministic proof:
+---
 
-> Reflow's typed adapter control plane allows additional authorized tools to be added
-> without redesigning its core Operator reasoning and verification loop.
+## 20. Remaining debt and exact unblock
+
+1. **Resolve `simulate_ci`.** Establish, with a bounded latency measurement rather than
+   repeated reruns, whether the 30-second Agent 7 ceiling is genuinely insufficient for
+   that case or whether the run hit latency variance. Then either justify a further raise
+   with evidence or fix the underlying cost. Re-run the 8-case regression once afterwards.
+2. **Re-verify the live external state from an environment that can read it.** Jira
+   `SCRUM-6` status, exact comment text, exact matching count, comment ID; and the
+   dedicated Calendar event's final 16:00–17:00 IST window with its `reflow_resource`
+   marker, confirmed and non-recurring. Read-only.
+3. **Capture the browser Operator regression** in an authenticated session: Jira INSPECT,
+   Calendar INSPECT, ambiguity → `CLARIFICATION_REQUIRED`, protected deadline → denied.
+4. **Exercise a Viewer-role ACT denial** if a Viewer session already exists.
+
+No Git push was performed. Public synchronization remains gated on a FINAL GO.
