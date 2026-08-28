@@ -168,6 +168,18 @@ failed-objective screenshot; click through to exact Evidence and capture it; con
 BFF/backend `200` logs; repeat immutability after those UI reads. No screenshots from a
 fixture or guest session are misrepresented as authenticated Live proof.
 
+Follow-up after the user reported sign-in complete: the visible product session was
+`Demo workspace · Read only`, not Google Live. The deployed guest Overview accurately
+showed `Recorded proof · No current Calendar lookup`, persisted comparison passed,
+and the actual persisted timestamp. Its Calendar action link opened Recovery 01 with
+historical receipt `Verified` and selected objective verification `Failed`; clicking
+`Open exact Calendar evidence` focused the exact existing Calendar record above.
+The canonical incident still had revision 16, the same document fingerprint and 28
+events. These are additional guest UI checks, **not authenticated Live qualification**.
+Google sign-in remains the only pending access step.
+
+![Deployed guest Overview — not Live proof](p2e-a-guest-overview.png)
+
 ## Z. Files changed
 
 Source commit contains these 25 files:
@@ -200,7 +212,8 @@ src/objective_recovery/web_bff/demo.py
 tests/test_external_reality.py
 ```
 
-Post-deployment evidence adds this report and `docs/p2e-a-signin-pending.png`.
+Post-deployment evidence adds this report, `docs/p2e-a-signin-pending.png`, and
+`docs/p2e-a-guest-overview.png`.
 
 ## AA–AD. Scope, source, debt and verdict
 
