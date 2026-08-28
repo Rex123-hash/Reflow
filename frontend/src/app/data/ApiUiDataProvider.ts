@@ -1,5 +1,3 @@
-import Ajv2020, { type ValidateFunction } from "ajv/dist/2020";
-import openApi from "../contract/ui-openapi.json";
 import type {
   EvidencePageView,
   ExecutionEventsView,
@@ -9,6 +7,14 @@ import type {
   OverviewView,
   RecoveryCaseView,
 } from "../contract/uiContract";
+import {
+  EvidencePageView as validateEvidencePage,
+  ExecutionEventsView as validateExecutionEvents,
+  ObjectivesView as validateObjectives,
+  OperatorContextView as validateOperatorContext,
+  OverviewView as validateOverview,
+  RecoveryCaseView as validateRecoveryCase,
+} from "../contract/uiValidators";
 import {
   UiDataError,
   type ProvenanceInfo,
@@ -37,20 +43,16 @@ interface CachedResource {
   value: PresentationResource;
 }
 
-const ajv = new Ajv2020({ allErrors: true, strict: false });
-ajv.addSchema(openApi, "reflow-ui-openapi");
+type Validator = (data: unknown) => boolean;
 
-const validators = new Map<ResourceName, ValidateFunction>();
-
-function validator(name: ResourceName): ValidateFunction {
-  const cached = validators.get(name);
-  if (cached) return cached;
-  const compiled = ajv.compile({
-    $ref: `reflow-ui-openapi#/components/schemas/${name}`,
-  });
-  validators.set(name, compiled);
-  return compiled;
-}
+const validators: Record<ResourceName, Validator> = {
+  OverviewView: validateOverview,
+  ObjectivesView: validateObjectives,
+  RecoveryCaseView: validateRecoveryCase,
+  EvidencePageView: validateEvidencePage,
+  ExecutionEventsView: validateExecutionEvents,
+  OperatorContextView: validateOperatorContext,
+};
 
 function parseError(payload: unknown, status: number): UiDataError {
   if (payload && typeof payload === "object") {
@@ -87,13 +89,14 @@ export class ApiUiDataProvider implements UiDataProvider {
 
   constructor({
     mode,
-    fetcher = fetch,
+    fetcher,
   }: {
     mode: "live" | "guest";
     fetcher?: typeof fetch;
   }) {
     this.id = `api:${mode}`;
-    this.#fetch = fetcher;
+    // Native browser fetch must not be invoked with the provider as its receiver.
+    this.#fetch = fetcher ?? ((input, init) => fetch(input, init));
     this.#provenance = {
       kind: "api",
       live: mode === "live",
@@ -164,7 +167,7 @@ export class ApiUiDataProvider implements UiDataProvider {
         502,
       );
     }
-    const validate = validator(schema);
+    const validate = validators[schema];
     if (!validate(payload)) {
       throw new UiDataError(
         "backend_infrastructure_unavailable",

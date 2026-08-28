@@ -377,7 +377,7 @@ def _production_app() -> FastAPI:
     settings = BffSettings.from_environment()
     return create_app(
         settings,
-        FirebaseSessionGateway(),
+        FirebaseSessionGateway(settings.firebase_web_api_key),
         GoogleIdentityBackendGateway(settings.backend_base_url),
         DemoStore(settings.demo_data_dir),
     )

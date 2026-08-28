@@ -12,6 +12,21 @@ function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
 }
 
 describe("ApiUiDataProvider", () => {
+  it("invokes the default browser fetch without the provider as receiver", async () => {
+    let provider: ApiUiDataProvider;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = function (this: unknown) {
+      expect(this).not.toBe(provider);
+      return Promise.resolve(jsonResponse(overview));
+    } as typeof fetch;
+    try {
+      provider = new ApiUiDataProvider({ mode: "live" });
+      await provider.getOverview();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it("parses the deployed OpenAPI contract and reports live provenance", async () => {
     const fetcher = vi.fn(async () =>
       jsonResponse(overview, { headers: { ETag: 'W/"16"' } }),

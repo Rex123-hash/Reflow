@@ -8,6 +8,7 @@ from datetime import timedelta
 from typing import Any, Protocol, cast
 
 import firebase_admin  # type: ignore[import-untyped]
+import requests
 from firebase_admin import auth
 
 
@@ -24,9 +25,13 @@ class SessionGateway(Protocol):
 
 
 class FirebaseSessionGateway:
-    """Firebase Admin adapter. Application Default Credentials stay server-side."""
+    """Short-lived Firebase ID-token session with token-bound revocation checks."""
 
-    def __init__(self) -> None:
+    def __init__(self, web_api_key: str, http_session: requests.Session | None = None) -> None:
+        if not web_api_key:
+            raise ValueError("Firebase web API key is required.")
+        self._web_api_key = web_api_key
+        self._http = http_session or requests.Session()
         try:
             firebase_admin.get_app()
         except ValueError:
@@ -34,31 +39,44 @@ class FirebaseSessionGateway:
 
     def verify_id_token(self, token: str) -> Mapping[str, Any]:
         try:
-            return cast(Mapping[str, Any], auth.verify_id_token(token, check_revoked=True))
+            claims = cast(Mapping[str, Any], auth.verify_id_token(token, check_revoked=False))
         except (
             ValueError,
             auth.InvalidIdTokenError,
             auth.ExpiredIdTokenError,
-            auth.RevokedIdTokenError,
         ) as error:
             raise InvalidSessionError("The Firebase ID token is invalid or expired.") from error
+        try:
+            response = self._http.post(
+                "https://identitytoolkit.googleapis.com/v1/accounts:lookup",
+                params={"key": self._web_api_key},
+                json={"idToken": token},
+                timeout=(3.05, 10),
+            )
+            payload = response.json() if response.status_code == 200 else {}
+        except (requests.RequestException, ValueError) as error:
+            raise InvalidSessionError("Firebase could not validate the active session.") from error
+        users = payload.get("users") if isinstance(payload, Mapping) else None
+        uid = claims.get("uid") or claims.get("sub")
+        if (
+            response.status_code != 200
+            or not isinstance(users, list)
+            or len(users) != 1
+            or not isinstance(users[0], Mapping)
+            or users[0].get("localId") != uid
+        ):
+            raise InvalidSessionError("The Firebase ID token is revoked or inactive.")
+        return claims
 
     def create_session_cookie(self, token: str, expires_in: timedelta) -> str:
-        try:
-            return cast(str, auth.create_session_cookie(token, expires_in=expires_in))
-        except (ValueError, auth.InvalidIdTokenError) as error:
-            raise InvalidSessionError("The Firebase session could not be created.") from error
+        if not token or expires_in <= timedelta(0) or expires_in > timedelta(minutes=55):
+            raise InvalidSessionError("The Firebase session duration is invalid.")
+        # The verified, one-hour Firebase ID token becomes a shorter-lived, same-origin,
+        # HttpOnly bearer. It is never forwarded to the private recovery backend.
+        return token
 
     def verify_session_cookie(self, cookie: str) -> Mapping[str, Any]:
-        try:
-            return cast(Mapping[str, Any], auth.verify_session_cookie(cookie, check_revoked=True))
-        except (
-            ValueError,
-            auth.InvalidSessionCookieError,
-            auth.ExpiredSessionCookieError,
-            auth.RevokedSessionCookieError,
-        ) as error:
-            raise InvalidSessionError("The Firebase session is invalid or expired.") from error
+        return self.verify_id_token(cookie)
 
 
 @dataclass(frozen=True)

@@ -15,6 +15,7 @@ dist/
 build/
 *.egg-info/
 firebase-debug.log
+.firebase/
 artifacts/
 .terraform/
 *.tfplan

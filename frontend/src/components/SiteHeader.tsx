@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import reflowMarkUrl from "../assets/reflow/reflow-mark.svg";
 
 export function SiteHeader() {
@@ -12,9 +13,9 @@ export function SiteHeader() {
         <a href="#recovery-impact">How it works</a>
         <a href="#architecture">Architecture</a>
       </nav>
-      <a className="button button-small button-primary" href="#recovery-impact">
-        Open Demo <span aria-hidden="true">→</span>
-      </a>
+      <Link className="button button-small button-primary" to="/app">
+        Live demo <span aria-hidden="true">→</span>
+      </Link>
     </header>
   );
 }

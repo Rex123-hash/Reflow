@@ -153,7 +153,7 @@ def test_firebase_token_creates_secure_httponly_product_session() -> None:
     assert "HttpOnly" in set_cookie
     assert "Secure" in set_cookie
     assert "SameSite=lax" in set_cookie
-    assert sessions.created_with[-1][1] == timedelta(hours=12)
+    assert sessions.created_with[-1][1] == timedelta(minutes=55)
 
 
 def test_cross_origin_invalid_expired_and_unsupported_auth_are_rejected() -> None:
@@ -362,6 +362,7 @@ def test_settings_load_and_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
         "GOOGLE_CLOUD_PROJECT",
         "RECOVERY_BACKEND_URL",
         "ALLOWED_WEB_ORIGINS",
+        "FIREBASE_WEB_API_KEY",
     ):
         monkeypatch.delenv(name, raising=False)
     with pytest.raises(RuntimeError, match="Missing BFF configuration"):
@@ -369,6 +370,7 @@ def test_settings_load_and_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "project")
     monkeypatch.setenv("RECOVERY_BACKEND_URL", "https://backend.test/")
     monkeypatch.setenv("ALLOWED_WEB_ORIGINS", "https://one.test/, https://two.test")
+    monkeypatch.setenv("FIREBASE_WEB_API_KEY", "public-web-key")
     monkeypatch.setenv("SECURE_SESSION_COOKIE", "false")
     settings = BffSettings.from_environment()
     assert settings.backend_base_url == "https://backend.test"
@@ -376,34 +378,47 @@ def test_settings_load_and_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     assert settings.secure_cookies is False
 
 
-def test_firebase_admin_adapter_uses_revocation_checks(
+def test_firebase_adapter_uses_token_bound_revocation_checks(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     auth_module = importlib.import_module("objective_recovery.web_bff.auth")
 
     monkeypatch.setattr(auth_module.firebase_admin, "get_app", lambda: object())
-    gateway = FirebaseSessionGateway()
+
+    class FakeResponse:
+        status_code = 200
+
+        @staticmethod
+        def json() -> dict[str, list[dict[str, str]]]:
+            return {"users": [{"localId": "id"}]}
+
+    class FakeHttp:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, dict[str, str], dict[str, str]]] = []
+
+        def post(
+            self,
+            url: str,
+            *,
+            params: dict[str, str],
+            json: dict[str, str],
+            timeout: tuple[float, int],
+        ) -> FakeResponse:
+            del timeout
+            self.calls.append((url, params, json))
+            return FakeResponse()
+
+    http = FakeHttp()
+    gateway = FirebaseSessionGateway("public-web-key", cast(requests.Session, http))
     monkeypatch.setattr(
         auth_module.auth,
         "verify_id_token",
         lambda token, check_revoked: {"uid": token, "revoked": check_revoked},
     )
-    monkeypatch.setattr(
-        auth_module.auth,
-        "create_session_cookie",
-        lambda token, expires_in: f"cookie:{token}:{int(expires_in.total_seconds())}",
-    )
-    monkeypatch.setattr(
-        auth_module.auth,
-        "verify_session_cookie",
-        lambda cookie, check_revoked: {"uid": cookie, "revoked": check_revoked},
-    )
-    assert gateway.verify_id_token("id") == {"uid": "id", "revoked": True}
-    assert gateway.create_session_cookie("id", timedelta(seconds=60)) == "cookie:id:60"
-    assert gateway.verify_session_cookie("cookie") == {
-        "uid": "cookie",
-        "revoked": True,
-    }
+    assert gateway.verify_id_token("id") == {"uid": "id", "revoked": False}
+    assert gateway.create_session_cookie("id", timedelta(minutes=55)) == "id"
+    assert gateway.verify_session_cookie("id") == {"uid": "id", "revoked": False}
+    assert http.calls[-1][1] == {"key": "public-web-key"}
     monkeypatch.setattr(
         auth_module.auth,
         "verify_id_token",
@@ -411,20 +426,8 @@ def test_firebase_admin_adapter_uses_revocation_checks(
     )
     with pytest.raises(InvalidSessionError):
         gateway.verify_id_token("bad")
-    monkeypatch.setattr(
-        auth_module.auth,
-        "create_session_cookie",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError("bad")),
-    )
     with pytest.raises(InvalidSessionError):
-        gateway.create_session_cookie("bad", timedelta(seconds=60))
-    monkeypatch.setattr(
-        auth_module.auth,
-        "verify_session_cookie",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError("bad")),
-    )
-    with pytest.raises(InvalidSessionError):
-        gateway.verify_session_cookie("bad")
+        gateway.create_session_cookie("bad", timedelta(hours=1))
     with pytest.raises(InvalidSessionError, match="no subject"):
         principal_from_claims({"firebase": {"sign_in_provider": "google.com"}})
 

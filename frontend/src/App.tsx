@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { RecoveryStory } from "./components/RecoveryStory";
 import { SiteHeader } from "./components/SiteHeader";
 
@@ -63,9 +64,9 @@ function App() {
         <section className="final-cta" id="demo-end">
           <p className="eyebrow">Recorded proof. Deterministic boundaries.</p>
           <h2>See Reflow in action.</h2>
-          <a className="button button-primary" href="#recovery-story">
-            Watch recovery again <span aria-hidden="true">↗</span>
-          </a>
+          <Link className="button button-primary" to="/app">
+            Open live workspace <span aria-hidden="true">↗</span>
+          </Link>
         </section>
       </main>
     </div>

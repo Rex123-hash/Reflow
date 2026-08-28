@@ -13,14 +13,16 @@ class BffSettings:
     backend_base_url: str
     allowed_origins: frozenset[str]
     demo_data_dir: Path
+    firebase_web_api_key: str = ""
     session_cookie_name: str = "__session"
-    session_ttl_seconds: int = 60 * 60 * 12
+    session_ttl_seconds: int = 55 * 60
     secure_cookies: bool = True
 
     @classmethod
     def from_environment(cls) -> BffSettings:
         project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "").strip()
         backend_base_url = os.environ.get("RECOVERY_BACKEND_URL", "").strip().rstrip("/")
+        firebase_web_api_key = os.environ.get("FIREBASE_WEB_API_KEY", "").strip()
         allowed_origins = frozenset(
             value.strip().rstrip("/")
             for value in os.environ.get("ALLOWED_WEB_ORIGINS", "").split(",")
@@ -34,6 +36,7 @@ class BffSettings:
                 ("GOOGLE_CLOUD_PROJECT", project_id),
                 ("RECOVERY_BACKEND_URL", backend_base_url),
                 ("ALLOWED_WEB_ORIGINS", allowed_origins),
+                ("FIREBASE_WEB_API_KEY", firebase_web_api_key),
             )
             if not value
         ]
@@ -44,5 +47,6 @@ class BffSettings:
             backend_base_url=backend_base_url,
             allowed_origins=allowed_origins,
             demo_data_dir=demo_data_dir,
+            firebase_web_api_key=firebase_web_api_key,
             secure_cookies=os.environ.get("SECURE_SESSION_COOKIE", "true").casefold() != "false",
         )
