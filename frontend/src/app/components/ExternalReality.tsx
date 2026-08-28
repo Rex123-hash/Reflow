@@ -7,6 +7,7 @@ import type {
 import { useExternalReality } from "../data/resources";
 import { formatObservedAt, humanizeEnum } from "../semantics/format";
 import { SourceMark } from "./SourceMark";
+import { CalendarMiniTimeline } from "./CalendarMiniTimeline";
 import "./external-reality.css";
 
 function EventState({ state }: { state: ExternalEventState }) {
@@ -39,6 +40,8 @@ export function CalendarProof({
   compact?: boolean;
   objectiveStatus?: VerificationStatus;
 }) {
+  if (compact)
+    return <CalendarMiniTimeline resource={resource} incidentId={incidentId} />;
   const latest = resource.latest_readback;
   const evidenceUrl = `/app/evidence/${encodeURIComponent(incidentId)}?evidence=${encodeURIComponent(resource.evidence_id)}`;
   return (

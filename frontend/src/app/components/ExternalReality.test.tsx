@@ -69,7 +69,7 @@ describe("Calendar external reality", () => {
       name: "Google Calendar external reality",
     });
     expect(
-      within(card).getByText("Recorded proof · No current Calendar lookup"),
+      within(card).getByText("No current Calendar lookup"),
     ).toBeInTheDocument();
     expect(within(card).queryByText("Intended change")).not.toBeInTheDocument();
   });
