@@ -91,12 +91,30 @@ export function useAuthoredMicroMaps(): AuthoredMicroMaps {
   return maps;
 }
 
+/**
+ * Browser materials, realigned to the authored Blender base colours.
+ *
+ * Converting the reference's linear values to sRGB exposed three real
+ * divergences (the browser values were drifting, not deliberate):
+ *
+ *   CeramicTop   #fff6e9 -> #f8f3e9   red was clipped at 1.0, so the warm ivory
+ *                                      read as flat white
+ *   Sidewall     #e1d3c0 -> #d3c4b2   ~15% too bright, collapsing its separation
+ *                                      from the top face
+ *   ForestEnamel #073821 -> #1f4032   linear red 0.0021 against the authored
+ *                                      0.014 — 6.6x too dark, reading near-black
+ *                                      instead of deep forest enamel
+ *
+ * Brass already matched the reference exactly and is untouched. Roughness,
+ * clearcoat and envMapIntensity are appearance-matched rather than copied, since
+ * Cycles and three's PBR differ.
+ */
 export function tuneAuthoredMaterial(material: THREE.Material, maps: AuthoredMicroMaps, nodeName: string) {
   if (!(material instanceof THREE.MeshPhysicalMaterial)) return material.clone();
   const next = material.clone();
   next.envMapIntensity = 0.8;
   if (next.name === "CeramicTop") {
-    next.color.set("#fff6e9");
+    next.color.set("#f8f3e9");
     next.roughness = 0.62;
     next.clearcoat = 0.055;
     next.clearcoatRoughness = 0.58;
@@ -105,7 +123,7 @@ export function tuneAuthoredMaterial(material: THREE.Material, maps: AuthoredMic
     next.normalScale.set(0.022, 0.022);
     next.roughnessMap = maps.roughness;
   } else if (next.name === "ProductionWarmSidewall") {
-    next.color.set("#e1d3c0");
+    next.color.set("#d3c4b2");
     next.roughness = 0.71;
     next.clearcoat = 0.02;
     next.clearcoatRoughness = 0.68;
@@ -113,7 +131,7 @@ export function tuneAuthoredMaterial(material: THREE.Material, maps: AuthoredMic
     next.normalMap = maps.normal;
     next.normalScale.set(0.013, 0.013);
   } else if (next.name === "ForestEnamel") {
-    next.color.set("#073821");
+    next.color.set("#1f4032");
     next.metalness = 0.06;
     next.roughness = 0.41;
     next.clearcoat = 0.14;
@@ -166,22 +184,24 @@ function addReflectionPanel(
 /**
  * Renderer state, aligned to the authored Blender reference.
  *
- * The reference renders with view transform AgX and `view_settings.exposure = 0`,
- * which is a linear multiplier of 2^0 = 1.0. The browser was running
- * `toneMappingExposure = 1.1` — about +0.14 stops — which lifted every material
- * and is a large part of why the browser reads brighter and flatter than the
- * reference. Matching the reference exposure is the correct baseline; lighting is
- * tuned from there rather than compensated for here.
+ * Exposure: the reference renders at Blender `view_settings.exposure = 0`, a
+ * linear multiplier of 1.0. The browser was at 1.1 (~+0.14 stops), lifting every
+ * material. Now 1.0.
  *
- * Still unmatched: Blender's look is "AgX - Medium High Contrast", while three's
- * `AgXToneMapping` implements base AgX with no look variant. The browser is
- * therefore slightly lower in contrast than the reference by construction.
+ * Tone mapping: the reference uses AgX with the "Medium High Contrast" look.
+ * three implements base AgX with no look variant, and base AgX desaturates
+ * heavily — captured side by side against the Blender render at identical
+ * framing, it was the dominant reason the ivory read as cool grey and the forest
+ * enamel lost its depth. Emulating Blender's look would need a postprocessing
+ * stack; `NeutralToneMapping` (Khronos PBR Neutral, built for product viewing)
+ * preserves saturation and reaches a materially closer match at no bundle cost.
+ * Evidence: visual-qa/light-reduced-1440.png (AgX) vs neutral-reduced-1440.png.
  */
 export function AuthoredRendererSetup() {
   const gl = useThree((state) => state.gl);
   useLayoutEffect(() => {
     gl.outputColorSpace = THREE.SRGBColorSpace;
-    gl.toneMapping = THREE.AgXToneMapping;
+    gl.toneMapping = THREE.NeutralToneMapping;
     gl.toneMappingExposure = 1;
     gl.shadowMap.enabled = true;
     gl.shadowMap.type = THREE.VSMShadowMap;
@@ -206,7 +226,7 @@ export function AuthoredStudioEnvironment({
     addReflectionPanel(studio, [2.7, 6.7, -1.8], [0.9, 0.9], "#fff2ce", 1.3);
     const environment = generator.fromScene(studio, 0.04).texture;
     scene.environment = environment;
-    scene.environmentIntensity = 0.48;
+    scene.environmentIntensity = 0.34;
     onReady?.();
     invalidate();
     return () => {
@@ -225,13 +245,21 @@ export function AuthoredStudioEnvironment({
   return null;
 }
 
+/**
+ * Key / fill / ambient hierarchy rather than broad brightness.
+ *
+ * The hemisphere light was at 1.12 — a large flat fill that erased the form
+ * shading the reference gets from a warm key against a dark warm ambient, and
+ * which also desaturated the ivory toward grey. It drops to 0.42 and warms, while
+ * the key rises to carry the modelling.
+ */
 export function AuthoredStudioLights() {
   return <>
-    <hemisphereLight args={["#fffaf1", "#aaa193", 1.12]} />
+    <hemisphereLight args={["#fff3e2", "#9b9080", 0.42]} />
     <spotLight
       castShadow
       position={[-4.9, 8.4, 5.4]}
-      intensity={54}
+      intensity={88}
       distance={32}
       angle={0.76}
       penumbra={1}
@@ -252,6 +280,6 @@ export function AuthoredStudioLights() {
 export function AuthoredGroundShadow() {
   return <mesh position-y={-0.18} rotation-x={-Math.PI / 2} receiveShadow>
     <planeGeometry args={[24, 24]} />
-    <shadowMaterial transparent opacity={0.065} color="#29342d" />
+    <shadowMaterial transparent opacity={0.17} color="#3a3229" />
   </mesh>;
 }

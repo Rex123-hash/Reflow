@@ -102,7 +102,7 @@ function AuthoredSatellite({
   >
     <icosahedronGeometry args={[bodyRadius, 5]} />
     <meshPhysicalMaterial
-      color="#9ead99"
+      color="#98a894"
       roughness={0.72}
       clearcoat={0.025}
       clearcoatRoughness={0.72}

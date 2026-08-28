@@ -121,13 +121,12 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
 
     if (reducedMotion) {
       resetPose(pose.current);
-      // Hold the designed desktop hero composition rather than a separate, larger
-      // framing. Reduced motion should be the hero without movement — and it is
-      // what lets the authored poster line up with the first WebGL frame in this
-      // mode too, so the crossfade does not jump.
-      pose.current.y = 2.7;
-      pose.current.scale = 0.38;
-      pose.current.yaw = (-8.6 * Math.PI) / 180;
+      // Reduced motion collapses the sticky scroll stage into normal flow, so the
+      // orb layer is much shorter than the viewport. This nearer, larger framing
+      // is what fits that box — the desktop hero pose gets clipped by the section
+      // edge. Verified by capture: visual-qa/before-reduced-1440.png.
+      pose.current.y = 0.2;
+      pose.current.scale = 0.7;
       root.dataset.motion = "reduced";
       root.style.setProperty("--story-progress", "0");
       invalidator.current?.();
@@ -154,7 +153,11 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
         const riskScale = conditions.desktop ? 0.56 : conditions.tablet ? 0.52 : 0.32;
         const futureScale = conditions.desktop ? 0.45 : conditions.tablet ? 0.46 : 0.3;
         p.scale = heroScale;
-        p.y = conditions.mobile ? 1.5 : conditions.tablet ? 2.35 : 2.7;
+        // Mobile pushes the instrument nearer the camera, which drops it lower on
+        // screen so it clears the headline and lede. At 1.5 it sat directly behind
+        // the copy; legible only while the render was washed out, which it no
+        // longer is. Verified at 390px: visual-qa/after-normal-390.png.
+        p.y = conditions.mobile ? 3.4 : conditions.tablet ? 2.35 : 2.7;
 
         const beats = gsap.utils.toArray<HTMLElement>("[data-beat]", root);
         const progressItems = gsap.utils.toArray<HTMLElement>("[data-progress-stage]", root);

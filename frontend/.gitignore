@@ -10,3 +10,8 @@ dist/
 orb-authored-experiment/*
 !orb-authored-experiment/*.py
 !orb-authored-experiment/README.md
+
+# Working captures are regenerable via scripts/visual-qa.mjs; only the curated
+# proof set under visual-qa/proof/ is tracked.
+visual-qa/*
+!visual-qa/proof/

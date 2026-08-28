@@ -82,13 +82,18 @@ def place_camera():
     return camera
 
 
+def apply_pose(root, pose_y, scale, yaw_deg):
+    """Reproduces ReflowInstrument's root transform for an arbitrary story pose."""
+    ground_correction = BODY_FLOOR * (1.0 - scale)
+    root.location = three_to_blender((0.0, ground_correction, pose_y))
+    root.rotation_euler = Euler((0.0, 0.0, math.radians(yaw_deg)), "XYZ")
+    root.scale = (scale,) * 3
+    return root
+
+
 def apply_hero_transform(root):
     """The transform ReflowInstrument applies to its root group at progress 0."""
-    ground_correction = BODY_FLOOR * (1.0 - HERO_SCALE)
-    root.location = three_to_blender((0.0, ground_correction, HERO_POSE_Y))
-    root.rotation_euler = Euler((0.0, 0.0, math.radians(HERO_YAW_DEG)), "XYZ")
-    root.scale = (HERO_SCALE,) * 3
-    return root
+    return apply_pose(root, HERO_POSE_Y, HERO_SCALE, HERO_YAW_DEG)
 
 
 def satellite_material():
@@ -170,22 +175,31 @@ def configure_render(samples=SAMPLES, scale=100):
 def main():
     args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     preview = "preview" in args
+    # `--  reduced` renders the reduced-motion framing (pose.y 0.2, scale 0.7) so
+    # the Blender reference can be compared against the browser at identical
+    # framing. The hero pose puts the instrument small and bottom-cropped, which is
+    # correct for the poster but useless for judging material fidelity.
+    reduced = "reduced" in args
 
     root = prod.build(True, "website")
-    apply_hero_transform(root)
+    if reduced:
+        apply_pose(root, pose_y=0.2, scale=0.7, yaw_deg=HERO_YAW_DEG)
+    else:
+        apply_hero_transform(root)
     add_satellites(root)
     place_camera()
     configure_shadow_catcher()
     configure_render(samples=48 if preview else SAMPLES, scale=50 if preview else 100)
 
     bpy.context.view_layer.update()
-    name = "poster-preview" if preview else "reflow-instrument-poster"
+    stem = "reduced-reference" if reduced else "reflow-instrument-poster"
+    name = f"{stem}-preview" if preview else stem
     target = os.path.join(OUT_DIR, f"{name}.png")
     bpy.context.scene.render.filepath = target
     bpy.ops.render.render(write_still=True)
     print(f"[poster] wrote {target}")
 
-    if not preview:
+    if not preview and not reduced:
         blend = os.path.join(OUT_DIR, "reflow-instrument-poster.blend")
         bpy.ops.wm.save_as_mainfile(filepath=blend)
         print(f"[poster] wrote {blend}")
