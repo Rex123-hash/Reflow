@@ -1,25 +1,16 @@
 /* Width now comes from the shared .route-pad workspace container. */
 
-.evidence-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-5);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-5);
-}
-
 .evidence-head h1 {
   margin: var(--space-2) 0 var(--space-2);
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 2.1rem;
+  font-size: var(--type-page);
   letter-spacing: -0.03em;
 }
 
 .evidence-lede {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.6;
   max-width: 64ch;
@@ -52,9 +43,9 @@
   border-bottom: 2px solid transparent;
   background: transparent;
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: var(--type-secondary);
   font-weight: 600;
-  color: var(--secondary);
+  color: var(--text-metadata);
   padding: var(--space-3) var(--space-4);
   cursor: pointer;
   display: inline-flex;
@@ -73,8 +64,8 @@
 
 .evidence-tab-count {
   font-family: var(--mono);
-  font-size: 0.66rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   background: var(--surface-elevated);
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -104,8 +95,8 @@
 }
 
 .evidence-seq {
-  font-size: 0.66rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   text-align: right;
   padding-top: 2px;
   font-variant-numeric: tabular-nums;
@@ -133,7 +124,7 @@
 
 .evidence-event p {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--type-secondary);
   line-height: 1.45;
 }
 
@@ -143,15 +134,15 @@
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-1);
-  font-size: 0.63rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .evidence-event-technical {
   display: block;
   margin-top: var(--space-1);
-  font-size: 0.62rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   word-break: break-all;
 }
 

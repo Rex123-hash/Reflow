@@ -23,25 +23,11 @@
  *
  * The input below is untouched by this: it keeps its own position and full width.
  */
-.operator-head {
-  position: relative;
-  text-align: center;
-  margin-bottom: var(--space-5);
-}
-
-.operator-head h1 {
-  margin: var(--space-2) 0 var(--space-3);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 2.35rem;
-  letter-spacing: -0.03em;
-}
-
 /* Allowed the full canvas measure so the sentence sets on as few lines as it can
    rather than being folded into a narrow column beside empty space. */
 .operator-lede {
   margin: 0 auto;
-  font-size: 0.85rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.6;
   max-width: none;
@@ -52,6 +38,10 @@
   position: absolute;
   top: 2px;
   right: 0;
+}
+
+.operator-lede {
+  color: var(--text-secondary);
 }
 
 @media (max-width: 900px) {
@@ -69,11 +59,11 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface-elevated);
-  font-size: 0.66rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 /* ------------------------------------------------------------------ input --- */
@@ -272,7 +262,7 @@
 }
 
 .operator-form svg {
-  color: var(--secondary);
+  color: var(--text-metadata);
   flex: 0 0 auto;
 }
 
@@ -286,7 +276,7 @@
   border: 0;
   background: transparent;
   font-family: inherit;
-  font-size: 1.02rem;
+  font-size: var(--type-section);
   color: var(--ink);
   padding: var(--space-3) 0;
 }
@@ -296,7 +286,7 @@
 }
 
 .operator-form input::placeholder {
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 .operator-form input:disabled {
@@ -312,10 +302,9 @@
 }
 
 .operator-examples-label {
-  font-size: 0.59rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
+  color: var(--text-supporting);
   font-weight: 700;
   padding-right: var(--space-1);
 }
@@ -328,7 +317,7 @@
   background: var(--surface);
   color: var(--body);
   font-family: inherit;
-  font-size: 0.76rem;
+  font-size: var(--type-label);
   padding: 6px 13px;
   cursor: pointer;
   transition:
@@ -382,14 +371,14 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--surface-elevated);
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   color: var(--body);
   line-height: 1.5;
 }
 
 .operator-note svg {
   flex: 0 0 auto;
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 .operator-note.is-error {
@@ -488,14 +477,14 @@
 
 .operator-human-status strong {
   color: var(--forest);
-  font-size: 0.64rem;
+  font-size: var(--type-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .operator-human-status span {
   color: var(--body);
-  font-size: 0.82rem;
+  font-size: var(--type-secondary);
   line-height: 1.45;
 }
 
@@ -509,13 +498,13 @@
 .operator-human-why {
   margin: var(--space-3) 0 0;
   color: var(--body);
-  font-size: 0.84rem;
+  font-size: var(--type-secondary);
 }
 
 .operator-next-step {
   margin: var(--space-3) 0 0;
   color: var(--ink);
-  font-size: 0.82rem;
+  font-size: var(--type-secondary);
 }
 
 .operator-next-step b {
@@ -525,8 +514,8 @@
 
 .operator-truth-boundary {
   margin: var(--space-3) 0 0;
-  color: var(--secondary);
-  font-size: 0.74rem;
+  color: var(--text-metadata);
+  font-size: var(--type-label);
   font-weight: 650;
 }
 
@@ -543,7 +532,7 @@
   background: var(--pale-sage);
   color: var(--forest);
   font: inherit;
-  font-size: 0.74rem;
+  font-size: var(--type-label);
   padding: 7px 12px;
   cursor: pointer;
 }
@@ -574,13 +563,13 @@
 }
 
 .operator-technical > summary span {
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   font-weight: 700;
 }
 
 .operator-technical > summary small {
-  color: var(--secondary);
-  font-size: 0.66rem;
+  color: var(--text-metadata);
+  font-size: var(--type-label);
   font-weight: 500;
   text-align: right;
 }
@@ -638,7 +627,7 @@
   border: 1px solid var(--verified-line);
   background: var(--verified-fill);
   color: var(--verified-ink);
-  font-size: 0.62rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -652,11 +641,11 @@
 }
 
 .operator-provenance-state {
-  font-size: 0.63rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 /**
@@ -728,7 +717,7 @@
 
 .operator-prose p {
   margin: 0 0 var(--space-3);
-  font-size: 0.92rem;
+  font-size: var(--type-body);
   color: var(--ink);
   line-height: 1.65;
   max-width: 68ch;
@@ -749,7 +738,7 @@
 .operator-list li {
   position: relative;
   padding-left: var(--space-4);
-  font-size: 0.83rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.55;
   max-width: 72ch;
@@ -790,22 +779,21 @@
 }
 
 .operator-hypothetical-deadline b {
-  font-size: 0.59rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
   color: var(--motion-ink);
 }
 
 .operator-hypothetical-deadline span {
   font-family: var(--mono);
-  font-size: 0.83rem;
+  font-size: var(--type-secondary);
   font-weight: 600;
   color: var(--ink);
 }
 
 .operator-hypothetical-deadline em {
   font-style: normal;
-  font-size: 0.72rem;
+  font-size: var(--type-label);
   color: var(--body);
 }
 
@@ -826,13 +814,13 @@
   margin: 0 0 var(--space-2);
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 1.06rem;
+  font-size: var(--type-section);
   letter-spacing: -0.01em;
 }
 
 .operator-future > p {
   margin: 0 0 var(--space-3);
-  font-size: 0.85rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.55;
 }
@@ -843,8 +831,8 @@
 
 .operator-future-verify {
   margin: 0;
-  font-size: 0.73rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   line-height: 1.5;
 }
 
@@ -852,7 +840,7 @@
   margin: 0;
   padding-top: var(--space-3);
   border-top: 1px solid var(--line-soft);
-  font-size: 0.83rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.55;
 }
@@ -916,7 +904,7 @@
 }
 
 .operator-support-evidence b {
-  font-size: 0.79rem;
+  font-size: var(--type-label);
   font-weight: 600;
   line-height: 1.35;
   color: var(--forest);
@@ -930,8 +918,8 @@
 }
 
 .operator-support-evidence span {
-  font-size: 0.66rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .operator-provenance {
@@ -948,32 +936,31 @@
 }
 
 .operator-provenance dt {
-  font-size: 0.59rem;
+  font-size: var(--type-label);
   letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--secondary);
+  color: var(--text-supporting);
   font-weight: 700;
 }
 
 .operator-provenance dd {
   margin: 0;
-  font-size: 0.71rem;
+  font-size: var(--type-label);
   color: var(--body);
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
 .operator-agents {
-  font-size: 0.66rem;
+  font-size: var(--type-label);
   line-height: 1.45;
 }
 
 .operator-agents code {
   display: block;
   margin-top: 2px;
-  color: var(--secondary);
+  color: var(--text-metadata);
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: var(--type-label);
   overflow-wrap: anywhere;
 }
 
@@ -981,11 +968,11 @@
   margin: var(--space-3) 0 0;
   padding-top: var(--space-3);
   border-top: 1px solid var(--line-soft);
-  font-size: 0.66rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 .operator-action-proof {
@@ -1016,16 +1003,15 @@
 }
 
 .operator-action-proof dt {
-  color: var(--secondary);
-  font-size: 0.66rem;
+  color: var(--text-supporting);
+  font-size: var(--type-label);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .operator-action-proof dd {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: var(--type-label);
   overflow-wrap: anywhere;
 }
 
@@ -1076,12 +1062,12 @@
   margin: 0;
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 1.25rem;
+  font-size: var(--type-section);
 }
 
 .operator-incident {
-  font-size: 0.66rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   word-break: break-all;
 }
 
@@ -1099,7 +1085,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  font-size: 0.7rem;
+  font-size: var(--type-label);
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--line-soft);
 }
@@ -1122,7 +1108,7 @@
 
 .operator-evidence b {
   display: block;
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   font-weight: 600;
   line-height: 1.35;
 }
@@ -1130,8 +1116,8 @@
 .operator-evidence span {
   display: block;
   margin-top: 2px;
-  font-size: 0.63rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .operator-modes {
@@ -1154,13 +1140,13 @@
   padding: var(--space-2) var(--space-3);
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .operator-mode-id {
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--body);
@@ -1187,7 +1173,7 @@
     order: 2;
     flex: 1 1 0;
     min-width: 100px;
-    font-size: 0.95rem;
+    font-size: var(--type-body);
     padding-block: var(--space-2);
   }
 

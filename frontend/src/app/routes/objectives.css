@@ -1,19 +1,10 @@
 /* Width now comes from the shared .route-pad workspace container. */
 
-.objectives-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-5);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-5);
-}
-
 .objectives-head h1 {
   margin: var(--space-2) 0 0;
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 2.1rem;
+  font-size: var(--type-page);
   letter-spacing: -0.03em;
 }
 
@@ -31,9 +22,9 @@
   border: 0;
   background: transparent;
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   font-weight: 600;
-  color: var(--secondary);
+  color: var(--text-metadata);
   padding: 6px 14px;
   border-radius: var(--radius-xs);
   cursor: pointer;
@@ -58,27 +49,27 @@
 
 .objective-title {
   display: block;
-  font-size: 0.86rem;
+  font-size: var(--type-secondary);
   font-weight: 600;
 }
 
 .objective-id {
   display: block;
   margin-top: 3px;
-  font-size: 0.64rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .objective-observed {
   display: block;
-  font-size: 0.72rem;
+  font-size: var(--type-label);
 }
 
 .objective-updated {
   display: block;
-  margin-top: 3px;
-  font-size: 0.62rem;
-  color: var(--secondary);
+  font-size: var(--type-secondary);
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .objectives-footnote {
@@ -90,7 +81,7 @@
   border-left: 2px solid var(--brass);
   background: var(--surface-elevated);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-size: 0.76rem;
+  font-size: var(--type-label);
   color: var(--body);
 }
 

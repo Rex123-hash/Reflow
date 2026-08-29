@@ -36,17 +36,17 @@ const SETTLED = [
   { at: 0.0336, rail: "Objective protected", kicker: "Objective", beat: "hero" },
   { at: 0.1604, rail: "Disruption and impact", kicker: "Detect", beat: "risk" },
   { at: 0.291, rail: "Recovery futures", kicker: "Plan", beat: "futures" },
-  { at: 0.4104, rail: "Real action", kicker: "Act", beat: "action" },
-  { at: 0.4851, rail: "Independent verification", kicker: "Verify", beat: "action" },
+  { at: 0.4463, rail: "Real action", kicker: "Act", beat: "action" },
+  { at: 0.5149, rail: "Independent verification", kicker: "Verify", beat: "action" },
   {
     at: 0.5896,
     rail: "Recovery incomplete",
     kicker: "Verify · Outcome",
     beat: "incomplete",
   },
-  { at: 0.7015, rail: "Replanning", kicker: "Plan · Attempt 2", beat: "replan" },
-  { at: 0.7593, rail: "New action", kicker: "Act · Attempt 2", beat: "replan" },
-  { at: 0.8116, rail: "Verify again", kicker: "Verify · Attempt 2", beat: "replan" },
+  { at: 0.7146, rail: "Replanning", kicker: "Plan · Attempt 2", beat: "replan" },
+  { at: 0.7649, rail: "New action", kicker: "Act · Attempt 2", beat: "replan" },
+  { at: 0.8172, rail: "Verify again", kicker: "Verify · Attempt 2", beat: "replan" },
   { at: 0.9328, rail: "Restored", kicker: "Outcome", beat: "restored" },
 ];
 
@@ -111,6 +111,59 @@ const PROBE = () => {
     }
   }
 
+  /**
+   * Text over the 3D instrument.
+   *
+   * The class of collision the earlier harness missed entirely: it checked
+   * beat-vs-beat text and text-vs-rail, and never text-vs-orb — which is exactly
+   * how the ACT headline and lede came to sit on the instrument.
+   *
+   * The orb is a WebGL canvas with no DOM box, so the bounds come from the
+   * instrument's own projected silhouette, published as `data-story-orb-rect`.
+   * An earlier version of this check queried a rail element that does not exist in
+   * the story DOM and therefore silently reported zero collisions forever — the
+   * check is validated below against the known-bad pose before being trusted.
+   */
+  let instrumentCollisions = 0;
+  const instrumentHits = [];
+  const raw = document.documentElement.dataset.storyOrbRect;
+  if (raw) {
+    const [ox0, oy0, ox1, oy1] = raw.split(",").map(Number);
+    const orb = { left: ox0, top: oy0, right: ox1, bottom: oy1 };
+    if (orb.right - orb.left > 40 && orb.bottom - orb.top > 20) {
+      for (const beat of live) {
+        for (const node of beat.el.querySelectorAll("h1, h2, h3, p, li, span, b, small")) {
+          if (node.children.length) continue;
+          const text = (node.textContent || "").trim();
+          if (text.length < 12) continue;
+          if (Number(getComputedStyle(node).opacity) < 0.3) continue;
+          // Text sitting on an opaque card is not competing with the render — the
+          // card occludes the orb behind it. Only bare copy laid directly over the
+          // instrument is a legibility defect.
+          let onCard = false;
+          for (let a = node; a && a !== beat.el; a = a.parentElement) {
+            const bg = getComputedStyle(a).backgroundColor;
+            const m = bg.match(/rgba?\(([^)]+)\)/);
+            if (m) {
+              const parts = m[1].split(",").map((v) => parseFloat(v));
+              const alpha = parts.length > 3 ? parts[3] : 1;
+              if (alpha > 0.5) { onCard = true; break; }
+            }
+          }
+          if (onCard) continue;
+          const r = node.getBoundingClientRect();
+          if (r.width < 30 || r.height < 8) continue;
+          const overlapX = Math.min(r.right, orb.right) - Math.max(r.left, orb.left);
+          const overlapY = Math.min(r.bottom, orb.bottom) - Math.max(r.top, orb.top);
+          if (overlapX > 0 && overlapY > 0) {
+            instrumentCollisions += 1;
+            if (instrumentHits.length < 3) instrumentHits.push(text.slice(0, 42));
+          }
+        }
+      }
+    }
+  }
+
   const rail = document.querySelector(".story-progress");
   const railShown = rail && getComputedStyle(rail).display !== "none";
   let railCollisions = 0;
@@ -149,6 +202,8 @@ const PROBE = () => {
     active,
     kicker,
     railShown: Boolean(railShown),
+    instrumentCollisions,
+    instrumentHits,
     overflow:
       document.documentElement.scrollWidth - document.documentElement.clientWidth,
   };
@@ -201,8 +256,9 @@ if (MODE === "rail") {
     console.log(
       `${W} ${frame.padEnd(11)} rail=${r.railShown ? "shown" : "hidden"} ` +
         `active="${r.active ?? "-"}" clipped=${r.clipped} ` +
-        `railHits=${r.railCollisions} textCollisions=${r.textCollisions} ` +
-        `overflow=${r.overflow}px`,
+        `railHits=${r.railCollisions} textCol=${r.textCollisions} ` +
+        `orbCol=${r.instrumentCollisions} overflow=${r.overflow}px` +
+        (r.instrumentHits.length ? ` ${JSON.stringify(r.instrumentHits)}` : ""),
     );
   }
 } else if (MODE === "states") {

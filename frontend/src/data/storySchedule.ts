@@ -84,10 +84,15 @@ const BEATS: readonly BeatTiming[] = [
  * split that happens to be near it.
  */
 export const SUB_BEAT_HANDOVER: Partial<Record<StoryStageId, readonly number[]>> = {
-  // Read-back begins 23 units into a 48-unit beat.
-  action: [0, 23 / 48],
-  // New action at 21, verify again at 36, of 54.
-  replan: [0, 21 / 54, 36 / 54],
+  // Handover is the moment the state's evidence has *landed*, not the moment it
+  // begins arriving. Taking the earlier moment made the rail claim "Independent
+  // verification" for six units before the verified rung existed on the receipt —
+  // the label asserting something the composition had not yet shown.
+  //
+  // ACT: the verified rung finishes at 29 of a 48-unit beat.
+  action: [0, 29 / 48],
+  // REPLAN: the new-action rung lands at 24 and the verify-again rung at 39, of 54.
+  replan: [0, 24 / 54, 39 / 54],
 };
 
 export interface StoryBeatWindow {

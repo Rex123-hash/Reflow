@@ -189,6 +189,18 @@ function InstrumentBody({
     document.documentElement.dataset.storyProjectionMedianMs = sorted[Math.floor(sorted.length * 0.5)].toFixed(3);
     document.documentElement.dataset.storyProjectionP95Ms = sorted[Math.floor(sorted.length * 0.95)].toFixed(3);
     document.documentElement.dataset.storyProjectionHz = moving ? "60" : "30";
+    // The instrument's projected screen box, published alongside the other story
+    // telemetry. The orb is a full-viewport canvas with no DOM geometry of its own,
+    // so without this a QA harness cannot tell whether copy is sitting on top of it
+    // — which is exactly how the ACT headline and lede came to overlap the orb
+    // unnoticed. The silhouette is already computed here every frame; this only
+    // records its bounds.
+    document.documentElement.dataset.storyOrbRect = [
+      minX.toFixed(1),
+      minY.toFixed(1),
+      maxX.toFixed(1),
+      maxY.toFixed(1),
+    ].join(",");
     onProjection({ paths, labels, cinematicBounds });
   });
 

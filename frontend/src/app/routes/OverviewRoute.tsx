@@ -9,6 +9,7 @@ import {
   formatDeadline,
   formatDuration,
   formatObservedAt,
+  formatRelativeTime,
   humanizeEnum,
 } from "../semantics/format";
 import { eventTone } from "../semantics/executionEvents";
@@ -90,7 +91,7 @@ export function OverviewRoute() {
 
   return (
     <div className="route-pad overview">
-      <section className="verdict">
+      <section className="verdict surface-primary">
         <p className="field-label">Current priority</p>
         <div className="verdict-head">
           <h1>{priority.objective_title}</h1>
@@ -177,10 +178,21 @@ export function OverviewRoute() {
                     <span className="mono">
                       {humanizeEnum(event.semantic_type)}
                     </span>
-                    <span>
+                    <span className="activity-attempt">
                       Recovery {String(event.recovery_attempt).padStart(2, "0")}
                     </span>
-                    <time>{formatObservedAt(event.timestamp)}</time>
+                    {/* Recency leads; the exact instant stays on the element, so
+                        nothing is lost and a reader can still see when precisely. */}
+                    <time
+                      className="activity-when"
+                      dateTime={event.timestamp}
+                      title={
+                        formatObservedAt(event.timestamp) ?? event.timestamp
+                      }
+                    >
+                      {formatRelativeTime(event.timestamp) ??
+                        formatObservedAt(event.timestamp)}
+                    </time>
                   </span>
                 </div>
               </li>

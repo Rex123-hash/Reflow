@@ -43,6 +43,34 @@
   --failed-line: rgba(167, 102, 88, 0.34);
   --failed-wash: #f9f0ed;
 
+  /**
+   * Text hierarchy — what deserves contrast.
+   *
+   * The application had one muted token, `--secondary`, doing four different jobs:
+   * section labels, metadata, timestamps and disabled state. It measures 3.41:1 on
+   * `--surface` and 3.13:1 on `--canvas`, below the 4.5:1 WCAG AA threshold for
+   * normal text, and it was used 75 times — most often at 9–11px. That combination,
+   * not the palette, is why important information read as faint.
+   *
+   * Each tier below is a decision about importance, and every tier except the last
+   * clears AA on all three surfaces:
+   *
+   *   primary     16.26:1   values, answers, current state, headings
+   *   secondary    6.07:1   prose and descriptions
+   *   supporting   6.07:1   labels — deliberately the same weight as prose
+   *   metadata     5.26:1   timestamps and identifiers
+   *   muted        3.41:1   genuinely disabled or inactive only
+   *
+   * `--text-metadata` is the one new value. It is a darkened `--secondary` at hue
+   * 140°, inside the frozen palette's own hue family, chosen as the lightest tone
+   * that still passes AA against `--canvas` — the hardest of the three surfaces.
+   */
+  --text-primary: var(--ink);
+  --text-secondary: var(--body);
+  --text-supporting: var(--body);
+  --text-metadata: #646d67;
+  --text-muted: var(--secondary);
+
   /* --- type --- */
   --serif: Georgia, "Times New Roman", serif;
   --sans:
@@ -50,6 +78,22 @@
     "Segoe UI", sans-serif;
   --mono:
     ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /**
+   * Type scale.
+   *
+   * Replaces 47 ad-hoc sizes whose most common values were 10–11px. Seven steps,
+   * and a hard floor: no meaningful application text below `--type-label` (12px).
+   * These are application sizes only — the marketing surface keeps its own
+   * expressive scale in src/styles.css and is deliberately not folded into this.
+   */
+  --type-page: 2rem;
+  --type-section: 1.125rem;
+  --type-body: 0.95rem;
+  --type-secondary: 0.85rem;
+  --type-label: 0.75rem;
+  --type-meta: 0.75rem;
+  --type-mono: 0.75rem;
 
   /* --- density: the application is tighter than the marketing surface --- */
   --space-1: 4px;

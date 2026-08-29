@@ -4,7 +4,11 @@ import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
 import { Icon } from "../components/Icon";
 import { HealthPill, StageChip } from "../components/StatusVocabulary";
 import { useObjectives } from "../data/resources";
-import { formatDeadline, formatObservedAt } from "../semantics/format";
+import {
+  formatDeadline,
+  formatObservedAt,
+  formatRelativeTime,
+} from "../semantics/format";
 import "./objectives.css";
 
 const FILTERS: { id: ObjectiveFilter; label: string }[] = [
@@ -38,13 +42,13 @@ export function ObjectivesRoute() {
 
   return (
     <div className="route-pad objectives">
-      <header className="objectives-head">
+      <header className="page-head objectives-head">
         <div>
           <p className="field-label">Objectives</p>
           <h1>Outcomes Reflow is protecting</h1>
         </div>
         <div
-          className="objectives-filters"
+          className="page-head-aside objectives-filters"
           role="group"
           aria-label="Filter objectives"
         >
@@ -88,7 +92,7 @@ export function ObjectivesRoute() {
                 <th style={{ width: "12%" }}>Health</th>
                 <th style={{ width: "17%" }}>Workflow stage</th>
                 <th style={{ width: "16%" }}>Protected deadline</th>
-                <th style={{ width: "16%" }}>Latest observed state</th>
+                <th style={{ width: "16%" }}>Last observed</th>
                 <th className="numeric" style={{ width: "8%" }} />
               </tr>
             </thead>
@@ -121,14 +125,27 @@ export function ObjectivesRoute() {
                     )}
                   </td>
                   <td>
-                    <span className="objective-observed mono">
-                      {item.latest_observed_state ?? "—"}
-                    </span>
+                    {/* The health pill two columns left already says "Restored".
+                        Repeating the raw enum beside it says the same thing twice
+                        in the default view, so the column leads with when the state
+                        was last observed and keeps the exact enum on the element
+                        for anyone who needs the literal value. */}
                     {item.updated_at ? (
-                      <span className="objective-updated">
-                        {formatObservedAt(item.updated_at)}
+                      <time
+                        className="objective-updated"
+                        dateTime={item.updated_at}
+                        title={`${item.latest_observed_state ?? "—"} · ${
+                          formatObservedAt(item.updated_at) ?? item.updated_at
+                        }`}
+                      >
+                        {formatRelativeTime(item.updated_at) ??
+                          formatObservedAt(item.updated_at)}
+                      </time>
+                    ) : (
+                      <span className="objective-observed mono">
+                        {item.latest_observed_state ?? "—"}
                       </span>
-                    ) : null}
+                    )}
                   </td>
                   <td className="numeric">
                     {item.active_incident_id ? (

@@ -307,7 +307,7 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
         timeline.to("[data-sequence='impact-flow']", { autoAlpha: 1, y: 0, duration: 2.6 }, risk.start + 3);
         [0, 1, 2, 3, 4].forEach((index) => timeline.to(`[data-impact-node='${index}']`, { autoAlpha: 1, y: 0, duration: 2.4 }, risk.start + 3.4 + index * 0.55));
         timeline.to("[data-beat='risk']", { autoAlpha: 0, y: -18, pointerEvents: "none", duration: risk.exit }, risk.exitAt);
-        timeline.to(p, { x: 0, y: conditions.mobile ? 1.5 : conditions.tablet ? 0.5 : 0.45, scale: futureScale, duration: futures.settleAt - risk.exitAt, ease: "sine.inOut" }, risk.exitAt);
+        timeline.to(p, { x: 0, y: conditions.mobile ? 1.5 : conditions.tablet ? 0.5 : 1.05, scale: futureScale, duration: futures.settleAt - risk.exitAt, ease: "sine.inOut" }, risk.exitAt);
 
         // --- PLAN -----------------------------------------------------------
         timeline.addLabel("futures", futures.start);
@@ -320,7 +320,12 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
         // exit, so it lands inside the arrival and holds through the plateau.
         timeline.to("[data-future-card='a'], [data-future-card='c']", { autoAlpha: 0.42, duration: 2 }, futures.start + 5);
         timeline.to("[data-beat='futures']", { autoAlpha: 0, y: -16, pointerEvents: "none", duration: futures.exit }, futures.exitAt);
-        timeline.to(p, { x: xAction, y: conditions.mobile ? 1.55 : 0.55, scale: riskScale * 0.8, duration: action.settleAt - futures.exitAt, ease: "sine.inOut" }, futures.exitAt);
+        // ACT is the one beat where copy and instrument share the left half, and the
+        // orb was sitting under the headline's last line and the whole lede. Higher
+        // `y` seats it lower in frame; a slightly smaller scale keeps its silhouette
+        // clear of the text column so the headline owns the upper-left and the
+        // instrument owns the lower-left quadrant, as the reference composes it.
+        timeline.to(p, { x: xAction, y: conditions.mobile ? 1.55 : 1.28, scale: riskScale * 0.68, duration: action.settleAt - futures.exitAt, ease: "sine.inOut" }, futures.exitAt);
 
         // --- ACT, then VERIFY -------------------------------------------------
         //
@@ -348,7 +353,7 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
         timeline.to("[data-sequence='incomplete-heading']", { autoAlpha: 1, y: 0, duration: 3.4 }, incomplete.start + 0.6);
         timeline.to("[data-sequence='failure-marker']", { autoAlpha: 1, y: 0, duration: 3.4 }, incomplete.start + 2.6);
         timeline.to("[data-beat='incomplete']", { autoAlpha: 0, y: -16, pointerEvents: "none", duration: incomplete.exit }, incomplete.exitAt);
-        timeline.to(p, { x: xReplan, y: conditions.mobile ? 1.5 : 0.35, scale: riskScale * 0.82, alert: 0.05, ringSpread: 1, duration: replan.settleAt - incomplete.exitAt, ease: "sine.inOut" }, incomplete.exitAt);
+        timeline.to(p, { x: xReplan, y: conditions.mobile ? 1.5 : 1.55, scale: riskScale * 0.62, alert: 0.05, ringSpread: 1, duration: replan.settleAt - incomplete.exitAt, ease: "sine.inOut" }, incomplete.exitAt);
 
         // --- REPLANNING, then NEW ACTION, then VERIFY AGAIN -------------------
         //

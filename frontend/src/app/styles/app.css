@@ -53,7 +53,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.125rem;
+  font-size: var(--type-section);
   font-weight: 600;
   letter-spacing: -0.015em;
   color: var(--ink);
@@ -78,7 +78,7 @@
 
 .app-nav-links a {
   position: relative;
-  font-size: 0.96rem;
+  font-size: var(--type-body);
   font-weight: 500;
   color: var(--body);
   text-decoration: none;
@@ -124,7 +124,7 @@
   gap: 7px;
   white-space: nowrap;
   color: var(--body);
-  font-size: 0.72rem;
+  font-size: var(--type-label);
   font-weight: 650;
   letter-spacing: 0.03em;
 }
@@ -149,7 +149,7 @@
   background: transparent;
   color: var(--body);
   font-family: inherit;
-  font-size: 0.76rem;
+  font-size: var(--type-label);
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
@@ -169,7 +169,7 @@
   place-items: center;
   background: var(--forest);
   color: #fffdf9;
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.02em;
   flex: 0 0 auto;
@@ -212,7 +212,7 @@
   }
 
   .app-brand {
-    font-size: 1.02rem;
+    font-size: var(--type-section);
   }
 
   .app-brand img {
@@ -227,7 +227,7 @@
   .app-avatar {
     width: 32px;
     height: 32px;
-    font-size: 0.72rem;
+    font-size: var(--type-label);
   }
 
   .app-nav-rail {
@@ -255,7 +255,7 @@
   }
 
   .app-nav-rail .app-nav-links a {
-    font-size: 0.88rem;
+    font-size: var(--type-secondary);
     display: inline-flex;
     align-items: center;
     height: 100%;
@@ -274,7 +274,7 @@
      mobile header must not drop; it wraps under the brand rather than competing
      with the account controls for the same row. */
   .workspace-mode {
-    font-size: 0.66rem;
+    font-size: var(--type-label);
   }
 }
 
@@ -299,7 +299,7 @@
   }
 
   .app-nav-rail .app-nav-links a {
-    font-size: 0.79rem;
+    font-size: var(--type-label);
   }
 }
 
@@ -367,23 +367,22 @@
 
 .objective-bar-cell dt,
 .field-label {
-  font-size: 0.59rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
+  color: var(--text-supporting);
   font-weight: 700;
   margin: 0;
 }
 
 .objective-bar-cell dd {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   font-weight: 600;
 }
 
 .objective-bar-cell dd.mono {
   font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   font-weight: 500;
 }
 
@@ -399,11 +398,11 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 0.63rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
-  color: var(--secondary);
+  color: var(--text-metadata);
   white-space: nowrap;
 }
 
@@ -425,8 +424,8 @@
 }
 
 .revision-note {
-  font-size: 0.63rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   font-family: var(--mono);
   white-space: nowrap;
 }
@@ -441,7 +440,7 @@
   padding: 0 10px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-size: 0.66rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.07em;
   white-space: nowrap;
@@ -486,7 +485,7 @@
 }
 
 .pill.tone-absent {
-  color: var(--secondary);
+  color: var(--text-metadata);
   background: transparent;
   border-color: var(--line-strong);
   border-style: dashed;
@@ -503,7 +502,7 @@
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--body);
-  font-size: 0.62rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -540,11 +539,38 @@
 
 /* ------------------------------------------------------------- primitives --- */
 
+/**
+ * Surface tiers.
+ *
+ * Every surface used to carry the same border, radius and shadow, so the eye had
+ * no entry point and the screen read as clutter even though each component was
+ * fine on its own. Three deliberate weights instead — and the important one is
+ * allowed to be heavier than the rest.
+ */
+
+/* PANEL — grouped supporting information. The default. */
 .card {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--elev-card);
+}
+
+/* PRIMARY — the current state or verdict. One per screen, at most. */
+.surface-primary {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--elev-raised);
+}
+
+/* BARE — historical or reference material. Separated by rule and space, not by
+   another box competing with the ones that matter. */
+.surface-bare {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .card.is-flat {
@@ -564,9 +590,8 @@
 .section-label {
   margin: 0;
   font-family: var(--sans);
-  font-size: 0.6rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
   color: var(--forest);
   font-weight: 700;
 }
@@ -583,7 +608,7 @@
   background: transparent;
   color: var(--ink);
   font-family: inherit;
-  font-size: 0.79rem;
+  font-size: var(--type-label);
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
@@ -603,7 +628,7 @@
   color: #fffdf9;
   background: var(--forest);
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: var(--type-secondary);
 }
 
 .btn-primary:hover {
@@ -619,7 +644,7 @@
   color: var(--forest);
   min-height: var(--control-sm);
   padding: 0 var(--space-2);
-  font-size: 0.74rem;
+  font-size: var(--type-label);
 }
 
 .btn-ghost:hover {
@@ -632,7 +657,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.71rem;
+  font-size: var(--type-label);
   font-weight: 650;
   color: var(--forest);
   text-decoration: none;
@@ -658,10 +683,9 @@
 
 .data-table thead th {
   text-align: left;
-  font-size: 0.59rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
+  color: var(--text-supporting);
   font-weight: 700;
   padding: var(--space-3) var(--space-4);
   background: var(--surface-elevated);
@@ -671,7 +695,7 @@
 .data-table tbody td {
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--line);
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   vertical-align: top;
 }
 
@@ -691,7 +715,7 @@
 }
 
 .observed-absent {
-  color: var(--secondary);
+  color: var(--text-metadata);
   font-style: italic;
 }
 
@@ -699,8 +723,8 @@
   display: block;
   margin-top: var(--space-1);
   font-family: var(--mono);
-  font-size: 0.63rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   word-break: break-all;
 }
 
@@ -722,7 +746,7 @@
 
 .notice p {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   line-height: 1.55;
   color: var(--body);
 }
@@ -760,7 +784,7 @@
 
 .empty-state p {
   margin: 0;
-  font-size: 0.83rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.6;
 }
@@ -840,4 +864,111 @@
   outline: 2px solid var(--forest);
   outline-offset: 2px;
   border-radius: 3px;
+}
+
+/* ---------------------------------------------------------- page masthead --- */
+
+/**
+ * Every workflow page opens the same way: eyebrow, title and description centred
+ * on the workspace, with the page's own control pinned to the right of that block.
+ *
+ * The routes each had their own `space-between` header, so the title sat hard left
+ * on one page and beside a filter group on another. Centring the masthead — and
+ * only the masthead — gives the application a consistent entrance while every
+ * table, card and value beneath it stays left-aligned and scannable.
+ */
+.page-head {
+  position: relative;
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.page-head h1 {
+  margin: var(--space-2) 0 var(--space-3);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--type-page);
+  letter-spacing: -0.03em;
+}
+
+.page-head > p:not(.field-label) {
+  margin: 0 auto;
+  max-width: 72ch;
+  font-size: var(--type-secondary);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+/* The page's own control keeps the masthead's geometry rather than pushing the
+   title off-axis. */
+.page-head-aside {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .page-head-aside {
+    position: static;
+    margin-top: var(--space-4);
+    display: flex;
+    justify-content: center;
+  }
+}
+
+/* ------------------------------------------------------------- motion ------ */
+
+/**
+ * Three motion primitives, and nothing else.
+ *
+ * Each encodes something true: that a surface has just arrived, that the system is
+ * working right now, or that a state carries a live external read. Nothing here
+ * animates on a timer for atmosphere, and every one of them stops under
+ * `prefers-reduced-motion`.
+ */
+@keyframes surface-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Arrival: the verdict and the primary surface settle in once, on mount. */
+.surface-primary {
+  animation: surface-enter 380ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Working: a slow breath on a live indicator, only while something is genuinely
+   in flight or freshly read. */
+@keyframes state-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.86);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.workspace-mode.is-live i {
+  animation: state-breathe 3.2s ease-in-out infinite;
+}
+
+.provenance.is-live i {
+  animation: state-breathe 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface-primary,
+  .workspace-mode.is-live i,
+  .provenance.is-live i {
+    animation: none;
+  }
 }

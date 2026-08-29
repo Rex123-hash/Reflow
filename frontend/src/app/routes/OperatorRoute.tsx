@@ -75,7 +75,7 @@ export function OperatorRoute() {
 
   return (
     <div className="route-pad operator">
-      <header className="operator-head">
+      <header className="page-head operator-head">
         <div>
           <p className="field-label">Operator</p>
           <h1>Ask Reflow</h1>

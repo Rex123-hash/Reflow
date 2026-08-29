@@ -102,7 +102,7 @@ export function EvidenceRoute() {
 
   return (
     <div className="route-pad evidence-page">
-      <header className="evidence-head">
+      <header className="page-head evidence-head">
         <div>
           <p className="field-label">Evidence</p>
           <h1>Complete audit history</h1>

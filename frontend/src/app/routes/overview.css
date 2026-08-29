@@ -3,9 +3,21 @@
   container-type: inline-size;
 }
 
+/**
+ * The verdict is the dominant surface on the first screen.
+ *
+ * It carried the single most important fact in the product — the state of the
+ * protected objective — as bare text, while the panels beneath it had full card
+ * treatment. The most important thing had the least visual weight.
+ */
 .verdict {
-  padding: var(--space-6) var(--space-6) var(--space-6) 0;
-  max-width: 860px;
+  padding: var(--space-6);
+  margin-bottom: var(--space-5);
+  max-width: none;
+}
+
+.verdict .verdict-summary {
+  max-width: 62ch;
 }
 
 .verdict-head {
@@ -27,7 +39,7 @@
 
 .verdict-summary {
   margin: 0 0 var(--space-5);
-  font-size: 1rem;
+  font-size: var(--type-body);
   color: var(--body);
   line-height: 1.6;
   max-width: 58ch;
@@ -44,17 +56,16 @@
 }
 
 .verdict-facts dt {
-  font-size: 0.59rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
+  color: var(--text-supporting);
   font-weight: 700;
   margin-bottom: var(--space-1);
 }
 
 .verdict-facts dd {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--type-secondary);
   font-weight: 600;
 }
 
@@ -112,7 +123,7 @@
 
 .activity-item p {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--type-secondary);
   line-height: 1.45;
 }
 
@@ -122,14 +133,14 @@
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-1);
-  font-size: 0.63rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .activity-empty {
   padding: var(--space-4);
-  font-size: 0.78rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .overview-counts dl {
@@ -151,14 +162,14 @@
 }
 
 .overview-counts dt {
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   color: var(--body);
 }
 
 .overview-counts dd {
   margin: 0;
   font-family: var(--mono);
-  font-size: 1.05rem;
+  font-size: var(--type-section);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -167,4 +178,15 @@
   .overview-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* The recovery attempt repeats on every row in a view already scoped to one
+   incident. It stays available and stops competing. */
+.activity-attempt {
+  color: var(--text-muted);
+}
+
+.activity-when {
+  color: var(--text-metadata);
+  font-weight: 600;
 }

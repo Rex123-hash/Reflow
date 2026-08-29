@@ -35,8 +35,8 @@
 }
 
 .spine-count {
-  font-size: 0.63rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .spine-scroll {
@@ -60,18 +60,18 @@
 
 .spine-attempt-head h3 {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: var(--type-label);
   font-weight: 700;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--text-supporting);
 }
 
 .spine-attempt-status {
-  font-size: 0.6rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 .spine-attempt-status.is-failed {
@@ -150,10 +150,17 @@
   background: var(--failure);
 }
 
+/* The current stage was marked in brass alone — the second-lowest-contrast value
+   in the palette carrying the one thing a reader most needs to find. Forest fill
+   plus a wider ring gives it colour, weight and shape; the brass halo stays as the
+   accent it always was. */
 .spine-marker.is-current {
-  border-color: var(--brass);
-  background: var(--brass);
-  box-shadow: 0 0 0 3.5px rgba(184, 154, 100, 0.24);
+  border-color: var(--forest);
+  background: var(--forest);
+  box-shadow:
+    0 0 0 3px rgba(255, 253, 248, 1),
+    0 0 0 5.5px rgba(29, 76, 57, 0.28),
+    0 0 0 8px rgba(184, 154, 100, 0.22);
 }
 
 .spine-marker.is-pending,
@@ -184,7 +191,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
-  font-size: 0.79rem;
+  font-size: var(--type-label);
   font-weight: 600;
   line-height: 1.25;
   color: var(--ink);
@@ -193,22 +200,22 @@
 .spine-clock {
   font-style: normal;
   font-family: var(--mono);
-  font-size: 0.6rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   font-variant-numeric: tabular-nums;
   flex: 0 0 auto;
 }
 
 .spine-stage.is-pending .spine-title,
 .spine-stage.is-unavailable .spine-title {
-  color: var(--secondary);
+  color: var(--text-metadata);
   font-weight: 500;
 }
 
 .spine-subtitle {
   display: block;
   margin-top: var(--space-1);
-  font-size: 0.68rem;
+  font-size: var(--type-label);
   color: var(--body);
   line-height: 1.45;
 }
@@ -216,7 +223,7 @@
 .spine-failure {
   display: block;
   margin-top: 5px;
-  font-size: 0.66rem;
+  font-size: var(--type-label);
   font-weight: 600;
   color: var(--failed-ink);
 }
@@ -243,7 +250,7 @@
   border-left: 2px solid var(--failure);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: var(--failed-wash);
-  font-size: 0.68rem;
+  font-size: var(--type-label);
   line-height: 1.5;
   color: var(--body);
 }
@@ -251,9 +258,8 @@
 .spine-branch-reason span {
   display: block;
   margin-bottom: 3px;
-  font-size: 0.57rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
   font-weight: 700;
   color: var(--failed-ink);
 }
@@ -322,9 +328,9 @@
   border: 0;
   border-bottom: 2px solid transparent;
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   font-weight: 600;
-  color: var(--secondary);
+  color: var(--text-metadata);
   padding: 0 var(--space-4);
   cursor: pointer;
 }
@@ -341,11 +347,10 @@
 .lens-scope {
   margin-left: auto;
   align-self: center;
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
   font-weight: 700;
-  color: var(--secondary);
+  color: var(--text-supporting);
   white-space: nowrap;
 }
 
@@ -393,15 +398,15 @@
 
 .lens-prose {
   margin: 0 0 var(--space-5);
-  font-size: 0.85rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.62;
   max-width: 66ch;
 }
 
 .lens-empty {
-  font-size: 0.82rem;
-  color: var(--secondary);
+  font-size: var(--type-secondary);
+  color: var(--text-metadata);
 }
 
 .summary-branch {
@@ -423,7 +428,7 @@
 
 .summary-branch p {
   margin: var(--space-1) 0 0;
-  font-size: 0.83rem;
+  font-size: var(--type-secondary);
   line-height: 1.55;
   color: var(--body);
 }
@@ -445,7 +450,7 @@
   border-radius: 999px;
   background: var(--surface);
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   font-weight: 600;
   color: var(--forest);
   cursor: pointer;
@@ -461,8 +466,8 @@
 }
 
 .card-head-note {
-  font-size: 0.62rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .what-changed-band {
@@ -484,17 +489,17 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  font-size: 0.72rem;
+  font-size: var(--type-label);
   min-width: 0;
 }
 
 .what-changed-value i {
   font-style: normal;
   font-family: var(--sans);
-  font-size: 0.55rem;
+  font-size: var(--type-label);
   letter-spacing: 0.1em;
   font-weight: 700;
-  color: var(--secondary);
+  color: var(--text-metadata);
   flex: 0 0 auto;
   width: 22px;
 }
@@ -518,7 +523,7 @@
 .what-changed-prose {
   margin: 0;
   padding: var(--space-3) var(--space-4);
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   color: var(--body);
   line-height: 1.55;
 }
@@ -535,7 +540,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   font-weight: 600;
   color: var(--forest);
   cursor: pointer;
@@ -569,7 +574,7 @@
 
 .eo-half p {
   margin: var(--space-2) 0 0;
-  font-size: 1.02rem;
+  font-size: var(--type-section);
   line-height: 1.32;
   font-weight: 500;
   word-break: break-word;
@@ -578,8 +583,8 @@
 .eo-note {
   display: block;
   margin-top: var(--space-2);
-  font-size: 0.68rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   line-height: 1.45;
 }
 
@@ -598,7 +603,7 @@
   background: var(--surface-elevated);
   border-left: 1px solid var(--line);
   border-right: 1px solid var(--line);
-  font-size: 0.55rem;
+  font-size: var(--type-label);
   letter-spacing: 0.13em;
   font-weight: 700;
   color: #a9b0aa;
@@ -629,7 +634,7 @@
 }
 
 .contradiction-action-name {
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   font-weight: 600;
   margin-right: auto;
 }
@@ -638,7 +643,7 @@
   margin: 0;
   align-self: center;
   font-family: var(--serif);
-  font-size: 0.98rem;
+  font-size: var(--type-body);
   line-height: 1.45;
   color: var(--ink);
 }
@@ -657,7 +662,7 @@
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
-  font-size: 0.74rem;
+  font-size: var(--type-label);
   margin-right: auto;
 }
 
@@ -669,7 +674,7 @@
 
 .invariant-empty p {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.55;
 }
@@ -680,7 +685,7 @@
   align-items: baseline;
   gap: var(--space-2);
   margin: var(--space-3) 0 0;
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   color: var(--body);
   line-height: 1.6;
 }
@@ -713,7 +718,7 @@
 .receipt-head b {
   display: block;
   margin-top: 2px;
-  font-size: 0.8rem;
+  font-size: var(--type-secondary);
   font-weight: 600;
 }
 
@@ -724,7 +729,7 @@
 
 .receipt-intent p {
   margin: var(--space-1) 0 0;
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   line-height: 1.5;
 }
 
@@ -755,44 +760,44 @@
   place-items: center;
   background: var(--forest);
   color: #fffdf9;
-  font-size: 0.62rem;
+  font-size: var(--type-label);
   font-weight: 700;
 }
 
 .receipt-rungs li.is-open .receipt-rung-index {
   background: transparent;
-  color: var(--secondary);
+  color: var(--text-metadata);
   border: 1px dashed var(--line-strong);
 }
 
 .receipt-rung-body strong {
   display: block;
-  font-size: 0.6rem;
+  font-size: var(--type-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 700;
 }
 
 .receipt-rungs li.is-open .receipt-rung-body strong {
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 .receipt-rung-value {
   display: block;
   margin-top: 3px;
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: var(--type-label);
   color: var(--body);
   word-break: break-all;
 }
 
 .receipt-rungs li.is-open .receipt-rung-value {
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 .receipt-rung-clock {
-  font-size: 0.62rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -852,7 +857,7 @@
   margin: 0;
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 1.08rem;
+  font-size: var(--type-section);
 }
 
 .plan-card-verdict {
@@ -862,22 +867,22 @@
 }
 
 .plan-card-notselected {
-  font-size: 0.63rem;
+  font-size: var(--type-label);
   letter-spacing: 0.09em;
   text-transform: uppercase;
   font-weight: 700;
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 .plan-risk {
-  font-size: 0.68rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   white-space: nowrap;
 }
 
 .plan-risk b {
   color: var(--ink);
-  font-size: 0.86rem;
+  font-size: var(--type-secondary);
   margin-left: 3px;
 }
 
@@ -886,7 +891,7 @@
   align-items: center;
   gap: 6px;
   margin: 0 0 var(--space-3);
-  font-size: 0.68rem;
+  font-size: var(--type-label);
   color: var(--body);
 }
 
@@ -897,7 +902,7 @@
 }
 
 .plan-critic {
-  font-size: 0.75rem;
+  font-size: var(--type-label);
   color: var(--body);
   line-height: 1.5;
 }
@@ -919,7 +924,7 @@
 }
 
 .plan-steps li {
-  font-size: 0.68rem;
+  font-size: var(--type-label);
   color: var(--body);
   padding: 3px 7px;
   border: 1px solid var(--line);
@@ -929,7 +934,7 @@
 }
 
 .plan-assumptions li {
-  font-size: 0.71rem;
+  font-size: var(--type-label);
   color: var(--body);
   line-height: 1.45;
   padding-left: var(--space-3);
@@ -955,8 +960,8 @@
   flex-wrap: wrap;
   padding-top: var(--space-3);
   border-top: 1px solid var(--line-soft);
-  font-size: 0.68rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .plan-policy-verdict {
@@ -980,19 +985,19 @@
 }
 
 .plan-violations li {
-  font-size: 0.7rem;
+  font-size: var(--type-label);
   color: var(--failed-ink);
   line-height: 1.45;
 }
 
 .plan-violations b {
   display: block;
-  font-size: 0.65rem;
+  font-size: var(--type-label);
 }
 
 .plan-rejection {
   margin: var(--space-3) 0 0;
-  font-size: 0.72rem;
+  font-size: var(--type-label);
   color: var(--failed-ink);
   line-height: 1.5;
 }
@@ -1008,8 +1013,8 @@
   display: flex;
   gap: var(--space-5);
   margin-bottom: var(--space-4);
-  font-size: 0.7rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .world-legend b {
@@ -1096,7 +1101,7 @@
 
 .world-node-body b {
   display: block;
-  font-size: 0.68rem;
+  font-size: var(--type-label);
   font-weight: 600;
   line-height: 1.25;
 }
@@ -1104,16 +1109,15 @@
 .world-node-body small {
   display: block;
   margin-top: 2px;
-  font-size: 0.57rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
+  color: var(--text-supporting);
   font-weight: 700;
 }
 
 .world-empty {
-  font-size: 0.8rem;
-  color: var(--secondary);
+  font-size: var(--type-secondary);
+  color: var(--text-metadata);
 }
 
 /* -------------------------------------------------------------------- rail --- */
@@ -1138,8 +1142,8 @@
 }
 
 .rail-scope {
-  font-size: 0.62rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1162,7 +1166,7 @@
   padding: var(--space-3);
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius-sm);
-  color: var(--secondary);
+  color: var(--text-metadata);
 }
 
 .rail-note svg {
@@ -1172,7 +1176,7 @@
 
 .rail-note p {
   margin: 0;
-  font-size: 0.68rem;
+  font-size: var(--type-label);
   line-height: 1.5;
 }
 
@@ -1183,10 +1187,10 @@
 }
 
 .rail-unresolved > summary {
-  font-size: 0.66rem;
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--secondary);
+  color: var(--text-metadata);
   cursor: pointer;
 }
 
@@ -1199,15 +1203,15 @@
 }
 
 .rail-unresolved li {
-  font-size: 0.6rem;
+  font-size: var(--type-label);
   color: var(--body);
   word-break: break-all;
 }
 
 .rail-unresolved p {
   margin: 0;
-  font-size: 0.64rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   line-height: 1.5;
 }
 
@@ -1217,8 +1221,8 @@
 }
 
 .rail-empty {
-  font-size: 0.7rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   line-height: 1.55;
 }
 
@@ -1273,13 +1277,13 @@
 }
 
 .console-toggle b {
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   font-weight: 600;
 }
 
 .console-count {
-  font-size: 0.72rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   margin-right: auto;
 }
 
@@ -1296,9 +1300,9 @@
   border: 0;
   background: transparent;
   font-family: inherit;
-  font-size: 0.7rem;
+  font-size: var(--type-label);
   font-weight: 600;
-  color: var(--secondary);
+  color: var(--text-metadata);
   padding: 5px 11px;
   cursor: pointer;
 }
@@ -1318,8 +1322,8 @@
 
 .console-mode-note {
   margin: var(--space-3) 0;
-  font-size: 0.7rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   line-height: 1.55;
   max-width: 92ch;
 }
@@ -1338,10 +1342,9 @@
   align-items: center;
   gap: var(--space-2);
   margin: 0 0 var(--space-2);
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
+  color: var(--text-supporting);
   font-weight: 700;
 }
 
@@ -1371,8 +1374,8 @@
 }
 
 .console-seq {
-  font-size: 0.62rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   width: 24px;
   text-align: right;
   padding-top: 2px;
@@ -1401,7 +1404,7 @@
 
 .console-event-body p {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: var(--type-label);
   line-height: 1.4;
 }
 
@@ -1410,8 +1413,8 @@
   align-items: center;
   gap: var(--space-2);
   margin-top: 3px;
-  font-size: 0.6rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 .console-event-meta time {
@@ -1428,13 +1431,13 @@
   margin: var(--space-2) 0 var(--space-2);
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 2rem;
+  font-size: var(--type-page);
   letter-spacing: -0.026em;
 }
 
 .picker-lede {
   margin: 0 0 var(--space-5);
-  font-size: 0.85rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.6;
   max-width: 62ch;
@@ -1459,7 +1462,7 @@
 
 .picker-priority-body p {
   margin: 0 0 var(--space-4);
-  font-size: 0.83rem;
+  font-size: var(--type-secondary);
   color: var(--body);
   line-height: 1.55;
 }
@@ -1472,17 +1475,16 @@
 }
 
 .picker-facts dt {
-  font-size: 0.59rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  letter-spacing: 0.01em;
+  color: var(--text-supporting);
   font-weight: 700;
   margin-bottom: var(--space-1);
 }
 
 .picker-facts dd {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--type-label);
   font-weight: 600;
 }
 
@@ -1515,12 +1517,12 @@
 
 .picker-list li b {
   display: block;
-  font-size: 0.83rem;
+  font-size: var(--type-secondary);
 }
 
 .picker-list li span {
-  font-size: 0.66rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
 }
 
 /* -------------------------------------------------------------- responsive --- */

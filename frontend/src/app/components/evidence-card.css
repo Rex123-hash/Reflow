@@ -43,17 +43,17 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.58rem;
+  font-size: var(--type-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--secondary);
+  color: var(--text-metadata);
   font-weight: 700;
 }
 
 .evidence-card-identity b {
   display: block;
   margin-top: var(--space-1);
-  font-size: 0.81rem;
+  font-size: var(--type-secondary);
   font-weight: 600;
   line-height: 1.32;
 }
@@ -61,13 +61,13 @@
 .evidence-card.is-proof .evidence-card-identity b {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 1.12rem;
+  font-size: var(--type-section);
   letter-spacing: -0.01em;
 }
 
 .evidence-card-summary {
   margin: 0;
-  font-size: 0.74rem;
+  font-size: var(--type-label);
   color: var(--body);
   line-height: 1.5;
 }
@@ -83,8 +83,8 @@
 }
 
 .evidence-card > footer time {
-  font-size: 0.64rem;
-  color: var(--secondary);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
   font-variant-numeric: tabular-nums;
 }
 
@@ -98,11 +98,10 @@
 
 .evidence-proof dt {
   padding: 8px var(--space-2) 8px var(--space-4);
-  font-size: 0.58rem;
+  font-size: var(--type-label);
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   font-weight: 700;
-  color: var(--secondary);
+  color: var(--text-supporting);
   background: var(--surface-elevated);
   border-bottom: 1px solid var(--line-soft);
 }
@@ -111,7 +110,7 @@
   margin: 0;
   padding: 8px var(--space-4) 8px var(--space-3);
   font-family: var(--mono);
-  font-size: 0.7rem;
+  font-size: var(--type-label);
   line-height: 1.45;
   word-break: break-all;
   border-bottom: 1px solid var(--line-soft);

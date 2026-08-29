@@ -68,6 +68,43 @@ export function formatObservedAt(
   }
 }
 
+/**
+ * `2026-08-27T19:08:54Z` → `4 min ago`, `2 hours ago`, `Yesterday`.
+ *
+ * Recency, not precision. The application had no sense of "now": every timestamp
+ * was an absolute UTC string of identical weight, so a state that changed a minute
+ * ago and one that resolved last week read the same. That is most of why a product
+ * whose entire claim is "it acted while you were away" presented as an archive.
+ *
+ * This never replaces the exact value — callers keep it in the `dateTime` and
+ * `title` of the same element, and evidence surfaces, where precision is the
+ * point, go on leading with the absolute time.
+ *
+ * `now` is injectable so the formatting is testable without freezing the clock.
+ */
+export function formatRelativeTime(
+  iso: string | null | undefined,
+  now: Date = new Date(),
+): string | null {
+  const date = safeDate(iso);
+  if (!date) return null;
+  const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
+  // A clock skew or a genuinely future timestamp must not render as "-3 min ago".
+  if (seconds < 0) return "Just now";
+  if (seconds < 45) return "Just now";
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.round(days / 30);
+  if (months < 12) return `${months} ${months === 1 ? "month" : "months"} ago`;
+  const years = Math.round(months / 12);
+  return `${years} ${years === 1 ? "year" : "years"} ago`;
+}
+
 /** Clock component only, for dense tables: `13:01:19`. */
 export function formatClock(
   iso: string | null | undefined,
