@@ -86,7 +86,7 @@ export interface LiveSocketHandlers {
     name: string;
     args: Record<string, unknown>;
   }): void;
-  onClose?(reason: { clean: boolean; code: number }): void;
+  onClose?(reason: { clean: boolean; code: number; reason: string }): void;
   onError?(cause: unknown): void;
 }
 
@@ -154,7 +154,11 @@ function open(
   socket.onclose = (event) => {
     closed = true;
     ready = false;
-    handlers.onClose?.({ clean: event.wasClean, code: event.code });
+    handlers.onClose?.({
+      clean: event.wasClean,
+      code: event.code,
+      reason: event.reason.slice(0, 240),
+    });
   };
 
   return {

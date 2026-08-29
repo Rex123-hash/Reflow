@@ -489,6 +489,7 @@ describe("the voice boundary", () => {
       "google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained",
     );
     expect(live).not.toContain("v1alpha.GenerativeService.BidiGenerateContent");
+    expect(live).toContain("reason: event.reason.slice(0, 240)");
   });
 
   it("never names a model, a tool or a permanent credential in the browser", () => {

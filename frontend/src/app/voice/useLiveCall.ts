@@ -232,8 +232,14 @@ export function useLiveCall(incidentId: string, reducedMotion: boolean) {
           onToolCall: (call) => {
             if (call.name === OPERATOR_HANDOFF_TOOL) void runHandoff(call);
           },
-          onClose: () => {
-            if (!disposed && !ended.current) setBase("DISCONNECTED");
+          onClose: ({ clean, code, reason }) => {
+            if (!disposed && !ended.current) {
+              setBase("DISCONNECTED");
+              if (!clean || code !== 1000) {
+                const detail = reason ? `: ${reason}` : "";
+                setError(`Google Live closed the session (${code}${detail}).`);
+              }
+            }
           },
           onError: () => {
             if (!disposed && !ended.current)
