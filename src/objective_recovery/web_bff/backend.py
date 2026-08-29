@@ -11,6 +11,11 @@ import requests
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 
+_VOICE_SESSION_PATHS = {
+    "TRANSCRIPTION": "/api/v1/voice/transcription/session",
+    "LIVE_CALL": "/api/v1/voice/live/session",
+}
+
 
 @dataclass(frozen=True)
 class BackendResponse:
@@ -80,6 +85,30 @@ class GoogleIdentityBackendGateway:
                 "X-Reflow-Operator-Role": role,
             },
             timeout=(3.05, 85),
+            allow_redirects=False,
+        )
+        return BackendResponse(response.status_code, response.content, response.headers)
+
+    def create_voice_session(
+        self, capability: str, payload: bytes, subject: str, request_id: str
+    ) -> BackendResponse:
+        """Two fixed paths that mint a constrained voice credential and nothing else."""
+        path = _VOICE_SESSION_PATHS.get(capability)
+        if path is None:
+            raise ValueError("Unknown voice capability")
+        audience_token = id_token.fetch_id_token(  # type: ignore[no-untyped-call]
+            self._auth_request, self._base_url
+        )
+        response = self._session.post(
+            f"{self._base_url}{path}",
+            data=payload,
+            headers={
+                "Authorization": f"Bearer {audience_token}",
+                "Content-Type": "application/json",
+                "X-Reflow-Operator-Subject": subject,
+                "X-Reflow-Request-Id": request_id,
+            },
+            timeout=(3.05, 20),
             allow_redirects=False,
         )
         return BackendResponse(response.status_code, response.content, response.headers)

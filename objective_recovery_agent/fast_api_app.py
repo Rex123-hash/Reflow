@@ -73,6 +73,7 @@ from objective_recovery_agent.ui_schemas import (
     RecoveryCaseView,
 )
 from objective_recovery_agent.ui_store import FirestorePresentationStore
+from objective_recovery_agent.voice_api import router as voice_router
 
 if os.getenv("K_SERVICE"):
     from objective_recovery_agent.app_utils.telemetry import setup_telemetry
@@ -87,6 +88,7 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 app.include_router(operator_router)
+app.include_router(voice_router)
 
 
 @lru_cache(maxsize=1)

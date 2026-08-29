@@ -31,7 +31,7 @@ class OperatorBackendGateway(Protocol):
     ) -> BackendResponse: ...
 
 
-def _role(principal: SessionPrincipal) -> str:
+def subject_role(principal: SessionPrincipal) -> str:
     allowed = {
         item.strip().casefold()
         for item in os.environ.get("OPERATOR_ALLOWED_SUBJECT_HASHES", "").split(",")
@@ -69,7 +69,7 @@ def register_operator_route(
             raise HTTPException(400, "Invalid bounded Operator request.") from error
         subject = hashlib.sha256(principal.uid.encode()).hexdigest()
         request_id = str(uuid.uuid4())
-        role = _role(principal)
+        role = subject_role(principal)
         try:
             result = await run_in_threadpool(
                 cast(OperatorBackendGateway, backend).query_operator,
@@ -111,7 +111,7 @@ def register_operator_route(
         principal: Annotated[SessionPrincipal, Depends(require_principal)],
         _: Annotated[None, Depends(require_allowed_origin)],
     ) -> Response:
-        if principal.mode != "live" or _role(principal) != "OPERATOR":
+        if principal.mode != "live" or subject_role(principal) != "OPERATOR":
             raise HTTPException(403, "Operator approval permission required.")
         if not re.fullmatch(r"[a-f0-9]{64}", action_id):
             raise HTTPException(404, "Operator action unavailable.")
