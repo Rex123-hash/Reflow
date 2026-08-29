@@ -54,6 +54,7 @@ from objective_recovery_agent.voice_sessions import (
     VoiceSettings,
     VoiceUnavailableError,
     declared_tool_behaviors,
+    developer_api_client,
     live_call_constraints,
     live_configuration_names,
     transcription_constraints,
@@ -600,6 +601,14 @@ def test_a_credential_failure_is_a_category_and_carries_no_cause_text() -> None:
 # --------------------------------------------------------------------------------------
 # 7. The Live layer holds no direct business tool.
 # --------------------------------------------------------------------------------------
+
+
+def test_the_token_client_ignores_the_ambient_vertex_configuration(monkeypatch: Any) -> None:
+    # The backend runs with GOOGLE_GENAI_USE_VERTEXAI=true for the eight reasoning agents.
+    # The SDK reads that variable whenever vertexai is left unset, and a Vertex-mode client
+    # refuses to mint an auth token, so voice must pin the Developer API explicitly.
+    monkeypatch.setenv("GOOGLE_GENAI_USE_VERTEXAI", "true")
+    assert developer_api_client(settings()).vertexai is False
 
 
 def test_the_live_session_holds_exactly_one_handoff_capability() -> None:

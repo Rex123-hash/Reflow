@@ -209,16 +209,27 @@ def live_call_constraints(settings: VoiceSettings) -> types.LiveConnectConstrain
 TokenFactory = Callable[[types.CreateAuthTokenConfig], types.AuthToken]
 
 
+def developer_api_client(settings: VoiceSettings) -> Any:
+    """The token client, pinned to the Developer API regardless of ambient configuration.
+
+    `vertexai=False` is explicit and load-bearing. The backend runs with
+    GOOGLE_GENAI_USE_VERTEXAI=true so the eight reasoning agents reach Vertex, and the
+    SDK reads that variable whenever `vertexai` is left unset. Inheriting it here puts
+    the client in Vertex mode, where minting an auth token is refused outright.
+    """
+    from google import genai
+
+    return genai.Client(
+        api_key=settings.api_key,
+        vertexai=False,
+        # Ephemeral tokens are served by the Gemini Developer API on v1alpha only.
+        http_options=types.HttpOptions(api_version="v1alpha"),
+    )
+
+
 def _default_token_factory(settings: VoiceSettings) -> TokenFactory:
     def create(config: types.CreateAuthTokenConfig) -> types.AuthToken:
-        from google import genai
-
-        client = genai.Client(
-            api_key=settings.api_key,
-            # Ephemeral tokens are served by the Gemini Developer API on v1alpha only.
-            http_options=types.HttpOptions(api_version="v1alpha"),
-        )
-        return client.auth_tokens.create(config=config)
+        return developer_api_client(settings).auth_tokens.create(config=config)
 
     return create
 
