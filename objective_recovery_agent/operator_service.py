@@ -53,6 +53,11 @@ class ReasoningAgents(Protocol):
     ) -> tuple[SimulationResult, OperatorAgentTrace]: ...
 
 
+def _finish_sentence(value: object) -> str:
+    text = str(value or "none observed")
+    return text if text.endswith((".", "!", "?")) else f"{text}."
+
+
 def _replay_conversation(query: OperatorQuery, action: OperatorActionView) -> ConversationEnvelope:
     operation = action.operations[0].operation if action.operations else ""
     capability: ConversationCapability = (
@@ -376,6 +381,7 @@ class OperatorService:
                     except OperatorAdapterError as error:
                         raise OperatorReasoningError("Slack inspection unavailable") from error
                     state = inspection.observed_state
+                    latest_message = _finish_sentence(state.get("latest_reflow_message_text"))
                     evidence_ids = set()
                     facts = (
                         OperatorFact(
@@ -384,7 +390,7 @@ class OperatorService:
                                 f"Configured public Slack channel #{state.get('channel_name')} "
                                 f"({state.get('channel_id')}); bot membership confirmed. "
                                 "Latest Reflow-bot message in the bounded 15-message window: "
-                                f"{state.get('latest_reflow_message_text') or 'none observed'}."
+                                f"{latest_message}"
                             ),
                             evidence_ids=(),
                         ),

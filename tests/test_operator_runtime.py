@@ -24,7 +24,11 @@ from objective_recovery_agent.operator_schemas import (
     SimulationInput,
     SimulationResult,
 )
-from objective_recovery_agent.operator_service import OperatorService, validate_intent
+from objective_recovery_agent.operator_service import (
+    OperatorService,
+    _finish_sentence,
+    validate_intent,
+)
 from objective_recovery_agent.planning import MODEL_ID, WorkflowResult
 from objective_recovery_agent.ui_schemas import ExecutionEventsView, RecoveryCaseView
 from pydantic import ValidationError
@@ -32,6 +36,12 @@ from pydantic import ValidationError
 ROOT = Path(__file__).parents[1]
 INCIDENT = "incident-0fc3af5b0bd1ad847aea"
 REQUEST = "12345678-1234-1234-1234-123456789abc"
+
+
+def test_slack_human_summary_does_not_duplicate_terminal_punctuation() -> None:
+    message = "Backend engineer unavailable. SCRUM-6 is blocked."
+    assert _finish_sentence(message) == message
+    assert _finish_sentence("No message observed") == "No message observed."
 
 
 def snapshot() -> OperatorSnapshot:
