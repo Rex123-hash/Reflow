@@ -23,6 +23,7 @@ from typing import Any
 from google.genai import types
 
 from objective_recovery_agent.observability import emit_operational_event
+from objective_recovery_agent.operator_context import safe_text
 from objective_recovery_agent.voice_schemas import (
     APPROVED_LIVE_MODELS,
     APPROVED_TRANSCRIPTION_MODELS,
@@ -227,6 +228,19 @@ def developer_api_client(settings: VoiceSettings) -> Any:
     )
 
 
+def _credential_mode(settings: VoiceSettings) -> dict[str, Any]:
+    """How the SDK resolved the credential. Booleans and a host only, never a value."""
+    try:
+        api = developer_api_client(settings)._api_client
+        return {
+            "client_vertexai": bool(api.vertexai),
+            "client_has_api_key": bool(api.api_key),
+            "client_base_url": str(api._http_options.base_url),
+        }
+    except Exception as error:  # the probe must never mask the original failure
+        return {"client_probe_error": type(error).__name__}
+
+
 def _default_token_factory(settings: VoiceSettings) -> TokenFactory:
     def create(config: types.CreateAuthTokenConfig) -> types.AuthToken:
         return developer_api_client(settings).auth_tokens.create(config=config)
@@ -279,6 +293,10 @@ class VoiceSessionIssuer:
                 model=constraints.model,
                 error_type=type(error).__name__,
                 status_code=getattr(error, "code", None),
+                # safe_text is the same redaction the Operator path applies to provider
+                # prose; a credential-shaped substring cannot survive it.
+                error_detail=safe_text(str(error), 200),
+                **_credential_mode(self._settings),
             )
             raise VoiceCredentialError(type(error).__name__) from error
         name = getattr(token, "name", None)
