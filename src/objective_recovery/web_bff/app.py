@@ -96,6 +96,7 @@ def create_app(
     demo: DemoStore,
     *,
     clock: Callable[[], float] = time.time,
+    voice_backend: BackendGateway | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Reflow Web Access BFF",
@@ -394,17 +395,25 @@ def create_app(
         )
 
     register_operator_route(app, backend, require_principal, require_allowed_origin)
-    register_voice_routes(app, backend, require_principal, require_allowed_origin)
+    register_voice_routes(
+        app, voice_backend or backend, backend, require_principal, require_allowed_origin
+    )
     return app
 
 
 def _production_app() -> FastAPI:
     settings = BffSettings.from_environment()
+    backend = GoogleIdentityBackendGateway(settings.backend_base_url)
+    voice_backend = GoogleIdentityBackendGateway(
+        settings.voice_backend_base_url or settings.backend_base_url,
+        audience=settings.voice_backend_audience or settings.backend_base_url,
+    )
     return create_app(
         settings,
         FirebaseSessionGateway(settings.firebase_web_api_key),
-        GoogleIdentityBackendGateway(settings.backend_base_url),
+        backend,
         DemoStore(settings.demo_data_dir),
+        voice_backend=voice_backend,
     )
 
 

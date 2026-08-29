@@ -13,6 +13,8 @@ class BffSettings:
     backend_base_url: str
     allowed_origins: frozenset[str]
     demo_data_dir: Path
+    voice_backend_base_url: str | None = None
+    voice_backend_audience: str | None = None
     firebase_web_api_key: str = ""
     session_cookie_name: str = "__session"
     session_ttl_seconds: int = 55 * 60
@@ -22,6 +24,13 @@ class BffSettings:
     def from_environment(cls) -> BffSettings:
         project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "").strip()
         backend_base_url = os.environ.get("RECOVERY_BACKEND_URL", "").strip().rstrip("/")
+        voice_backend_base_url = (
+            os.environ.get("VOICE_RECOVERY_BACKEND_URL", "").strip().rstrip("/") or backend_base_url
+        )
+        voice_backend_audience = (
+            os.environ.get("VOICE_RECOVERY_BACKEND_AUDIENCE", "").strip().rstrip("/")
+            or backend_base_url
+        )
         firebase_web_api_key = os.environ.get("FIREBASE_WEB_API_KEY", "").strip()
         allowed_origins = frozenset(
             value.strip().rstrip("/")
@@ -45,6 +54,8 @@ class BffSettings:
         return cls(
             project_id=project_id,
             backend_base_url=backend_base_url,
+            voice_backend_base_url=voice_backend_base_url,
+            voice_backend_audience=voice_backend_audience,
             allowed_origins=allowed_origins,
             demo_data_dir=demo_data_dir,
             firebase_web_api_key=firebase_web_api_key,

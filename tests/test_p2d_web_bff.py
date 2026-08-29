@@ -374,8 +374,26 @@ def test_settings_load_and_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SECURE_SESSION_COOKIE", "false")
     settings = BffSettings.from_environment()
     assert settings.backend_base_url == "https://backend.test"
+    assert settings.voice_backend_base_url == "https://backend.test"
+    assert settings.voice_backend_audience == "https://backend.test"
     assert settings.allowed_origins == frozenset({"https://one.test", "https://two.test"})
     assert settings.secure_cookies is False
+
+
+def test_voice_backend_settings_keep_a_tagged_candidate_on_the_service_audience(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "project")
+    monkeypatch.setenv("RECOVERY_BACKEND_URL", "https://backend.test")
+    monkeypatch.setenv("VOICE_RECOVERY_BACKEND_URL", "https://voice---backend.test/")
+    monkeypatch.setenv("VOICE_RECOVERY_BACKEND_AUDIENCE", "https://backend.test/")
+    monkeypatch.setenv("ALLOWED_WEB_ORIGINS", "https://one.test")
+    monkeypatch.setenv("FIREBASE_WEB_API_KEY", "public-web-key")
+
+    settings = BffSettings.from_environment()
+
+    assert settings.voice_backend_base_url == "https://voice---backend.test"
+    assert settings.voice_backend_audience == "https://backend.test"
 
 
 def test_firebase_adapter_uses_token_bound_revocation_checks(
@@ -466,10 +484,13 @@ def test_google_identity_backend_gateway_mints_server_token_only(
         "fetch_id_token",
         lambda request, audience: f"audience-token:{audience}",
     )
-    gateway = GoogleIdentityBackendGateway("https://backend.test/")
+    gateway = GoogleIdentityBackendGateway(
+        "https://voice-candidate---backend.test/", audience="https://backend.test/"
+    )
     response = gateway.get("/api/v1/ui/overview", {}, 'W/"1"')
     assert response.status_code == 200
     assert fake_session.call is not None
+    assert fake_session.call[0] == "https://voice-candidate---backend.test/api/v1/ui/overview"
     assert fake_session.call[2] == {
         "Authorization": "Bearer audience-token:https://backend.test",
         "If-None-Match": 'W/"1"',

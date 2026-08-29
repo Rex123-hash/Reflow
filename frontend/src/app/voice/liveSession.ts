@@ -15,7 +15,7 @@ import type {
 
 const HOST = "generativelanguage.googleapis.com";
 const SERVICE =
-  "google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent";
+  "google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained";
 
 /**
  * The socket address.

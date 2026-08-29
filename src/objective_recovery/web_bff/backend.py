@@ -36,8 +36,9 @@ class BackendGateway(Protocol):
 class GoogleIdentityBackendGateway:
     """Invokes one fixed backend origin with a server-minted audience ID token."""
 
-    def __init__(self, backend_base_url: str) -> None:
+    def __init__(self, backend_base_url: str, *, audience: str | None = None) -> None:
         self._base_url = backend_base_url.rstrip("/")
+        self._audience = (audience or self._base_url).rstrip("/")
         self._session = requests.Session()
         self._auth_request = Request()
 
@@ -50,7 +51,7 @@ class GoogleIdentityBackendGateway:
         if not path.startswith("/api/v1/ui/") or "://" in path:
             raise ValueError("The BFF only invokes allowlisted presentation paths.")
         audience_token = id_token.fetch_id_token(  # type: ignore[no-untyped-call]
-            self._auth_request, self._base_url
+            self._auth_request, self._audience
         )
         headers = {"Authorization": f"Bearer {audience_token}"}
         if if_none_match:
@@ -72,7 +73,7 @@ class GoogleIdentityBackendGateway:
     ) -> BackendResponse:
         """The sole admitted POST; no caller-controlled path, URL, auth, or execution endpoint."""
         audience_token = id_token.fetch_id_token(  # type: ignore[no-untyped-call]
-            self._auth_request, self._base_url
+            self._auth_request, self._audience
         )
         response = self._session.post(
             f"{self._base_url}/api/v1/operator/query",
@@ -97,7 +98,7 @@ class GoogleIdentityBackendGateway:
         if path is None:
             raise ValueError("Unknown voice capability")
         audience_token = id_token.fetch_id_token(  # type: ignore[no-untyped-call]
-            self._auth_request, self._base_url
+            self._auth_request, self._audience
         )
         response = self._session.post(
             f"{self._base_url}{path}",
@@ -119,7 +120,7 @@ class GoogleIdentityBackendGateway:
         if not re.fullmatch(r"[a-f0-9]{64}", action_id):
             raise ValueError("Invalid fixed-path action identifier")
         audience_token = id_token.fetch_id_token(  # type: ignore[no-untyped-call]
-            self._auth_request, self._base_url
+            self._auth_request, self._audience
         )
         response = self._session.post(
             f"{self._base_url}/api/v1/operator/actions/{action_id}/approve",

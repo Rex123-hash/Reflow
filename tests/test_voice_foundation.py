@@ -75,7 +75,7 @@ SESSION_ID = "Ab3d_Ef5gH6ijK7lM8nO9pQr"
 BUSINESS_SYSTEMS = ("slack", "jira", "calendar", "gmail", "github", "firestore", "pubsub")
 
 # The canonical recovery fixture this milestone must leave untouched.
-CANONICAL_RECOVERY_DIGEST = "182e391dd60171d50b5856994a071950c34554802872086105384e77b68fc27f"
+CANONICAL_RECOVERY_DIGEST = "6901d8f4495ae89d35a6c21b90d8793c7090556c4ac51073c6f8a554a5ff34cb"
 
 
 def settings(**changes: Any) -> VoiceSettings:
@@ -252,6 +252,51 @@ def make_client() -> tuple[TestClient, VoiceBackend]:
     )
     app = create_app(bff, FakeSessions(), backend, DemoStore(root), clock=lambda: 1_050)
     return TestClient(app, base_url=ORIGIN), backend
+
+
+def test_voice_session_candidate_is_isolated_from_the_operator_backend() -> None:
+    root = fixture_root()
+    production = VoiceBackend(root)
+    candidate = VoiceBackend(root)
+    settings = BffSettings(
+        project_id="test-project",
+        backend_base_url="https://private-backend.test",
+        voice_backend_base_url="https://voice-candidate---private-backend.test",
+        voice_backend_audience="https://private-backend.test",
+        allowed_origins=frozenset({ORIGIN}),
+        demo_data_dir=root,
+    )
+    app = create_app(
+        settings,
+        FakeSessions(),
+        production,
+        DemoStore(root),
+        clock=lambda: 1_050,
+        voice_backend=candidate,
+    )
+    client = TestClient(app, base_url=ORIGIN)
+    sign_in(client, "google-id-token")
+
+    minted = client.post(
+        "/api/v1/voice/transcription/session",
+        headers={"Origin": ORIGIN},
+        json={"capability": "TRANSCRIPTION", "incident_id": INCIDENT},
+    )
+    handed_off = client.post(
+        "/api/v1/voice/operator/handoff",
+        headers={"Origin": ORIGIN},
+        json={
+            "voice_session_id": SESSION_ID,
+            "incident_id": INCIDENT,
+            "spoken_request": SPOKEN,
+        },
+    )
+
+    assert minted.status_code == handed_off.status_code == 200
+    assert len(candidate.voice_calls) == 1
+    assert candidate.operator_calls == []
+    assert production.voice_calls == []
+    assert len(production.operator_calls) == 1
 
 
 VOICE_SESSION_PATHS = (

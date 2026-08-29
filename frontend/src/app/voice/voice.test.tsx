@@ -476,6 +476,7 @@ describe("the voice boundary", () => {
 
   it("calls only the three same-origin voice routes and the Live endpoint", () => {
     const client = sources.find((file) => file.name === "voiceClient.ts")!.code;
+    const live = sources.find((file) => file.name === "liveSession.ts")!.code;
     const paths = [...client.matchAll(/"(\/api\/[^"]+)"/g)].map((m) => m[1]);
     expect(new Set(paths)).toEqual(
       new Set([
@@ -484,6 +485,10 @@ describe("the voice boundary", () => {
         "/api/v1/voice/operator/handoff",
       ]),
     );
+    expect(live).toContain(
+      "google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained",
+    );
+    expect(live).not.toContain("v1alpha.GenerativeService.BidiGenerateContent");
   });
 
   it("never names a model, a tool or a permanent credential in the browser", () => {

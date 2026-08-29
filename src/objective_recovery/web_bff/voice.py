@@ -66,7 +66,8 @@ def _unavailable(code: str, message: str) -> HTTPException:
 
 def register_voice_routes(
     app: FastAPI,
-    backend: BackendGateway,
+    session_backend: BackendGateway,
+    operator_backend: BackendGateway,
     require_principal: Callable[..., SessionPrincipal],
     require_allowed_origin: Callable[..., None],
 ) -> None:
@@ -84,7 +85,7 @@ def register_voice_routes(
         subject = hashlib.sha256(principal.uid.encode()).hexdigest()
         request_id = str(uuid.uuid4())
         try:
-            result = cast(VoiceBackendGateway, backend).create_voice_session(
+            result = cast(VoiceBackendGateway, session_backend).create_voice_session(
                 capability, payload.model_dump_json().encode(), subject, request_id
             )
         except (requests.RequestException, ValueError) as error:
@@ -162,7 +163,7 @@ def register_voice_routes(
             )
 
         try:
-            upstream = cast(OperatorBackendGateway, backend).query_operator(
+            upstream = cast(OperatorBackendGateway, operator_backend).query_operator(
                 query.model_dump_json().encode(),
                 subject,
                 request_id,
