@@ -96,6 +96,7 @@ export function OperatorRoute() {
       <OperatorConversation
         key={incidentId}
         incidentId={incidentId}
+        objectiveTitle={data.objective.title}
         live={operator.provenance.live}
       />
 

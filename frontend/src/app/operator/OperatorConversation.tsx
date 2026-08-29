@@ -9,6 +9,9 @@ import {
 import { approveOperator, operatorRequestKey, queryOperator } from "./client";
 import type { OperatorActionView, OperatorResponse } from "./operatorContract";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+import { LiveCallExperience } from "../voice/LiveCallExperience";
+import { CallGlyph, VoiceComposer } from "../voice/VoiceComposer";
+import "../voice/voice.css";
 
 const EXAMPLES = [
   "Why did Recovery 1 fail?",
@@ -105,9 +108,12 @@ function Timestamp({ iso }: { iso: string }) {
 
 export function OperatorConversation({
   incidentId,
+  objectiveTitle,
   live,
 }: {
   incidentId: string;
+  /** The human name of the objective; the call header uses it instead of the id. */
+  objectiveTitle: string;
   live: boolean;
 }) {
   const [message, setMessage] = useState("");
@@ -124,6 +130,9 @@ export function OperatorConversation({
   const field = useRef<HTMLInputElement>(null);
   const activation = useRef<number | null>(null);
   const reducedMotion = usePrefersReducedMotion();
+  const [callOpen, setCallOpen] = useState(false);
+  /** A take just landed in the field and has not been edited or sent yet. */
+  const [transcriptReady, setTranscriptReady] = useState(false);
   useEffect(() => () => pending.current?.abort(), []);
   useEffect(
     () => () => {
@@ -183,6 +192,7 @@ export function OperatorConversation({
         }
       : undefined;
     setSubmitted(requested);
+    setTranscriptReady(false);
     try {
       if (idempotency.current?.message !== requested)
         idempotency.current = {
@@ -256,37 +266,92 @@ export function OperatorConversation({
         </p>
       )}
 
-      <form
-        className={`operator-form${activating ? " is-activating" : ""}${
-          busy ? " is-reasoning" : ""
-        }`}
-        onSubmit={submit}
+      {/* Dictation composes; it never submits. The finalized transcript is dropped
+          into this same field, and the user still presses Ask Reflow. */}
+      <VoiceComposer
+        incidentId={incidentId}
+        disabled={!live || busy}
+        onTranscript={(text) => {
+          setMessage(text);
+          setTranscriptReady(true);
+          field.current?.focus();
+        }}
       >
-        <label className="visually-hidden" htmlFor="operator-query">
-          Ask Reflow
-        </label>
-        <Icon name="search" size={ICON_SIZE.header} />
-        <input
-          id="operator-query"
-          ref={field}
-          value={message}
-          maxLength={1200}
-          disabled={!live || busy}
-          placeholder="Why did Recovery 1 fail?"
-          autoComplete="off"
-          onChange={(event) => setMessage(event.target.value)}
-        />
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={!live || busy || message.trim().length < 3}
-        >
-          {busy ? "Reasoning…" : "Ask Reflow"}
-          <Icon name="arrow-right" size={ICON_SIZE.row} />
-        </button>
-      </form>
+        {(mic, strip) => (
+          <form
+            className={`operator-form${activating ? " is-activating" : ""}${
+              busy ? " is-reasoning" : ""
+            }`}
+            onSubmit={submit}
+          >
+            <label className="visually-hidden" htmlFor="operator-query">
+              Ask Reflow
+            </label>
+            <Icon name="search" size={ICON_SIZE.header} />
+            {strip ?? (
+              <input
+                id="operator-query"
+                ref={field}
+                value={message}
+                maxLength={1200}
+                disabled={!live || busy}
+                placeholder="Why did Recovery 1 fail?"
+                autoComplete="off"
+                onChange={(event) => {
+                  setMessage(event.target.value);
+                  setTranscriptReady(false);
+                }}
+              />
+            )}
+            {message.trim().length > 0 ? (
+              <button
+                type="button"
+                className="voice-clear"
+                onClick={() => {
+                  setMessage("");
+                  setTranscriptReady(false);
+                  field.current?.focus();
+                }}
+                aria-label="Clear request"
+                title="Clear request"
+              >
+                <Icon name="cross" size={ICON_SIZE.row} />
+              </button>
+            ) : (
+              mic
+            )}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={
+                !live || busy || strip !== null || message.trim().length < 3
+              }
+            >
+              {busy ? "Reasoning…" : "Ask Reflow"}
+              <Icon name="arrow-right" size={ICON_SIZE.row} />
+            </button>
+          </form>
+        )}
+      </VoiceComposer>
+
+      {transcriptReady ? (
+        <p className="voice-transcript-ready" role="status">
+          Transcript ready — review and send.
+        </p>
+      ) : null}
 
       <div className="operator-examples">
+        {message.trim().length === 0 ? (
+          <button
+            type="button"
+            className="voice-call-open"
+            disabled={!live || busy}
+            onClick={() => setCallOpen(true)}
+          >
+            <CallGlyph />
+            Live call
+          </button>
+        ) : null}
         <span className="operator-examples-label">Try</span>
         {EXAMPLES.map((example) => (
           <button
@@ -637,6 +702,14 @@ export function OperatorConversation({
           </section>
         )}
       </div>
+
+      {callOpen ? (
+        <LiveCallExperience
+          incidentId={incidentId}
+          objectiveTitle={objectiveTitle}
+          onClose={() => setCallOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

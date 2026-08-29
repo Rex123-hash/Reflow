@@ -26,6 +26,7 @@ function applicationStyles(): { name: string; css: string }[] {
     "../recovery/",
     "../components/",
     "../auth/",
+    "../voice/",
   ];
   const files: { name: string; css: string }[] = [];
   for (const root of roots) {

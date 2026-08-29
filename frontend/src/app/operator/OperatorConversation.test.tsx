@@ -117,7 +117,11 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -175,7 +179,11 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -230,7 +238,11 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -287,7 +299,11 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -345,7 +361,11 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -423,7 +443,11 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -444,7 +468,11 @@ describe("real Operator conversation", () => {
     vi.stubGlobal("fetch", fetcher);
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -487,7 +515,11 @@ describe("real Operator conversation", () => {
     vi.stubGlobal("fetch", fetcher);
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live={false} />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live={false}
+        />
       </MemoryRouter>,
     );
     expect(screen.getByText(/requires Google sign-in/)).toBeInTheDocument();
@@ -503,7 +535,11 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -589,7 +625,11 @@ describe("real Operator conversation", () => {
     vi.stubGlobal("fetch", fetcher);
     render(
       <MemoryRouter>
-        <OperatorConversation incidentId="incident-abc" live />
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -606,5 +646,114 @@ describe("real Operator conversation", () => {
     expect(fetcher.mock.calls[1][0]).toBe(
       `/api/v1/operator/actions/${pendingAction.operator_action_id}/approve`,
     );
+  });
+});
+
+describe("the composer's auxiliary control", () => {
+  const composer = () =>
+    render(
+      <MemoryRouter>
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
+      </MemoryRouter>,
+    );
+
+  it("offers dictation and a live call only while the request is empty", () => {
+    composer();
+    expect(
+      screen.getByRole("button", { name: "Dictate a request" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Live call/ }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Ask Reflow"), {
+      target: { value: "Why did Recovery 1 fail?" },
+    });
+
+    // Mid-request, a microphone and a call are noise: the slot becomes the clear.
+    expect(
+      screen.queryByRole("button", { name: "Dictate a request" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Live call/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Clear request" }),
+    ).toBeInTheDocument();
+  });
+
+  it("clears the request and returns the composer to its empty state", () => {
+    composer();
+    const field = screen.getByLabelText("Ask Reflow") as HTMLInputElement;
+    fireEvent.change(field, { target: { value: "Move the demo event" } });
+    fireEvent.click(screen.getByRole("button", { name: "Clear request" }));
+    expect(field.value).toBe("");
+    expect(
+      screen.getByRole("button", { name: "Dictate a request" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Live call/ }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("sending during dictation", () => {
+  it("keeps Ask Reflow closed for the whole take and opens it on the transcript", async () => {
+    // The real component's rule, not a stand-in: an interim transcript is a guess in
+    // progress, and it must not be submittable by an accidental click or Enter.
+    const dictation = await import("../voice/useDictation");
+    const state = {
+      status: "LISTENING" as const,
+      interim: "move the demo ev",
+      level: 0.3,
+      elapsedSeconds: 2,
+      error: null,
+    };
+    const spy = vi.spyOn(dictation, "useDictation").mockReturnValue({
+      state,
+      start: vi.fn(),
+      stop: vi.fn(),
+      cancel: vi.fn(),
+      dismiss: vi.fn(),
+    } as unknown as ReturnType<typeof dictation.useDictation>);
+
+    const view = render(
+      <MemoryRouter>
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("button", { name: /Ask Reflow/ })).toBeDisabled();
+    view.unmount();
+
+    // The take has finished and its finalized text is in the field.
+    spy.mockReturnValue({
+      state: { ...state, status: "IDLE", interim: "" },
+      start: vi.fn(),
+      stop: vi.fn(),
+      cancel: vi.fn(),
+      dismiss: vi.fn(),
+    } as unknown as ReturnType<typeof dictation.useDictation>);
+    render(
+      <MemoryRouter>
+        <OperatorConversation
+          incidentId="incident-abc"
+          objectiveTitle="Ship Release V2"
+          live
+        />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByLabelText("Ask Reflow"), {
+      target: { value: "Move the demo event by one hour." },
+    });
+    expect(screen.getByRole("button", { name: /Ask Reflow/ })).toBeEnabled();
+    spy.mockRestore();
   });
 });
