@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 import requests
-from scripts import verify_p2h_prelive
+from scripts import execute_p2h_slack_live, verify_p2h_prelive
 from scripts.preflight_p2h_slack import CHANNEL, ReadOnlySession, checked_identity
 
 
@@ -81,3 +81,66 @@ def test_deployed_inspect_rejects_unexpected_origin() -> None:
         verify_p2h_prelive.inspect_deployed(
             {"traffic": [{"tag": "p2h-prelive", "url": "https://other.example"}]}
         )
+
+
+def test_live_operator_request_is_fixed_to_exact_message_and_same_key(monkeypatch: Any) -> None:
+    observed: dict[str, Any] = {}
+
+    def post(instance: Any, url: str, **kwargs: Any) -> Any:
+        observed.update(kwargs)
+        observed["url"] = url
+        response = requests.Response()
+        response.status_code = 503
+        return response
+
+    monkeypatch.setattr(requests.Session, "post", post)
+    monkeypatch.setattr(execute_p2h_slack_live, "identity_token", lambda: "test-cloud-identity")
+    status, response = execute_p2h_slack_live.operator_request("a" * 64, "request-id")
+    assert status == 503 and response is None
+    assert observed["url"] == execute_p2h_slack_live.SERVICE_URL + "/api/v1/operator/query"
+    assert observed["json"] == {
+        "incident_id": execute_p2h_slack_live.INCIDENT,
+        "message": (
+            "Post 'Backend engineer unavailable. SCRUM-6 is blocked.' to the release channel."
+        ),
+        "idempotency_key": "p2h-slack-final-live-qualification-20260829-v1",
+    }
+    assert observed["allow_redirects"] is False
+    assert "test-cloud-identity" not in str(response)
+
+
+def test_read_only_transport_allows_exact_timestamp_not_unbounded_history(
+    monkeypatch: Any,
+) -> None:
+    def response(instance: Any, method: str, url: str, **kwargs: Any) -> Any:
+        result = requests.Response()
+        result.status_code = 200
+        result._content = b'{"ok":true,"messages":[]}'
+        return result
+
+    monkeypatch.setattr(requests.Session, "request", response)
+    with ReadOnlySession() as session:
+        result = session.request(
+            "GET",
+            "https://slack.com/api/conversations.history",
+            params={
+                "channel": CHANNEL,
+                "limit": 1,
+                "oldest": "1787957000.123456",
+                "latest": "1787957000.123456",
+                "inclusive": True,
+            },
+            json=None,
+            timeout=4,
+            allow_redirects=False,
+        )
+        assert result.status_code == 200
+        with pytest.raises(RuntimeError, match="history_guard"):
+            session.request(
+                "GET",
+                "https://slack.com/api/conversations.history",
+                params={"channel": CHANNEL, "limit": 16},
+                json=None,
+                timeout=4,
+                allow_redirects=False,
+            )

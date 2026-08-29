@@ -57,15 +57,21 @@ class ReadOnlySession(requests.Session):
         if api == "auth.test":
             if parameters or kwargs.get("json") not in ({}, None):
                 raise RuntimeError("read_only_auth_guard")
-        elif (
-            parameters
-            != (
-                {"channel": CHANNEL, "limit": 15}
-                if api == "conversations.history"
-                else {"channel": CHANNEL}
+        elif api == "conversations.history":
+            exact_timestamp = (
+                set(parameters) == {"channel", "limit", "oldest", "latest", "inclusive"}
+                and parameters.get("channel") == CHANNEL
+                and parameters.get("limit") == 1
+                and parameters.get("inclusive") is True
+                and isinstance(parameters.get("oldest"), str)
+                and parameters.get("oldest") == parameters.get("latest")
+                and re.fullmatch(r"[0-9]{10,16}\.[0-9]{6}", parameters["oldest"])
             )
-            or kwargs.get("json") is not None
-        ):
+            if parameters != {"channel": CHANNEL, "limit": 15} and not exact_timestamp:
+                raise RuntimeError("read_only_history_guard")
+            if kwargs.get("json") is not None:
+                raise RuntimeError("read_only_channel_guard")
+        elif parameters != {"channel": CHANNEL} or kwargs.get("json") is not None:
             raise RuntimeError("read_only_channel_guard")
         event: dict[str, Any] = {"api": api, "http_method": method}
         self.calls.append(event)
