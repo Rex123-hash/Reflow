@@ -490,6 +490,10 @@ describe("the voice boundary", () => {
     );
     expect(live).not.toContain("v1alpha.GenerativeService.BidiGenerateContent");
     expect(live).toContain("reason: event.reason.slice(0, 240)");
+    const dictation = sources.find(
+      (file) => file.name === "useDictation.ts",
+    )!.code;
+    expect(dictation).toContain("Google transcription closed the session");
   });
 
   it("never names a model, a tool or a permanent credential in the browser", () => {

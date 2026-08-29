@@ -106,12 +106,18 @@ export function useDictation(
           text.current += fragment;
           setInterim(text.current.trim());
         },
-        onClose: () => {
+        onClose: ({ clean, code, reason }) => {
           setStatus((current) =>
             current === "LISTENING" || current === "REQUESTING"
               ? "UNAVAILABLE"
               : current,
           );
+          if (!clean || code !== 1000) {
+            const detail = reason ? `: ${reason}` : "";
+            setError(
+              `Google transcription closed the session (${code}${detail}).`,
+            );
+          }
         },
         onError: () => setError("The transcription connection dropped."),
       });
