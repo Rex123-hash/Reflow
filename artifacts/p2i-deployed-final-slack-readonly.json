@@ -1,0 +1,101 @@
+{
+  "observed_at": "2026-08-29T11:04:54.890896+00:00",
+  "read_only": true,
+  "passed": true,
+  "credential_identity": "objective-recovery-app@project-f334c42b-7a03-4194-932.iam.gserviceaccount.com",
+  "secret_reference": "projects/project-f334c42b-7a03-4194-932/secrets/objective-recovery-slack-bot-token/versions/1",
+  "slack_message_writes": 0,
+  "secret_payload_persisted": false,
+  "stage": "complete",
+  "calls": [
+    {
+      "api": "auth.test",
+      "http_method": "POST",
+      "http_status": 200,
+      "ok": true,
+      "scopes": [
+        "channels:history",
+        "channels:read",
+        "chat:write"
+      ]
+    },
+    {
+      "api": "auth.test",
+      "http_method": "POST",
+      "http_status": 200,
+      "ok": true,
+      "scopes": [
+        "channels:history",
+        "channels:read",
+        "chat:write"
+      ]
+    },
+    {
+      "api": "conversations.info",
+      "http_method": "GET",
+      "http_status": 200,
+      "ok": true,
+      "channel_flags": {
+        "is_channel": true,
+        "is_private": false,
+        "is_member": true,
+        "is_archived": false,
+        "is_shared": false,
+        "is_ext_shared": false,
+        "is_org_shared": false,
+        "is_pending_ext_shared": false,
+        "is_im": false,
+        "is_mpim": false,
+        "is_group": false
+      }
+    },
+    {
+      "api": "conversations.history",
+      "http_method": "GET",
+      "http_status": 200,
+      "ok": true,
+      "message_count_in_window": 3,
+      "limit": 15
+    }
+  ],
+  "identity": {
+    "ok": true,
+    "team_id": "T0BT2EP259V",
+    "user_id": "U0BTDNEQBBP",
+    "bot_id": "B0BTFTQFW22",
+    "team": "Reflow Demo",
+    "user": "reflow_operator",
+    "url": "https://reflowdemo.slack.com/"
+  },
+  "inspection": {
+    "authority": "SLACK",
+    "resource_identifier": "configured-release-channel",
+    "observed_at": "2026-08-29T11:04:58.439715+00:00",
+    "observed_state": {
+      "channel_id": "C0BTKPVEM25",
+      "channel_name": "reflow-release-demo",
+      "team_id": "T0BT2EP259V",
+      "bot_user_id": "U0BTDNEQBBP",
+      "bot_id": "B0BTFTQFW22",
+      "channel_kind": "public_unshared",
+      "is_member": "true",
+      "latest_reflow_message_ts": "1787988861.978999"
+    },
+    "latest_reflow_message_present": true,
+    "message_text_persisted": false
+  },
+  "registry": [
+    {
+      "authority": "SLACK",
+      "resource_type": "CHANNEL",
+      "operations": [
+        "SLACK_INSPECT_CHANNEL",
+        "SLACK_POST_MESSAGE"
+      ],
+      "resource_identifiers": [
+        "configured-release-channel"
+      ]
+    }
+  ],
+  "required_scopes_sufficient": true
+}
