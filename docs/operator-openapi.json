@@ -1,6 +1,305 @@
 {
   "components": {
     "schemas": {
+      "ConversationContext": {
+        "additionalProperties": false,
+        "properties": {
+          "human_summary": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Human Summary",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "GENERAL",
+              "HELP",
+              "TASK",
+              "CLARIFY"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "normalized_request": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Normalized Request"
+          },
+          "user_goal": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "User Goal",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "user_goal",
+          "human_summary"
+        ],
+        "title": "ConversationContext",
+        "type": "object"
+      },
+      "ConversationEntity": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "pattern": "^[a-z][a-z0-9_]{0,39}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "title": "ConversationEntity",
+        "type": "object"
+      },
+      "ConversationEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "constraints": {
+            "default": [],
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "title": "Constraints",
+            "type": "array"
+          },
+          "direct_response": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Direct Response"
+          },
+          "entities": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ConversationEntity"
+            },
+            "maxItems": 8,
+            "title": "Entities",
+            "type": "array"
+          },
+          "missing_information": {
+            "default": [],
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Missing Information",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "GENERAL",
+              "HELP",
+              "TASK",
+              "CLARIFY"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "normalized_request": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Normalized Request"
+          },
+          "requested_capability": {
+            "anyOf": [
+              {
+                "enum": [
+                  "CAPABILITY_HELP",
+                  "RECOVERY_INSPECT",
+                  "RECOVERY_EXPLAIN",
+                  "RECOVERY_SIMULATE",
+                  "SLACK_INSPECT",
+                  "SLACK_POST",
+                  "SLACK_DM",
+                  "SLACK_ARBITRARY_TARGET",
+                  "JIRA_INSPECT",
+                  "JIRA_UPDATE",
+                  "CALENDAR_INSPECT",
+                  "CALENDAR_UPDATE",
+                  "CALENDAR_CREATE",
+                  "PROTECTED_OBJECTIVE_CHANGE",
+                  "UNKNOWN_OPERATIONAL"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Requested Capability"
+          },
+          "requires_operator": {
+            "title": "Requires Operator",
+            "type": "boolean"
+          },
+          "tone": {
+            "enum": [
+              "neutral",
+              "concise",
+              "informal",
+              "urgent"
+            ],
+            "title": "Tone",
+            "type": "string"
+          },
+          "user_goal": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "User Goal",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "user_goal",
+          "requires_operator",
+          "tone",
+          "confidence"
+        ],
+        "title": "ConversationEnvelope",
+        "type": "object"
+      },
+      "HumanResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "current_state": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Current State",
+            "type": "string"
+          },
+          "human_summary": {
+            "maxLength": 1600,
+            "minLength": 1,
+            "title": "Human Summary",
+            "type": "string"
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Next Step"
+          },
+          "situation_type": {
+            "enum": [
+              "GENERAL",
+              "HELP",
+              "SUCCESS",
+              "FAILED",
+              "UNCERTAIN",
+              "DENIED",
+              "UNSUPPORTED",
+              "NEEDS_CLARIFICATION",
+              "INSPECTION",
+              "SIMULATION",
+              "EXPLANATION",
+              "OBJECTIVE_RESTORED"
+            ],
+            "title": "Situation Type",
+            "type": "string"
+          },
+          "suggestions": {
+            "default": [],
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "truth_boundary": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Truth Boundary",
+            "type": "string"
+          },
+          "why": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Why"
+          }
+        },
+        "required": [
+          "human_summary",
+          "situation_type",
+          "current_state",
+          "truth_boundary"
+        ],
+        "title": "HumanResponse",
+        "type": "object"
+      },
       "HypotheticalChange": {
         "additionalProperties": false,
         "properties": {
@@ -217,6 +516,7 @@
         "properties": {
           "agent_id": {
             "enum": [
+              "conversation_understanding_agent",
               "operator_intent_interpreter",
               "simulation_agent"
             ],
@@ -539,6 +839,17 @@
       "OperatorQuery": {
         "additionalProperties": false,
         "properties": {
+          "conversation_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConversationContext"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "idempotency_key": {
             "anyOf": [
               {
@@ -589,7 +900,7 @@
             "items": {
               "$ref": "#/components/schemas/OperatorAgentTrace"
             },
-            "maxItems": 2,
+            "maxItems": 3,
             "title": "Agents",
             "type": "array"
           },
@@ -598,6 +909,9 @@
             "minLength": 1,
             "title": "Answer",
             "type": "string"
+          },
+          "conversation": {
+            "$ref": "#/components/schemas/ConversationEnvelope"
           },
           "disposition": {
             "enum": [
@@ -633,6 +947,9 @@
             "title": "Generated At",
             "type": "string"
           },
+          "human_response": {
+            "$ref": "#/components/schemas/HumanResponse"
+          },
           "hypothetical_deadline": {
             "anyOf": [
               {
@@ -661,10 +978,19 @@
             "default": null
           },
           "intent": {
-            "$ref": "#/components/schemas/OperatorIntent"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OperatorIntent"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "provenance": {
             "enum": [
+              "CONVERSATION_ONLY",
               "AUTHORITATIVE_SNAPSHOT",
               "HYPOTHETICAL_NO_ACTION",
               "OPERATOR_ACTION"
@@ -703,7 +1029,8 @@
           "snapshot_fingerprint",
           "generated_at",
           "disposition",
-          "intent",
+          "conversation",
+          "human_response",
           "answer",
           "facts",
           "evidence",

@@ -10,7 +10,7 @@ from google.genai import types
 from google.genai.models import AsyncModels
 from objective_recovery_agent import operator_agents
 from objective_recovery_agent.operator_agents import OperatorReasoningError
-from objective_recovery_agent.operator_schemas import OperatorQuery
+from objective_recovery_agent.operator_schemas import ConversationEnvelope, OperatorQuery
 from objective_recovery_agent.planning import WorkflowResult
 from scripts.operator_eval_forensics import Capture, redact, structured_output
 
@@ -78,7 +78,21 @@ async def test_forensic_observers_do_not_change_simulation_validation(
 
     async def run(flow: Any, payload: Any) -> WorkflowResult:
         node = flow.edges[0][1]
-        output = simulation if node.name == "simulation_agent" else interpretation
+        output = (
+            ConversationEnvelope(
+                mode="TASK",
+                user_goal="Simulate a CI pass",
+                normalized_request="What if Candidate A had passed CI?",
+                requested_capability="RECOVERY_SIMULATE",
+                requires_operator=True,
+                tone="neutral",
+                confidence="HIGH",
+            )
+            if node.name == "conversation_understanding_agent"
+            else simulation
+            if node.name == "simulation_agent"
+            else interpretation
+        )
         await AsyncModels.generate_content(
             cast(Any, None), model="gemini-3.7-flash", contents=output.model_dump_json()
         )
@@ -113,5 +127,5 @@ async def test_forensic_observers_do_not_change_simulation_validation(
     assert operator_agents.AdkOperatorAgents._invoke is original
     checks = [event for event in capture.events if event["stage"] == "simulation_reference_check"]
     assert checks[0]["unknown_ids"] == sorted(invalid_refs)
-    assert len([e for e in capture.events if e["stage"] == "provider_request_started"]) == 2
+    assert len([e for e in capture.events if e["stage"] == "provider_request_started"]) == 3
     assert any(e["stage"] == "service_rejected" for e in capture.events) is bool(invalid_refs)

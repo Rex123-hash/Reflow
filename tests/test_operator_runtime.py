@@ -14,6 +14,8 @@ from objective_recovery_agent import operator_agents
 from objective_recovery_agent.operator_agents import AdkOperatorAgents, OperatorReasoningError
 from objective_recovery_agent.operator_context import build_snapshot, safe_text
 from objective_recovery_agent.operator_schemas import (
+    ConversationEnvelope,
+    ConversationInput,
     IntentInput,
     OperatorAgentTrace,
     OperatorIntent,
@@ -113,7 +115,37 @@ class FakeAgents:
     def __init__(self, interpretation: OperatorIntent) -> None:
         self.intent = interpretation
         self.inputs: list[object] = []
+        self.conversation_inputs: list[ConversationInput] = []
         self.result = simulated()
+        self.conversation: ConversationEnvelope | None = None
+
+    async def understand(
+        self, payload: ConversationInput, request_id: str
+    ) -> tuple[ConversationEnvelope, OperatorAgentTrace]:
+        self.conversation_inputs.append(payload)
+        if self.conversation is not None:
+            return self.conversation, trace("conversation_understanding_agent", request_id)
+        capability = {
+            "SLACK": "SLACK_POST" if self.intent.intent_type == "ACT" else "SLACK_INSPECT",
+            "JIRA": "JIRA_UPDATE" if self.intent.intent_type == "ACT" else "JIRA_INSPECT",
+            "CALENDAR": (
+                "CALENDAR_UPDATE" if self.intent.intent_type == "ACT" else "CALENDAR_INSPECT"
+            ),
+        }.get(self.intent.subject, "RECOVERY_EXPLAIN")
+        return (
+            ConversationEnvelope.model_validate(
+                {
+                    "mode": "TASK",
+                    "user_goal": payload.message,
+                    "normalized_request": payload.message,
+                    "requested_capability": capability,
+                    "requires_operator": True,
+                    "tone": "neutral",
+                    "confidence": "HIGH",
+                }
+            ),
+            trace("conversation_understanding_agent", request_id),
+        )
 
     async def interpret(
         self, payload: IntentInput, request_id: str

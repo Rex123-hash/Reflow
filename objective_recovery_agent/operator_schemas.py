@@ -11,6 +11,26 @@ from objective_recovery_agent.slack_operator_policy import SLACK_CREDENTIAL
 ShortText = Annotated[str, Field(min_length=1, max_length=800)]
 Reference = Annotated[str, Field(min_length=1, max_length=200)]
 IntentType = Literal["INSPECT", "EXPLAIN", "SIMULATE", "ACT"]
+ConversationMode = Literal["GENERAL", "HELP", "TASK", "CLARIFY"]
+ConversationTone = Literal["neutral", "concise", "informal", "urgent"]
+ConversationConfidence = Literal["LOW", "MEDIUM", "HIGH"]
+ConversationCapability = Literal[
+    "CAPABILITY_HELP",
+    "RECOVERY_INSPECT",
+    "RECOVERY_EXPLAIN",
+    "RECOVERY_SIMULATE",
+    "SLACK_INSPECT",
+    "SLACK_POST",
+    "SLACK_DM",
+    "SLACK_ARBITRARY_TARGET",
+    "JIRA_INSPECT",
+    "JIRA_UPDATE",
+    "CALENDAR_INSPECT",
+    "CALENDAR_UPDATE",
+    "CALENDAR_CREATE",
+    "PROTECTED_OBJECTIVE_CHANGE",
+    "UNKNOWN_OPERATIONAL",
+]
 Authority = Literal["JIRA", "GOOGLE_CALENDAR", "REFLOW", "SLACK"]
 ResourceType = Literal["ISSUE", "EVENT", "OBJECTIVE", "CHANNEL"]
 OperationType = Literal[
@@ -32,12 +52,25 @@ class OperatorModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, revalidate_instances="always")
 
 
+class ConversationEntity(OperatorModel):
+    name: str = Field(pattern=r"^[a-z][a-z0-9_]{0,39}$")
+    value: ShortText
+
+
+class ConversationContext(OperatorModel):
+    mode: ConversationMode
+    user_goal: ShortText
+    normalized_request: ShortText | None = None
+    human_summary: ShortText
+
+
 class OperatorQuery(OperatorModel):
     incident_id: str = Field(pattern=r"^incident-[a-zA-Z0-9-]{1,80}$")
     message: str = Field(min_length=3, max_length=1200)
     idempotency_key: str | None = Field(
         default=None, pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._:-]{7,127}$"
     )
+    conversation_context: ConversationContext | None = None
 
 
 class OperatorTarget(OperatorModel):
@@ -88,6 +121,48 @@ class OperatorCapability(OperatorModel):
     resource_type: ResourceType
     operations: tuple[OperationType, ...] = Field(min_length=1, max_length=10)
     resource_identifiers: tuple[str, ...] = Field(default=(), max_length=5)
+
+
+class ConversationEnvelope(OperatorModel):
+    mode: ConversationMode
+    user_goal: ShortText
+    normalized_request: ShortText | None = None
+    requested_capability: ConversationCapability | None = None
+    entities: tuple[ConversationEntity, ...] = Field(default=(), max_length=8)
+    constraints: tuple[ShortText, ...] = Field(default=(), max_length=6)
+    missing_information: tuple[ShortText, ...] = Field(default=(), max_length=5)
+    requires_operator: bool
+    tone: ConversationTone
+    confidence: ConversationConfidence
+    direct_response: ShortText | None = None
+
+    @model_validator(mode="after")
+    def bounded_route(self) -> ConversationEnvelope:
+        if self.mode == "TASK":
+            if (
+                not self.requires_operator
+                or self.normalized_request is None
+                or self.requested_capability is None
+                or self.direct_response is not None
+                or self.missing_information
+            ):
+                raise ValueError("TASK requires one normalized Operator route")
+        elif self.requires_operator or self.normalized_request is not None:
+            raise ValueError("Only TASK may route to Operator reasoning")
+        elif self.direct_response is None:
+            raise ValueError("Non-task conversation requires a direct response")
+        if self.mode == "CLARIFY" and not self.missing_information:
+            raise ValueError("CLARIFY requires human-meaningful missing information")
+        if self.mode != "CLARIFY" and self.missing_information:
+            raise ValueError("Only CLARIFY may report missing information")
+        return self
+
+
+class ConversationInput(OperatorModel):
+    message: str = Field(min_length=3, max_length=1200)
+    incident_id: str = Field(pattern=r"^incident-[a-zA-Z0-9-]{1,80}$")
+    capabilities: tuple[OperatorCapability, ...] = Field(default=(), max_length=8)
+    previous: ConversationContext | None = None
 
 
 class OperatorFact(OperatorModel):
@@ -189,6 +264,7 @@ class IntentInput(OperatorModel):
     request: OperatorQuery
     snapshot: OperatorSnapshot
     capabilities: tuple[OperatorCapability, ...] = Field(default=(), max_length=8)
+    conversation: ConversationEnvelope | None = None
 
 
 class OperatorInspection(OperatorModel):
@@ -282,7 +358,11 @@ class SimulationResult(OperatorModel):
 
 
 class OperatorAgentTrace(OperatorModel):
-    agent_id: Literal["operator_intent_interpreter", "simulation_agent"]
+    agent_id: Literal[
+        "conversation_understanding_agent",
+        "operator_intent_interpreter",
+        "simulation_agent",
+    ]
     model: str
     request_id: str
     latency_ms: int
@@ -293,6 +373,29 @@ class OperatorAgentTrace(OperatorModel):
     validation: Literal["PASSED"] = "PASSED"
 
 
+class HumanResponse(OperatorModel):
+    human_summary: str = Field(min_length=1, max_length=1600)
+    situation_type: Literal[
+        "GENERAL",
+        "HELP",
+        "SUCCESS",
+        "FAILED",
+        "UNCERTAIN",
+        "DENIED",
+        "UNSUPPORTED",
+        "NEEDS_CLARIFICATION",
+        "INSPECTION",
+        "SIMULATION",
+        "EXPLANATION",
+        "OBJECTIVE_RESTORED",
+    ]
+    current_state: ShortText
+    why: ShortText | None = None
+    next_step: ShortText | None = None
+    truth_boundary: ShortText
+    suggestions: tuple[ShortText, ...] = Field(default=(), max_length=3)
+
+
 class OperatorResponse(OperatorModel):
     request_id: str
     incident_id: str
@@ -300,7 +403,9 @@ class OperatorResponse(OperatorModel):
     snapshot_fingerprint: str
     generated_at: str
     disposition: Literal["SUPPORTED", "CLARIFICATION_REQUIRED", "UNSUPPORTED"]
-    intent: OperatorIntent
+    conversation: ConversationEnvelope
+    human_response: HumanResponse
+    intent: OperatorIntent | None = None
     answer: str = Field(min_length=1, max_length=8000)
     facts: tuple[OperatorFact, ...] = Field(max_length=12)
     evidence: tuple[OperatorEvidence, ...] = Field(max_length=40)
@@ -308,6 +413,11 @@ class OperatorResponse(OperatorModel):
     inspection: OperatorInspection | None = None
     action: OperatorActionView | None = None
     hypothetical_deadline: str | None = None
-    provenance: Literal["AUTHORITATIVE_SNAPSHOT", "HYPOTHETICAL_NO_ACTION", "OPERATOR_ACTION"]
+    provenance: Literal[
+        "CONVERSATION_ONLY",
+        "AUTHORITATIVE_SNAPSHOT",
+        "HYPOTHETICAL_NO_ACTION",
+        "OPERATOR_ACTION",
+    ]
     external_effects_executed: bool = False
-    agents: tuple[OperatorAgentTrace, ...] = Field(max_length=2)
+    agents: tuple[OperatorAgentTrace, ...] = Field(max_length=3)

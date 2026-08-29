@@ -18,7 +18,14 @@ from objective_recovery_agent.operator_actions import (
 )
 from objective_recovery_agent.operator_agents import AdkOperatorAgents, OperatorReasoningError
 from objective_recovery_agent.operator_context import safe_text
+from objective_recovery_agent.operator_human_response import (
+    compose_direct_response,
+    compose_task_response,
+)
 from objective_recovery_agent.operator_schemas import (
+    ConversationCapability,
+    ConversationEnvelope,
+    ConversationInput,
     IntentInput,
     OperatorActionView,
     OperatorAgentTrace,
@@ -35,12 +42,37 @@ from objective_recovery_agent.operator_schemas import (
 
 
 class ReasoningAgents(Protocol):
+    async def understand(
+        self, payload: ConversationInput, request_id: str
+    ) -> tuple[ConversationEnvelope, OperatorAgentTrace]: ...
     async def interpret(
         self, payload: IntentInput, request_id: str
     ) -> tuple[OperatorIntent, OperatorAgentTrace]: ...
     async def simulate(
         self, payload: SimulationInput, request_id: str
     ) -> tuple[SimulationResult, OperatorAgentTrace]: ...
+
+
+def _replay_conversation(query: OperatorQuery, action: OperatorActionView) -> ConversationEnvelope:
+    operation = action.operations[0].operation if action.operations else ""
+    capability: ConversationCapability = (
+        "SLACK_POST"
+        if operation == "SLACK_POST_MESSAGE"
+        else "CALENDAR_UPDATE"
+        if operation.startswith("CALENDAR_")
+        else "JIRA_UPDATE"
+        if operation.startswith("JIRA_")
+        else "PROTECTED_OBJECTIVE_CHANGE"
+    )
+    return ConversationEnvelope(
+        mode="TASK",
+        user_goal=safe_text(query.message),
+        normalized_request=safe_text(query.message),
+        requested_capability=capability,
+        requires_operator=True,
+        tone="neutral",
+        confidence="HIGH",
+    )
 
 
 def validate_intent(
@@ -154,8 +186,10 @@ class OperatorService:
                 incident_id=query.incident_id,
                 message=safe_text(query.message, 1200),
                 idempotency_key=query.idempotency_key,
+                conversation_context=query.conversation_context,
             )
             if replay:
+                conversation = _replay_conversation(bounded_query, replay)
                 intent = OperatorIntent(
                     disposition="SUPPORTED",
                     intent_type="ACT",
@@ -182,15 +216,50 @@ class OperatorService:
                 )
                 traces = []  # A durable replay is not another model invocation.
             else:
+                conversation, conversation_trace = await self._agents.understand(
+                    ConversationInput(
+                        message=bounded_query.message,
+                        incident_id=bounded_query.incident_id,
+                        capabilities=self._registry.capabilities(),
+                        previous=bounded_query.conversation_context,
+                    ),
+                    request_id,
+                )
+                conversation = ConversationEnvelope.model_validate(conversation)
+                traces = [conversation_trace]
+                if conversation.mode != "TASK":
+                    human = compose_direct_response(conversation, self._registry.capabilities())
+                    return OperatorResponse(
+                        request_id=request_id,
+                        incident_id=snapshot.incident_id,
+                        revision=snapshot.revision,
+                        snapshot_fingerprint=snapshot.fingerprint,
+                        generated_at=datetime.now(UTC).isoformat(),
+                        disposition=(
+                            "CLARIFICATION_REQUIRED"
+                            if conversation.mode == "CLARIFY"
+                            else "SUPPORTED"
+                        ),
+                        conversation=conversation,
+                        human_response=human,
+                        intent=None,
+                        answer=human.human_summary,
+                        facts=(),
+                        evidence=(),
+                        provenance="CONVERSATION_ONLY",
+                        external_effects_executed=False,
+                        agents=tuple(traces),
+                    )
                 intent, trace = await self._agents.interpret(
                     IntentInput(
                         request=bounded_query,
                         snapshot=snapshot,
                         capabilities=self._registry.capabilities(),
+                        conversation=conversation,
                     ),
                     request_id,
                 )
-                traces = [trace]
+                traces.append(trace)
             # Validate even injected implementations; no unvalidated model output is used.
             intent = OperatorIntent.model_validate(intent)
             deadline = None if replay else validate_intent(intent, snapshot, self._registry)
@@ -404,6 +473,17 @@ class OperatorService:
                     answer = "\n\n".join(fact.text for fact in facts)
                 else:
                     answer = "\n\n".join(fact.text for fact in facts)
+            human = compose_task_response(
+                envelope=conversation,
+                intent=intent,
+                snapshot=snapshot,
+                answer=answer,
+                facts=facts,
+                simulation=simulation,
+                inspection=inspection,
+                action=action,
+                response_disposition=response_disposition,
+            )
             return OperatorResponse(
                 request_id=request_id,
                 incident_id=snapshot.incident_id,
@@ -411,6 +491,8 @@ class OperatorService:
                 snapshot_fingerprint=snapshot.fingerprint,
                 generated_at=datetime.now(UTC).isoformat(),
                 disposition=response_disposition,
+                conversation=conversation,
+                human_response=human,
                 intent=intent,
                 answer=answer,
                 facts=facts,

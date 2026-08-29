@@ -1,4 +1,4 @@
-"""Read-only P2H canonical/runtime/secret-metadata audit. Never reads secret payloads."""
+"""Read-only canonical/runtime/secret-metadata audit. Never reads secret payloads."""
 
 from __future__ import annotations
 
@@ -148,7 +148,7 @@ def main() -> None:
     print(json.dumps(report, indent=2))
     if (
         not canonical["unchanged"]
-        or len(agents) != 7
+        or len(agents) != 8
         or not backend["ready"]
         or not bff["ready"]
         or health.status_code != 200

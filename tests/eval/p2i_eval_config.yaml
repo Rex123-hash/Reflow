@@ -1,0 +1,7 @@
+metrics_to_run:
+  - p2i_conversation_behavior
+
+custom_metrics:
+  - name: p2i_conversation_behavior
+    execution: local
+    custom_function_file: p2i_metric.py

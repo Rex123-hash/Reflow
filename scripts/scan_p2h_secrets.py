@@ -1,5 +1,6 @@
 """High-confidence credential scan; report locations/rule names, never matched values."""
 
+import argparse
 import json
 import re
 import subprocess
@@ -20,6 +21,9 @@ RULES = {
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", default="artifacts/p2h-secret-scan.json")
+    args = parser.parse_args()
     names = (
         subprocess.check_output(
             ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
@@ -68,7 +72,7 @@ def main() -> None:
             "Slack token signature across Git history"
         ),
     }
-    output = ROOT / "artifacts/p2h-secret-scan.json"
+    output = ROOT / args.output
     output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2))

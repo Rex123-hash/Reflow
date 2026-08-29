@@ -23,7 +23,11 @@ from google.genai.models import AsyncModels
 from objective_recovery_agent import operator_agents
 from objective_recovery_agent.operator_agents import AgentName
 from objective_recovery_agent.operator_context import safe_text
-from objective_recovery_agent.operator_schemas import OperatorIntent, SimulationResult
+from objective_recovery_agent.operator_schemas import (
+    ConversationEnvelope,
+    OperatorIntent,
+    SimulationResult,
+)
 from objective_recovery_agent.operator_service import OperatorService
 from scripts import evaluate_operator, evaluate_operator_act
 from scripts.scan_p2h_secrets import RULES
@@ -91,9 +95,12 @@ class Capture:
             try:
                 response = await original_generate(instance, **kwargs)
                 model_response = LlmResponse.create(response)
+                agent_name = CURRENT.get()[1]
                 schema = (
-                    OperatorIntent
-                    if CURRENT.get()[1] == "operator_intent_interpreter"
+                    ConversationEnvelope
+                    if agent_name == "conversation_understanding_agent"
+                    else OperatorIntent
+                    if agent_name == "operator_intent_interpreter"
                     else SimulationResult
                 )
                 usage = model_response.usage_metadata
@@ -122,11 +129,15 @@ class Capture:
             token = CURRENT.set((request_id, name))
             self.event(
                 "agent_started",
-                snapshot_fingerprint=payload.snapshot.fingerprint,
+                snapshot_fingerprint=getattr(
+                    getattr(payload, "snapshot", None), "fingerprint", None
+                ),
                 payload_sha256=hashlib.sha256(payload.model_dump_json().encode()).hexdigest(),
                 instruction_sha256=hashlib.sha256(
                     (
-                        operator_agents.INTENT_INSTRUCTION
+                        operator_agents.CONVERSATION_INSTRUCTION
+                        if name == "conversation_understanding_agent"
+                        else operator_agents.INTENT_INSTRUCTION
                         if name == "operator_intent_interpreter"
                         else operator_agents.SIMULATION_INSTRUCTION
                     ).encode()
