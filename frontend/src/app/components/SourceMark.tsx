@@ -150,7 +150,7 @@ const REFLOW_MARKS: Record<
  * name in the label — it never borrows another vendor's logo.
  */
 export function resolveSource(raw: string): {
-  brand?: { title: string; path: string };
+  brand?: { title: string; path: string; hex: string };
   reflow?: ReflowMarkName;
   label: string;
 } {
@@ -228,7 +228,12 @@ export function SourceMark({
       aria-label={title}
       focusable="false"
     >
-      <path d={resolved.brand.path} fill="currentColor" />
+      {/* The vendor's own colour, so GitHub, Gmail and Calendar are drawn the way
+          those products are drawn. The value comes from the vendored brand data
+          and is fixed: it identifies WHO observed something and never shifts to
+          signal whether the thing was good. Outcome stays with the status pill
+          beside the mark. */}
+      <path d={resolved.brand.path} fill={resolved.brand.hex} />
     </svg>
   ) : (
     <svg

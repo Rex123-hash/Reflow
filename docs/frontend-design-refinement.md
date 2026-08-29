@@ -154,16 +154,18 @@ archive and stays calm.
 
 ## 11. Live-state cues
 
-Three motion primitives, each encoding something true:
+Motion communicates state, and nothing else:
 
-- **arrival** — the primary surface settles in once on mount;
 - **working** — a slow breath on live indicators, only where the workspace or
-  provenance is genuinely live;
+  provenance is genuinely live, and on the Operator perimeter while a request is
+  actually in flight;
 - **recency** — `formatRelativeTime` leads with "4 min ago" / "Yesterday" while the
   exact instant stays in `dateTime` and `title`, so nothing is lost.
 
-All three stop under `prefers-reduced-motion`. No ambient decoration, no staggered
-load-in, nothing on Evidence.
+An arrival animation on the primary surface was tried and removed in the
+finalization pass: a card moving because a route rendered says nothing about the
+system. Everything remaining stops under `prefers-reduced-motion`. No ambient
+decoration, no staggered load-in, nothing on Evidence.
 
 ## 12. Tests added
 
@@ -198,7 +200,60 @@ and instrument collisions, zero clipped labels, zero overflow.
 **App QA** — Overview, Objectives, Recovery, Operator, Evidence at 1440, tablet and
 390: **zero horizontal overflow on all fifteen**.
 
-## 14. Deliberately deferred
+## 14. Finalization pass
+
+A short finishing pass on top of `2bd0e45`.
+
+**Objective summary moved to Objectives.** Overview answers "what is happening
+right now"; the counts answered a different question and are now the header of the
+list they describe. Overview's activity feed takes the full width. The counts are
+read from `OverviewView.objective_summary` — backend-owned — and are never derived
+from the visible rows, which the filter would make wrong anyway.
+
+| First-screen empty | Before | After |
+|---|---|---|
+| Objectives desktop | 60% | **49%** |
+| Objectives tablet | — | 45% |
+| Objectives mobile | — | 14% |
+| Overview desktop | 0% | 0% |
+
+**Expandable rows were not added.** With a summary header, a list and a footnote,
+Objectives is a complete list view; the remaining whitespace is because the demo
+fixture holds one objective, not because the page is structurally short. Adding
+disclosure to fill pixels is the thing the brief warns against.
+
+**Generic mount motion removed.** `surface-enter` fired because a route rendered,
+which says nothing about the system. What remains fires from real state: the live
+workspace and live provenance breathe, the Operator perimeter reacts while a
+request is genuinely in flight, and the answer transition marks a real arrival of
+content. All stop under `prefers-reduced-motion`.
+
+**Recovery objective bar recomposed at tablet.** Wrapping a flex row left the facts
+strung across a second line with their vertical rules floating between them. Below
+900px it becomes a two-column grid: name and provenance on the first band, facts
+pairing off beneath, dividing rules dropped. Composition, not smaller type — the
+12px floor is untouched.
+
+**Evidence identifiers abbreviated.** `abbreviateIdentifiers` shortens runs of 24+
+hex characters to `afead004…0076` for reading. Only long opaque digests are
+touched; short keys and run numbers are left exactly as the backend wrote them. The
+exact string stays on the element's `title` and in visually-hidden text, so it is
+still selectable and still read aloud. The identifier itself is unchanged.
+
+**Story rail resting treatment.** All ten states, the spine and every node are
+preserved. Presence now falls away with distance from the current row — current
+opaque, immediate neighbours legible, three or more away a trace — so the rail
+orients without competing with the DETECT / PLAN / ACT / VERIFY labels on the
+instrument. Story QA after the change: 7/7 frames and 10/10 settled states clean.
+
+**Brand marks in vendor colour.** GitHub, Gmail and Google Calendar now draw in
+their own brand colours rather than monochrome ink, reversing an earlier decision.
+The colour comes from the vendored `simple-icons` data and is fixed to the brand —
+it identifies *who* observed something and never shifts to signal whether the thing
+was good. Outcome stays with the status pill beside the mark. Reflow-native
+authorities keep Reflow's own marks.
+
+## 15. Deliberately deferred
 
 - "Since you last looked" — introduces view/session-state semantics not needed here.
 - Activity + Counts merge — held until the new hierarchy was evaluated; with the
@@ -206,9 +261,10 @@ and instrument collisions, zero clipped labels, zero overflow.
 - Freshness distinction between fresh external read and persisted read-back is
   surfaced only where the product already knows it; nothing is fabricated.
 
-## 15. Remaining visual debt
+## 16. Remaining visual debt
 
-1. Evidence still shows full hashes in the default view; disclosure not yet added.
-2. Story rail resting treatment still names all ten states at similar weight.
-3. Serif remains on a few application card headings that would read better as sans.
-4. Recovery objective bar wraps awkwardly at tablet.
+1. Serif remains on a few application card headings that would read better as sans.
+2. Objectives is ~49% empty on a desktop first screen with a single-objective
+   fixture. Structurally complete; worth revisiting only against realistic data.
+3. Evidence proof records still show full identifiers inside the card bodies; only
+   the timeline's technical line is abbreviated so far.

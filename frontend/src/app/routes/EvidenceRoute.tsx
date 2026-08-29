@@ -6,7 +6,11 @@ import { Icon } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import { VerificationPill } from "../components/StatusVocabulary";
 import { useEvidencePage } from "../data/resources";
-import { formatObservedAt, humanizeEnum } from "../semantics/format";
+import {
+  abbreviateIdentifiers,
+  formatObservedAt,
+  humanizeEnum,
+} from "../semantics/format";
 import { eventTone } from "../semantics/executionEvents";
 import { InvariantTable } from "../recovery/ExpectedObserved";
 import { PlanCard } from "../recovery/PlanCard";
@@ -175,8 +179,16 @@ export function EvidenceRoute() {
                   </span>
                   <time>{formatObservedAt(event.timestamp)}</time>
                 </span>
-                <span className="evidence-event-technical mono">
-                  {event.technical_summary}
+                {/* Abbreviated for reading; the exact string stays on the
+                    element and in accessible text, so nothing is lost. */}
+                <span
+                  className="evidence-event-technical mono"
+                  title={event.technical_summary}
+                >
+                  {abbreviateIdentifiers(event.technical_summary)}
+                  <span className="visually-hidden">
+                    {event.technical_summary}
+                  </span>
                 </span>
               </div>
             </li>

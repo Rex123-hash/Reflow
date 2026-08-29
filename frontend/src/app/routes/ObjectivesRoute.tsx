@@ -3,7 +3,7 @@ import type { ObjectiveFilter } from "../contract/uiContract";
 import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
 import { Icon } from "../components/Icon";
 import { HealthPill, StageChip } from "../components/StatusVocabulary";
-import { useObjectives } from "../data/resources";
+import { useObjectives, useOverview } from "../data/resources";
 import {
   formatDeadline,
   formatObservedAt,
@@ -32,6 +32,11 @@ export function ObjectivesRoute() {
   const raw = params.get("status");
   const filter: ObjectiveFilter = isFilter(raw) ? raw : "all";
   const objectives = useObjectives(filter);
+  // Read only for its backend-owned counts; the list itself stays on its own
+  // resource, so a summary failure never blocks the objectives table.
+  const overview = useOverview();
+  const summary =
+    overview.status === "ready" ? overview.data.objective_summary : null;
 
   const setFilter = (next: ObjectiveFilter) =>
     setParams((current) => {
@@ -65,6 +70,31 @@ export function ObjectivesRoute() {
           ))}
         </div>
       </header>
+
+      {/**
+       * The objective counts are backend-owned (`OverviewView.objective_summary`)
+       * and are read, never recomputed here — deriving them from the visible rows
+       * would be the frontend inventing a verdict, and the filter means the rows
+       * are not the whole population anyway.
+       */}
+      {summary ? (
+        <dl className="objectives-summary" aria-label="Objective summary">
+          {(
+            [
+              ["Active", summary.active],
+              ["Recovering", summary.recovering],
+              ["Healthy", summary.healthy],
+              ["Watching", summary.watching_or_needs_attention],
+              ["Restored", summary.restored],
+            ] as const
+          ).map(([label, value]) => (
+            <div key={label} className={value > 0 ? "is-present" : undefined}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
 
       {objectives.status === "loading" ? (
         <LoadingState label="Loading objectives" />

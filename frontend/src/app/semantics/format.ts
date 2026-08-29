@@ -149,6 +149,30 @@ export function truncateId(value: string, head = 14, tail = 8): string {
   return `${value.slice(0, head)}…${value.slice(-tail)}`;
 }
 
+/**
+ * Shortens long opaque hex runs inside a sentence for display only.
+ *
+ * `Durable EVENT_INTERPRETED event; key=gmail:afead004…0076.` — a 64-character
+ * digest was dominating every row of the default Evidence view, so the sentence
+ * around it became unreadable and the identifier itself gained nothing from being
+ * shown in full at a glance.
+ *
+ * Only runs of 24 or more hex characters are touched, so short keys, run numbers
+ * and words are left exactly as the backend wrote them. Callers must keep the
+ * original string available — `title` plus accessible exact text — because this
+ * changes presentation and never the identifier.
+ */
+export function abbreviateIdentifiers(
+  text: string,
+  head = 8,
+  tail = 4,
+): string {
+  return text.replace(
+    /[0-9a-f]{24,}/gi,
+    (digest) => `${digest.slice(0, head)}…${digest.slice(-tail)}`,
+  );
+}
+
 /** `https://github.com/o/r/actions/runs/123` → `github.com/o/r/actions/runs/123`. */
 export function displayReference(reference: string): string {
   try {

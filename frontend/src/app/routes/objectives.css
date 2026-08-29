@@ -109,3 +109,64 @@
     min-width: 860px;
   }
 }
+
+/**
+ * The objective summary.
+ *
+ * It lived on Overview, where it answered a question that page does not ask —
+ * Overview is "what is happening right now", not "how many objectives exist and
+ * in what state". Here it is the header for the list it describes, and it gives
+ * this route the first-screen substance it was missing.
+ *
+ * A bare row of figures, not another card: the table below is the page's subject,
+ * and the summary should read as its heading rather than compete with it.
+ */
+.objectives-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-4);
+  margin: 0 0 var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.objectives-summary > div {
+  display: grid;
+  gap: var(--space-1);
+  border-left: 2px solid var(--line-soft);
+  padding-left: var(--space-4);
+}
+
+/* A count of zero is context; a count above zero is a state that exists. */
+.objectives-summary > div.is-present {
+  border-left-color: var(--forest);
+}
+
+.objectives-summary dt {
+  font-size: var(--type-label);
+  color: var(--text-supporting);
+  letter-spacing: 0.01em;
+}
+
+.objectives-summary dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: var(--type-section);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.objectives-summary > div.is-present dd {
+  color: var(--text-primary);
+}
+
+@media (max-width: 700px) {
+  .objectives-summary {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+}

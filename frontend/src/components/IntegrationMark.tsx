@@ -14,12 +14,13 @@ import { INTEGRATION_MARKS } from "../app/assets/integrationMarks";
  * `/app` must not pull in marketing, not the reverse, and the module is three path
  * strings.
  *
- * Rendered monochrome in ink rather than in vendor colour. The reference shows the
- * multicolour Calendar lockup, but the page's whole palette discipline is warm
- * ivory and forest, and a four-colour logo is the one thing on the page that would
- * break it. Monochrome is still the official geometry, and it matches how the same
- * marks are drawn in the product. Crucially the mark never carries state — the
- * VERIFIED pill beside it does that.
+ * Rendered in the vendor's own brand colour, from the vendored brand data, so the
+ * service is recognisable as itself. An earlier pass drew these monochrome to
+ * protect the ivory-and-forest palette; a real logo in its real colour reads as a
+ * genuine third-party system rather than as Reflow's own iconography, which is the
+ * whole point of showing it. The colour is fixed to the brand and never shifts —
+ * the mark says WHO observed something, and the VERIFIED pill beside it says
+ * whether it held.
  */
 export function IntegrationMark({
   name,
@@ -36,7 +37,7 @@ export function IntegrationMark({
   return (
     <span className="integration-mark" aria-hidden="true">
       <svg width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={label}>
-        <path d={mark.path} fill="currentColor" />
+        <path d={mark.path} fill={mark.hex} />
       </svg>
     </span>
   );

@@ -262,6 +262,15 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
                   : 0;
             const weight = clamp01(1 - distance / 0.06);
             item.style.setProperty("--progress-weight", weight.toFixed(4));
+            // How far this row sits from the current one. The rail keeps all ten
+            // states — the model is the point — but ten labels at similar weight
+            // read as a legend competing with the composition, so presence falls
+            // away with distance and only the current state and its immediate
+            // neighbours stay readable.
+            item.style.setProperty(
+              "--rail-distance",
+              String(Math.abs(index - currentRail)),
+            );
           });
 
           const nextStage = stageFromProgress(value);

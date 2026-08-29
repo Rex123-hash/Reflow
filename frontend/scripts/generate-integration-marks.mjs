@@ -52,6 +52,8 @@ const entries = WANTED.map(({ key, slug }) => {
     key,
     title: icon.title,
     path: readPath(slug),
+    // The vendor's own brand colour, so a mark can be drawn as the vendor draws it.
+    hex: icon.hex,
     source: icon.source ?? "",
   };
 });
@@ -61,6 +63,7 @@ const body = entries
     (entry) => `  ${JSON.stringify(entry.key)}: {
     title: ${JSON.stringify(entry.title)},
     path: ${JSON.stringify(entry.path)},
+    hex: ${JSON.stringify("#" + entry.hex)},
     source: ${JSON.stringify(entry.source)},
   },`,
   )
@@ -73,17 +76,22 @@ const output = `/**
  * (icon data CC0-1.0; each mark remains the property of its owner).
  * Regenerate: npm run marks:generate
  *
- * These identify the EXTERNAL AUTHORITY only. They are rendered monochrome and are
- * never recoloured to signal success or failure — outcome is carried by Reflow's
- * own semantic status vocabulary. Reflow-native sources (the deterministic
- * verifier, the policy engine, the objective graph, the workflow ledger) use
- * Reflow's own marks, never a third-party logo.
+ * These identify the EXTERNAL AUTHORITY only. Each carries the vendor's own brand
+ * colour so it is drawn the way that vendor draws it — but the colour is fixed to
+ * the brand and is never changed to signal success or failure. Outcome is carried
+ * by Reflow's own semantic status vocabulary standing beside the mark.
+ *
+ * Reflow-native sources (the deterministic verifier, the policy engine, the
+ * objective graph, the workflow ledger) use Reflow's own marks, never a
+ * third-party logo.
  */
 
 export interface IntegrationMark {
   title: string;
   /** 24×24 viewBox path data. */
   path: string;
+  /** The vendor's official brand colour. Fixed; never state-dependent. */
+  hex: string;
   source: string;
 }
 

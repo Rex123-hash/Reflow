@@ -48,11 +48,10 @@ export function OverviewRoute() {
     );
   }
 
-  const {
-    current_priority: priority,
-    objective_summary: counts,
-    recent_activity: activity,
-  } = overview.data;
+  // `objective_summary` is deliberately not read here any more: the counts moved to
+  // Objectives, where they are the summary of the list they describe.
+  const { current_priority: priority, recent_activity: activity } =
+    overview.data;
 
   if (!priority) {
     return (
@@ -156,7 +155,7 @@ export function OverviewRoute() {
         <ExternalReality incidentId={priority.incident_id} compact />
       ) : null}
 
-      <div className="overview-grid">
+      <div className="overview-activity">
         <section className="card">
           <div className="card-head">
             <h3>What Reflow did while you were away</h3>
@@ -203,38 +202,6 @@ export function OverviewRoute() {
               No durable events have been recorded.
             </p>
           ) : null}
-        </section>
-
-        <section className="card overview-counts">
-          <div className="card-head">
-            <h3>Objectives</h3>
-            <Link className="link-internal" to="/app/objectives">
-              View all
-              <Icon name="arrow-right" size={12} />
-            </Link>
-          </div>
-          <dl>
-            <div>
-              <dt>Active</dt>
-              <dd>{counts.active}</dd>
-            </div>
-            <div>
-              <dt>Recovering</dt>
-              <dd>{counts.recovering}</dd>
-            </div>
-            <div>
-              <dt>Healthy</dt>
-              <dd>{counts.healthy}</dd>
-            </div>
-            <div>
-              <dt>Watching or needs attention</dt>
-              <dd>{counts.watching_or_needs_attention}</dd>
-            </div>
-            <div>
-              <dt>Restored</dt>
-              <dd>{counts.restored}</dd>
-            </div>
-          </dl>
         </section>
       </div>
     </div>

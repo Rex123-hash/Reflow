@@ -1737,6 +1737,18 @@ a {
   color: var(--forest);
 }
 
+/**
+ * Resting treatment.
+ *
+ * Every state stays in the rail — the ten-state model is what the rail exists to
+ * show — but presence falls off with distance from the current row, so the reader
+ * gets orientation rather than a ten-item legend competing with the DETECT / PLAN /
+ * ACT / VERIFY labels on the instrument itself.
+ *
+ * Current is opaque, the rows either side stay legible, and anything three or more
+ * away sits at a trace. The nodes and the spine are untouched: the shape of the
+ * journey is always visible even where its names are not.
+ */
 .rail-name {
   font-size: 0.575rem;
   font-weight: 650;
@@ -1744,8 +1756,8 @@ a {
   text-transform: uppercase;
   color: var(--forest);
   white-space: nowrap;
-  opacity: calc(0.2 + var(--progress-weight, 0) * 0.8);
-  transition: opacity 200ms ease;
+  opacity: max(0.1, calc(0.82 - var(--rail-distance, 3) * 0.32));
+  transition: opacity 260ms ease;
 }
 
 .rail-node {
