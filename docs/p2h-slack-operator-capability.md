@@ -1,18 +1,18 @@
 # P2H — bounded Slack Operator capability
 
-## Current checkpoint — pre-live Slack qualification, 29 August 2026
+## Current checkpoint — final live Slack qualification, 29 August 2026
 
-**P2H SLACK READY FOR LIVE MESSAGE QUALIFICATION.** Slack identity, exact scopes, public/unshared
-channel membership, actual adapter INSPECT and deployed Viewer INSPECT passed. Backend and BFF
-now serve the already-qualified `113a307` source. The frozen **24/24 + 8/8** model gates were
-verified from preserved evidence, **not rerun**. No Agent 6/7 instruction, model, timeout, grader,
-adapter, authorization or runtime source changed in this continuation. **Slack message writes: 0.**
+**P2H SLACK OPERATOR CAPABILITY GO.** One explicitly authorized message was created in the exact
+configured channel through the deployed Reflow Operator path, acknowledged, independently read
+back, and marked VERIFIED only after exact comparison passed. One same-idempotency-key replay
+returned the same durable action and timestamp before Agent 6, and the final read-only audit found
+exactly one matching external message. No second message or other Slack mutation was requested.
 
-Section 18 contains the current pre-live proof, deployment provenance and remaining boundary.
-Sections 1–17 preserve earlier checkpoints, including genuine failures and the subsequent repair.
-The proposed message below is **not sent** and requires new explicit user authorization:
-
-> Backend engineer unavailable. SCRUM-6 is blocked.
+The frozen **24/24 + 8/8** model gates were preserved and not rerun. Exactly seven agents and the
+canonical revision 16 / 28-event recovery remain unchanged. Section 19 contains the final live
+receipt, replay proof, deployment provenance, final gates, evidence boundary and remaining debt.
+Sections 1–18 remain as the chronological qualification record, including the historical pre-live
+stop and its then-correct zero-write statement.
 
 ## Previous checkpoint — model qualification repair, 29 August 2026
 
@@ -937,3 +937,85 @@ source remains the independently verified frozen **`113a307a7867e29751137b1fef0b
 
 **FINAL VERDICT: P2H SLACK READY FOR LIVE MESSAGE QUALIFICATION.** This is pre-live readiness,
 not a live Slack write/read-back/replay GO claim.
+
+## 19. Final live message qualification — 29 August 2026
+
+The user authorized one exact Slack message creation, one replay of that already-created request
+using the same idempotency key, independent read-back, and a final read-only audit. The bounded
+one-shot harness had no direct Slack-write method: it authenticated to the already-deployed private
+backend and exercised the real Agent 6 → policy → durable coordinator → Slack adapter → verifier
+path. It refused a pre-existing action ID, allowed only the two fixed backend requests, and stopped
+before replay unless the first action was VERIFIED.
+
+### 19.1 A–Z live evidence ledger
+
+| Item | Final evidence |
+|---|---|
+| A — starting repository HEAD | `e31f0b522` on `codex/ui-m2-orb-anchor-spike` |
+| B — local proof changes | Bounded live harness, transport tests, immutable evidence and this section; final local commit IDs are recorded in the handoff; no push |
+| C — Slack action ID | `6b754fc7350855414b33de8da5ec6d85cb9bd0984ba29d6d636a63546250081d` |
+| D — idempotency key | `p2h-slack-final-live-qualification-20260829-v1`; identical on initial request and replay |
+| E — exact message | `Backend engineer unavailable. SCRUM-6 is blocked.` |
+| F — workspace | Reflow Demo, team `T0BT2EP259V` |
+| G — exact target | `C0BTKPVEM25` / `#reflow-release-demo`; public, unshared, active, bot member |
+| H — acknowledgement | Slack `ok=true`, acknowledgement channel exactly `C0BTKPVEM25` |
+| I — message timestamp | `1787988861.978999` |
+| J — lifecycle | `AUTHORIZED → EXECUTING → EXECUTED → READ_BACK → VERIFIED`; verification `PASSED` |
+| K — independent read-back | Expected and observed channel, timestamp, text, bot user `U0BTDNEQBBP`, and bot ID `B0BTFTQFW22` all match exactly |
+| L — external exact match | Exact-timestamp history returned one message; text and author both passed |
+| M — initial effect proof | One durable requested action, `attempted_operations=1`, one Agent 6 trace, one acknowledgement, independent history verifier |
+| N — replay | HTTP 200; same durable action, original request/action receipt, same timestamp and VERIFIED result |
+| O — replay interpretation | `agent_traces=[]`; operational logs contain zero Agent 6 starts for the replay request |
+| P — no-duplicate proof | Replay-before-agent/action bypass, durable attempted operation `1`, same action/timestamp, one `OPERATOR_ACTION_REQUESTED` log, and one exact external match |
+| Q — exact-match count | `1` in the final bounded latest-15 history window |
+| R — final Slack audit | PASS; `auth.test`, channel info, exact-timestamp history, bounded history; four reads and zero writes |
+| S — deterministic checks | `409 passed, 1 skipped`; coverage `96.01%`; scoped Ruff, formatting and strict mypy passed |
+| T — credential security | Final bounded secret scan passed with zero findings; token was never printed or persisted |
+| U — reasoning topology | Exactly seven agents; initial request used Agent 6 once, replay used no reasoning agent, Agent 7 not invoked |
+| V — canonical invariants | Incident revision `16`, `28` durable events, `objective_restored` / `RESOLVED`, plan revision `2`, unchanged |
+| W — canonical fingerprint | `4a1c93385b5b24060c31e995c521455622f1582967c615a2a7a7021e7f13fa8c` |
+| X — deployment provenance | Backend `objective-recovery-00027-jah`, digest `sha256:f2c237…34459`; BFF `reflow-web-bff-00007-gix`, digest `sha256:c5b086…37cad`; both source `113a307a7867e29751137b1fef0b61be50c4a562`, Ready and 100% |
+| Y — remaining debt | Browser-authenticated UI proof and frontend publication remain unperformed; BFF `/healthz` remains affected by the documented Cloud Run reserved-path behavior |
+| Z — prohibited activity | No second/fresh-key post, other message, DM, edit/delete, other-channel mutation, scope/IAM/Jira/Calendar/canonical/model change, or Git push |
+
+Initial request ID: `5efe8a5a-5bfe-46a0-8780-2d9c1d0ebcd9`. Replay request ID:
+`2381a365-df64-437b-8c90-57bfbb18aaa6`. Operational logs show one
+`OPERATOR_ACTION_REQUESTED` event for the durable action, the complete verified state sequence, one
+Agent 6 start/completion for the initial request, and zero Agent 6 starts for replay.
+
+### 19.2 Duplicate-proof boundary
+
+The coordinator persists `attempted_operations=1`, and the replay checks the durable request before
+interpretation or adapter execution. The matching action ID, acknowledgement, timestamp, expected
+and observed state are byte-for-byte equivalent across responses. The independent final audit
+observed exactly one matching external message in the latest 15 and exactly one message at the
+acknowledged timestamp.
+
+The product does **not** persist a per-method outbound Slack HTTP invocation counter. Therefore this
+is strong combined durable/runtime/external evidence of one creation and no duplicate, but it is
+not misrepresented as a direct packet-level count of `chat.postMessage` calls. Adding a redacted
+outbound-method metric would close that observability gap without changing authorization semantics.
+
+### 19.3 Deployment and UI boundary
+
+The live action reached the private deployed backend using short-lived Cloud Run identity because
+no browser-authenticated BFF session was available. It exercised the deployed Reflow Operator
+Agent 6, policy, durable coordinator, real Slack adapter and independent verifier. It did not forge
+a browser session, redeploy code, or call Slack directly from the harness. The BFF remains deployed
+and qualified read-only, but the browser frontend assets were **not deployed**; this is not a claim
+of live frontend/UI end-to-end qualification.
+
+Artifacts:
+
+- `artifacts/p2h-slack-final-live-execution.json`: safe action, acknowledgement, read-back, replay,
+  audit, operational-log and no-duplicate evidence; no secret value or subject hash.
+- `artifacts/p2h-slack-final-live-canonical-audit.json`: post-action read-only canonical,
+  seven-agent, deployment, health and Slack-secret-reference audit.
+- `artifacts/p2h-slack-final-live-secret-scan.json`: final credential scan.
+- `artifacts/p2h-live-final-before-slack-preflight.json`: immediate zero-write pre-action preflight.
+
+No model qualification was rerun. No Slack write occurred after the authorized initial creation;
+the replay returned the existing action and the final Slack audit was read-only. No Git push
+occurred.
+
+**FINAL VERDICT: P2H SLACK OPERATOR CAPABILITY GO.**
