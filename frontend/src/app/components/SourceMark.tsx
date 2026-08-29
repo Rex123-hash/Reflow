@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { INTEGRATION_MARKS } from "../assets/integrationMarks";
+import { ICON_SIZE, ICON_STROKE } from "./Icon";
 import "./source-mark.css";
 
 /**
@@ -10,11 +11,70 @@ import "./source-mark.css";
  * workflow ledger) use Reflow's own marks.
  *
  * The mark identifies WHO observed something. It never says whether the thing was
- * good: marks render monochrome in ink, and outcome is carried entirely by the
- * semantic status vocabulary next to them.
+ * good. A vendor mark is drawn in that vendor's own fixed brand colour, because the
+ * colour is part of how the vendor is recognised; it is never changed to signal an
+ * outcome. Reflow-native marks are stroked in ink. Outcome is carried entirely by
+ * the semantic status vocabulary standing next to the mark.
+ *
+ * Three tiers, in resolution order:
+ *   a vendored brand mark, for authorities whose official mark we ship;
+ *   a named external authority, for ones we do not — Slack, whose mark
+ *     simple-icons no longer distributes, gets Reflow's channel glyph under
+ *     Slack's own name rather than a hand-drawn lookalike of its logo;
+ *   a Reflow-native mark, for Reflow's own verifier, policy, graph and ledger.
+ *
+ * The middle tier exists because the alternative was worse: before it, a Slack
+ * observation resolved to the Reflow engine mark and the interface said Reflow had
+ * observed something Slack observed.
  */
 
+/** Matches ICON_STROKE, so a mark and a UI glyph on the same row weigh the same. */
+const MARK_STROKE = ICON_STROKE;
+
 type ReflowMarkName = "verifier" | "policy" | "graph" | "ledger" | "engine";
+
+/**
+ * External authorities Reflow integrates with whose official mark is not in the
+ * vendored set. Drawn by Reflow, named for the vendor — the label is what carries
+ * the attribution, and it is correct.
+ */
+type ExternalMarkName = "slack";
+
+const EXTERNAL_MARKS: Record<
+  ExternalMarkName,
+  { title: string; node: ReactElement }
+> = {
+  slack: {
+    title: "Slack",
+    node: (
+      <>
+        <path
+          d="M9.3 3.9v8.9M14.7 11.2v8.9"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={MARK_STROKE}
+          strokeLinecap="round"
+        />
+        <path
+          d="M3.9 14.7h8.9M11.2 9.3h8.9"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={MARK_STROKE}
+          strokeLinecap="round"
+        />
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={MARK_STROKE}
+          opacity="0.34"
+        />
+      </>
+    ),
+  },
+};
 
 const REFLOW_MARKS: Record<
   ReflowMarkName,
@@ -30,13 +90,13 @@ const REFLOW_MARKS: Record<
           r="8.2"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.6"
+          strokeWidth={MARK_STROKE}
         />
         <path
           d="M8.2 12.2l2.6 2.6 5-5.2"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.9"
+          strokeWidth={MARK_STROKE}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -51,13 +111,13 @@ const REFLOW_MARKS: Record<
           d="M12 3.4l7 3.3v4.9c0 4.1-2.9 7.7-7 8.6-4.1-.9-7-4.5-7-8.6V6.7z"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={MARK_STROKE}
           strokeLinejoin="round"
         />
         <path
           d="M9 12h6"
           stroke="currentColor"
-          strokeWidth="1.7"
+          strokeWidth={MARK_STROKE}
           strokeLinecap="round"
         />
       </>
@@ -73,7 +133,7 @@ const REFLOW_MARKS: Record<
           r="2.1"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={MARK_STROKE}
         />
         <circle
           cx="5.8"
@@ -81,7 +141,7 @@ const REFLOW_MARKS: Record<
           r="2.1"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={MARK_STROKE}
         />
         <circle
           cx="18.2"
@@ -89,12 +149,12 @@ const REFLOW_MARKS: Record<
           r="2.1"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={MARK_STROKE}
         />
         <path
           d="M10.9 7.3L6.9 15.6M13.1 7.3l4 8.3M7.9 17.6h8.2"
           stroke="currentColor"
-          strokeWidth="1.4"
+          strokeWidth={MARK_STROKE}
           strokeLinecap="round"
         />
       </>
@@ -112,12 +172,12 @@ const REFLOW_MARKS: Record<
           rx="2"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={MARK_STROKE}
         />
         <path
           d="M8.2 9h7.6M8.2 12.4h7.6M8.2 15.8h4.6"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={MARK_STROKE}
           strokeLinecap="round"
         />
       </>
@@ -133,7 +193,7 @@ const REFLOW_MARKS: Record<
           r="8.4"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={MARK_STROKE}
         />
         <circle cx="12" cy="12" r="2.6" fill="currentColor" />
         <circle cx="18.1" cy="7.6" r="1.5" fill="currentColor" opacity="0.55" />
@@ -151,6 +211,7 @@ const REFLOW_MARKS: Record<
  */
 export function resolveSource(raw: string): {
   brand?: { title: string; path: string; hex: string };
+  external?: ExternalMarkName;
   reflow?: ReflowMarkName;
   label: string;
 } {
@@ -158,12 +219,14 @@ export function resolveSource(raw: string): {
 
   const normalized: Record<
     string,
-    { brand?: string; reflow?: ReflowMarkName }
+    { brand?: string; external?: ExternalMarkName; reflow?: ReflowMarkName }
   > = {
     gmail: { brand: "gmail" },
     google_calendar: { brand: "google_calendar" },
     github: { brand: "github" },
     github_actions: { brand: "github" },
+    jira: { brand: "jira" },
+    slack: { external: "slack" },
     reflow_verifier: { reflow: "verifier" },
     reflow_policy: { reflow: "policy" },
     reflow_graph: { reflow: "graph" },
@@ -174,6 +237,7 @@ export function resolveSource(raw: string): {
   if (exact?.brand) {
     return { brand: INTEGRATION_MARKS[exact.brand], label: raw };
   }
+  if (exact?.external) return { external: exact.external, label: raw };
   if (exact?.reflow) return { reflow: exact.reflow, label: raw };
 
   if (key.includes("github")) {
@@ -184,6 +248,15 @@ export function resolveSource(raw: string): {
   }
   if (key.includes("gmail") || key.includes("mail")) {
     return { brand: INTEGRATION_MARKS.gmail, label: raw };
+  }
+  // Both the Operator contract's authority (`JIRA`, `SLACK`) and its capability
+  // names (`JIRA_TRANSITION`, `SLACK_INSPECT_CHANNEL`, …) reach this function, so
+  // the substring match is what makes a capability-shaped value attribute correctly.
+  if (key.includes("jira")) {
+    return { brand: INTEGRATION_MARKS.jira, label: raw };
+  }
+  if (key.includes("slack")) {
+    return { external: "slack", label: raw };
   }
   if (key.includes("verifier") || key.includes("verification")) {
     return { reflow: "verifier", label: raw };
@@ -211,13 +284,16 @@ export interface SourceMarkProps {
 
 export function SourceMark({
   source,
-  size = 18,
+  size = ICON_SIZE.header,
   framed = false,
   className,
 }: SourceMarkProps) {
   const resolved = resolveSource(source);
   const title =
-    resolved.brand?.title ?? REFLOW_MARKS[resolved.reflow ?? "engine"].title;
+    resolved.brand?.title ??
+    (resolved.external
+      ? EXTERNAL_MARKS[resolved.external].title
+      : REFLOW_MARKS[resolved.reflow ?? "engine"].title);
 
   const glyph = resolved.brand ? (
     <svg
@@ -244,7 +320,9 @@ export function SourceMark({
       aria-label={title}
       focusable="false"
     >
-      {REFLOW_MARKS[resolved.reflow ?? "engine"].node}
+      {resolved.external
+        ? EXTERNAL_MARKS[resolved.external].node
+        : REFLOW_MARKS[resolved.reflow ?? "engine"].node}
     </svg>
   );
 
@@ -258,7 +336,7 @@ export function SourceMark({
 /** Mark plus the authority's own name, for card headers. */
 export function SourceLabel({
   source,
-  size = 18,
+  size = ICON_SIZE.header,
 }: {
   source: string;
   size?: number;

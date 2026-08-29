@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { UiDataError } from "../data/UiDataProvider";
-import { Icon } from "./Icon";
+import { Icon, ICON_SIZE } from "./Icon";
 
 export function Notice({
   children,
@@ -13,7 +13,7 @@ export function Notice({
 }) {
   return (
     <div className={`notice${dashed ? " is-dashed" : ""}`}>
-      <Icon name={tone === "shield" ? "shield" : "info"} size={15} />
+      <Icon name={tone === "shield" ? "shield" : "info"} size={ICON_SIZE.row} />
       <p>{children}</p>
     </div>
   );

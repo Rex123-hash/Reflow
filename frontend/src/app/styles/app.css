@@ -545,8 +545,29 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  border: 1.5px solid currentColor;
+  border: 1.6px solid currentColor;
   flex: 0 0 auto;
+}
+
+/**
+ * The stage glyph reads at a slightly lower weight than the chip's label, so the
+ * word stays the thing being read and the ring is what the eye lands on first when
+ * scanning a column of them.
+ */
+.stage-chip-glyph {
+  flex: 0 0 auto;
+  opacity: 0.82;
+}
+
+/* The glyph takes the chip's own state colour through currentColor. Brass is not
+   used here: it fails AA as a text colour, which is why the dot beside it carries
+   brass as a fill rather than as ink. */
+.stage-chip.is-current > .stage-chip-glyph {
+  opacity: 1;
+}
+
+.stage-chip.is-restored > .stage-chip-glyph {
+  opacity: 1;
 }
 
 .stage-chip.is-current {
@@ -724,10 +745,16 @@
   border-bottom: 1px solid var(--line);
 }
 
+/**
+ * Rows carry the page, so they are sized like content rather than like metadata.
+ * At label size in a 12px-padded row, a table holding a couple of objectives read
+ * as a thin band stranded in an empty page; the data was never the problem, the
+ * weight given to it was.
+ */
 .data-table tbody td {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4);
   border-bottom: 1px solid var(--line);
-  font-size: var(--type-label);
+  font-size: var(--type-secondary);
   vertical-align: top;
 }
 
@@ -909,44 +936,88 @@
  * only the masthead — gives the application a consistent entrance while every
  * table, card and value beneath it stays left-aligned and scannable.
  */
+/**
+ * The page masthead.
+ *
+ * Every application page opens the same way: eyebrow, title, then one line of
+ * description under it, all on the page's centre axis. The description is given a
+ * wide enough measure to stay on a single line at desktop widths — a lede broken
+ * into two short ragged lines under a centred title is what made these pages read
+ * as unfinished — and falls back to balanced wrapping when it genuinely cannot fit.
+ */
+/**
+ * The page masthead, composed for its centre axis.
+ *
+ * This used to be a left-aligned masthead that had been centred: the title sat on
+ * the middle of the page while the page's own control stayed pinned to the right
+ * edge, so the eyebrow, the title and the control were each answering to a
+ * different axis and the result read as text pushed into the middle of a layout
+ * built for the side.
+ *
+ * Everything now belongs to one column. The eyebrow leads with a short rule under
+ * it — the same figure the story surface opens its beats with — the title sits
+ * below it, the description takes a wide single line, and the page's control comes
+ * last, centred with the rest instead of floating off the axis.
+ */
 .page-head {
-  position: relative;
+  display: grid;
+  justify-items: center;
   text-align: center;
   margin-bottom: var(--space-6);
 }
 
+/**
+ * The unclassed wrapper the routes put their eyebrow, title and lede in becomes
+ * transparent so those three join the masthead's own column directly. It has to be
+ * `:not([class])`: a classed child — the filter group, a state badge — is a real
+ * element with its own layout, and dissolving it scattered its buttons down the
+ * grid one per row.
+ */
+.page-head > div:not([class]) {
+  display: contents;
+}
+
+.page-head .field-label {
+  margin: 0;
+}
+
+/* The rule the eyebrow hangs from, so the block starts on the centre line rather
+   than beginning at whatever width the eyebrow happens to be. */
+.page-head .field-label::after {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 1px;
+  margin: var(--space-3) auto 0;
+  background: var(--brass);
+  opacity: 0.75;
+}
+
 .page-head h1 {
-  margin: var(--space-2) 0 var(--space-3);
+  margin: var(--space-4) 0 var(--space-3);
   font-family: var(--serif);
   font-weight: 400;
   font-size: var(--type-page);
+  line-height: 1.12;
   letter-spacing: -0.03em;
-}
-
-.page-head > p:not(.field-label) {
-  margin: 0 auto;
-  max-width: 72ch;
-  font-size: var(--type-secondary);
-  color: var(--text-secondary);
-  line-height: 1.6;
   text-wrap: balance;
 }
 
-/* The page's own control keeps the masthead's geometry rather than pushing the
-   title off-axis. */
-.page-head-aside {
-  position: absolute;
-  right: 0;
-  bottom: 0;
+.page-head > p:not(.field-label),
+.page-head > div > p:not(.field-label) {
+  margin: 0 auto;
+  max-width: min(100%, 104ch);
+  font-size: var(--type-secondary);
+  color: var(--text-secondary);
+  line-height: 1.62;
+  text-wrap: balance;
 }
 
-@media (max-width: 900px) {
-  .page-head-aside {
-    position: static;
-    margin-top: var(--space-4);
-    display: flex;
-    justify-content: center;
-  }
+/* The page's own control closes the masthead on the same axis as the rest of it. */
+.page-head-aside {
+  margin-top: var(--space-5);
+  display: flex;
+  justify-content: center;
 }
 
 /* ------------------------------------------------------------- motion ------ */
@@ -987,4 +1058,73 @@
   .provenance.is-live i {
     animation: none;
   }
+}
+
+/* --------------------------------------------------- entity entry points --- */
+
+/**
+ * The mark at the head of a row or card.
+ *
+ * A soft ring container, so the eye has somewhere to land at the start of a row
+ * without another piece of text competing for it. It identifies the KIND of thing
+ * the row is about and never its state: no tone, no status colour, nothing that
+ * could be read as a verdict beside the health pill it sits next to.
+ */
+.entity-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface-elevated);
+  color: var(--text-metadata);
+}
+
+.entity-mark.is-lead {
+  width: 34px;
+  height: 34px;
+  color: var(--forest);
+}
+
+/* ------------------------------------------------------ verification ring --- */
+
+/**
+ * One segment per invariant, in that invariant's own tone. Not a percentage: the
+ * exact count sits beside it and in the accessible label.
+ */
+.verification-ring {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.verification-ring-segment.tone-verified {
+  stroke: var(--verified-ink);
+}
+
+.verification-ring-segment.tone-failed {
+  stroke: var(--failed-ink);
+}
+
+.verification-ring-segment.tone-motion {
+  stroke: var(--motion-ink);
+}
+
+.verification-ring-segment.tone-neutral {
+  stroke: var(--line-strong);
+}
+
+.verification-ring-segment.tone-absent {
+  stroke: var(--line-strong);
+  opacity: 0.55;
+}
+
+.verification-ring-count {
+  font-size: var(--type-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--body);
+  font-variant-numeric: tabular-nums;
 }

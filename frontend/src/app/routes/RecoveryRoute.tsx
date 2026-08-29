@@ -4,7 +4,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/Feedback";
 import { ExternalReality } from "../components/ExternalReality";
 import { ObjectiveContextBar } from "../components/ObjectiveContextBar";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { useExecutionEvents, useRecoveryCase } from "../data/resources";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import {
@@ -141,7 +141,7 @@ export function RecoveryRoute() {
         <p style={{ marginTop: "var(--space-4)" }}>
           <Link className="link-internal" to="/app/recovery">
             Choose a different incident
-            <Icon name="arrow-right" size={12} />
+            <Icon name="arrow-right" size={ICON_SIZE.meta} />
           </Link>
         </p>
       </div>

@@ -2,7 +2,7 @@ import type {
   RecoveryAttemptView,
   RecoveryCaseView,
 } from "../contract/uiContract";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import {
   actionsFor,
   evidenceFor,
@@ -91,7 +91,7 @@ function QuickLinks({
           onClick={() => onFocusStage(link.stageId, link.lens)}
         >
           {link.label}
-          <Icon name="arrow-right" size={12} />
+          <Icon name="arrow-right" size={ICON_SIZE.meta} />
         </button>
       ))}
     </nav>
@@ -112,7 +112,7 @@ export function SummaryLens({
 
       {isBranched && attempt.branch_reason ? (
         <div className="summary-branch">
-          <Icon name="branch" size={16} />
+          <Icon name="branch" size={ICON_SIZE.row} />
           <div>
             <span className="field-label">Why {attempt.label} exists</span>
             <p>{attempt.branch_reason}</p>
@@ -147,7 +147,7 @@ export function SummaryLens({
         <details className="compare-details">
           <summary>
             Compare attempts
-            <Icon name="chevron-down" size={14} />
+            <Icon name="chevron-down" size={ICON_SIZE.row} />
           </summary>
           <WhatChanged items={recoveryCase.what_changed} />
         </details>

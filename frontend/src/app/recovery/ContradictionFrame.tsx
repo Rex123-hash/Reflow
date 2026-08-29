@@ -3,7 +3,7 @@ import type {
   EvidenceView,
   VerificationView,
 } from "../contract/uiContract";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import {
   ReceiptStatusPill,
@@ -78,7 +78,7 @@ export function ContradictionFrame({
           <ul>
             {actions.map((action) => (
               <li key={action.action_id}>
-                <SourceMark source={action.system} size={14} />
+                <SourceMark source={action.system} size={ICON_SIZE.row} />
                 <span className="contradiction-action-name">
                   {humanizeEnum(action.kind)}
                 </span>
@@ -110,7 +110,10 @@ export function ContradictionFrame({
           <span className="field-label">Observed by</span>
           <span className="contradiction-proof-body">
             {provenanceEvidence ? (
-              <SourceMark source={provenanceEvidence.source_system} size={15} />
+              <SourceMark
+                source={provenanceEvidence.source_system}
+                size={ICON_SIZE.row}
+              />
             ) : null}
             {isHttpReference(provenance) ? (
               <a
@@ -120,7 +123,7 @@ export function ContradictionFrame({
                 rel="noreferrer noopener"
               >
                 {displayReference(provenance)}
-                <Icon name="external" size={12} />
+                <Icon name="external" size={ICON_SIZE.meta} />
               </a>
             ) : (
               <span className="mono">{provenance}</span>
@@ -133,7 +136,7 @@ export function ContradictionFrame({
               onClick={() => onFocusEvidence(provenanceEvidence.evidence_id)}
             >
               Show the evidence
-              <Icon name="arrow-right" size={12} />
+              <Icon name="arrow-right" size={ICON_SIZE.meta} />
             </button>
           ) : null}
         </footer>

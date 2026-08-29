@@ -1,11 +1,13 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import {
   HealthPill,
   StageChip,
   VerificationPill,
+  VerificationRing,
+  verificationTone,
 } from "../components/StatusVocabulary";
 import { useOperatorContext } from "../data/resources";
 import { useIncidentChoices } from "../data/useIncidentChoices";
@@ -86,7 +88,7 @@ export function OperatorRoute() {
           </p>
         </div>
         <span className="operator-readonly">
-          <Icon name="lock" size={13} />
+          <Icon name="lock" size={ICON_SIZE.meta} />
           Controlled
         </span>
       </header>
@@ -104,12 +106,19 @@ export function OperatorRoute() {
             <HealthPill health={data.objective.health} />
           </div>
           <div className="operator-objective">
-            <h4>{data.objective.title}</h4>
-            <StageChip
-              stage={data.objective.workflow_stage}
-              attemptNumber={data.objective.current_recovery_number}
-            />
-            <span className="mono operator-incident">{incidentId}</span>
+            {/* The same entity mark the Objectives table uses, so the object a
+                reader followed from one surface is recognisable on the next. */}
+            <span className="entity-mark is-lead" aria-hidden="true">
+              <Icon name="objective" size={ICON_SIZE.header} />
+            </span>
+            <div className="operator-objective-body">
+              <h4>{data.objective.title}</h4>
+              <StageChip
+                stage={data.objective.workflow_stage}
+                attemptNumber={data.objective.current_recovery_number}
+              />
+              <span className="mono operator-incident">{incidentId}</span>
+            </div>
           </div>
         </div>
 
@@ -120,13 +129,40 @@ export function OperatorRoute() {
                 Latest verification · Recovery{" "}
                 {String(data.verification.recovery_attempt).padStart(2, "0")}
               </h3>
-              <VerificationPill status={data.verification.status} />
+              {/* The card states its verdict once, in the head: the ring for the
+                  shape of it, the pill for the backend's own word. The invariants
+                  below then list quietly instead of repeating one pill per row. */}
+              <span className="operator-verification-head">
+                <VerificationRing
+                  invariants={data.verification.invariants ?? []}
+                />
+                <VerificationPill status={data.verification.status} />
+              </span>
             </div>
             <ul className="operator-invariants">
               {(data.verification.invariants ?? []).map((invariant) => (
-                <li key={invariant.invariant_id}>
+                <li
+                  key={invariant.invariant_id}
+                  className={`tone-${verificationTone(invariant.status)}`}
+                >
                   <span className="mono">{invariant.invariant_id}</span>
-                  <VerificationPill status={invariant.status} />
+                  {/* A passed invariant needs no word: the ring above has already
+                      said how many passed, and six rows repeating "PASSED" is the
+                      repetition this card was carrying. Anything that did not pass
+                      keeps its word, because that one is worth reading. The exact
+                      state stays in the accessible text either way. */}
+                  <span className="operator-invariant-state">
+                    {invariant.status === "PASSED" ? (
+                      <Icon name="check" size={ICON_SIZE.meta} />
+                    ) : (
+                      <span aria-hidden="true">
+                        {invariant.status.toLowerCase()}
+                      </span>
+                    )}
+                    <span className="visually-hidden">
+                      {invariant.status.toLowerCase()}
+                    </span>
+                  </span>
                 </li>
               ))}
               {(data.verification.invariants ?? []).length === 0 ? (
@@ -141,13 +177,13 @@ export function OperatorRoute() {
             <h3>Evidence in context</h3>
             <Link className="link-internal" to={`/app/evidence/${incidentId}`}>
               Full audit
-              <Icon name="arrow-right" size={12} />
+              <Icon name="arrow-right" size={ICON_SIZE.meta} />
             </Link>
           </div>
           <ul className="operator-evidence">
             {data.evidence.map((item) => (
               <li key={item.evidence_id}>
-                <SourceMark source={item.source_system} size={14} />
+                <SourceMark source={item.source_system} size={ICON_SIZE.row} />
                 <div>
                   <b>{item.title}</b>
                   <span>

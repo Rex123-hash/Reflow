@@ -24,6 +24,10 @@ const STATUS_MODIFIER: Record<SemanticStatus, string> = {
   UNAVAILABLE: "is-unavailable",
 };
 
+/**
+ * A dot with a mark in it, not a glyph in its own right — so it sits outside the
+ * ICON_SIZE scale on purpose, at the size and weight that read inside a 14px marker.
+ */
 function StageMarker({ status }: { status: SemanticStatus }) {
   return (
     <span

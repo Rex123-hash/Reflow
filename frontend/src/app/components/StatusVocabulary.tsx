@@ -1,3 +1,4 @@
+import { Icon, ICON_SIZE, type IconName } from "./Icon";
 import type {
   EvidenceSemanticStatus,
   ObjectiveHealth,
@@ -86,9 +87,31 @@ export const stageLabel = (stage: WorkflowStage): string =>
   STAGE_LABEL[stage] ?? titleCase(stage);
 
 /**
+ * One glyph per stage, from the ring family in `Icon`.
+ *
+ * The glyph replaces the chip's open dot rather than joining it: the dot said only
+ * "a stage", which the surrounding chip already said, and a stage list of seven
+ * identical dots is the thing that made these chips unscannable in a table. A stage
+ * the contract adds later falls back to the dot, so an unknown value renders
+ * honestly instead of borrowing another stage's symbol.
+ */
+const STAGE_GLYPH: Record<WorkflowStage, IconName> = {
+  DETECT: "stage-detect",
+  IMPACT: "stage-impact",
+  PLAN: "stage-plan",
+  ACT: "stage-act",
+  VERIFY: "stage-verify",
+  REPLAN: "stage-replan",
+  RESTORED: "stage-restored",
+};
+
+/**
  * Workflow position — squared and outlined so it reads as structural rather than
  * conclusive. `attemptNumber` is rendered when the backend supplies one, because
  * "Verify" alone is ambiguous across attempts.
+ *
+ * The glyph is decorative here in the strict sense: the stage is already spelled out
+ * in the chip's own text, so it is `aria-hidden` and nothing is lost without it.
  */
 export function StageChip({
   stage,
@@ -103,9 +126,14 @@ export function StageChip({
       : stage === "VERIFY" || stage === "REPLAN"
         ? "is-current"
         : "";
+  const glyph = STAGE_GLYPH[stage];
   return (
     <span className={`stage-chip ${modifier}`.trim()}>
-      <i aria-hidden="true" />
+      {glyph ? (
+        <Icon className="stage-chip-glyph" name={glyph} size={ICON_SIZE.meta} />
+      ) : (
+        <i aria-hidden="true" />
+      )}
       {attemptNumber != null
         ? `Recovery ${String(attemptNumber).padStart(2, "0")} · ${stageLabel(stage)}`
         : stageLabel(stage)}
@@ -159,6 +187,80 @@ export function VerificationPill({ status }: { status: VerificationStatus }) {
 
 export const verificationTone = (status: VerificationStatus): Tone =>
   VERIFICATION_TONE[status] ?? "neutral";
+
+/**
+ * A verification's invariants as one segmented ring.
+ *
+ * Reads nothing the card did not already have: one segment per supplied invariant,
+ * each drawn in that invariant's own tone. It is not a percentage and not a score —
+ * it is the same list, arranged so the shape of "five of five" is legible before
+ * any of it is read. A card that stacked one identical pill per invariant said the
+ * same word five times and made the reader count.
+ *
+ * The exact count is in the visible label beside it and again in the accessible
+ * text, so nothing depends on seeing the ring.
+ */
+export function VerificationRing({
+  invariants,
+  size = 34,
+}: {
+  invariants: readonly { invariant_id: string; status: VerificationStatus }[];
+  size?: number;
+}) {
+  const total = invariants.length;
+  const passed = invariants.filter((item) => item.status === "PASSED").length;
+  if (total === 0) return null;
+
+  const radius = size / 2 - 3;
+  const circumference = 2 * Math.PI * radius;
+  // A hairline of background between segments, so adjacent same-tone segments stay
+  // countable instead of fusing into one arc.
+  const gap = total > 1 ? Math.min(3.5, circumference / (total * 4)) : 0;
+  const segment = circumference / total - gap;
+
+  return (
+    <span
+      className="verification-ring"
+      role="img"
+      aria-label={`${passed} of ${total} invariants passed`}
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        focusable="false"
+        aria-hidden="true"
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="var(--line)"
+          strokeWidth="3"
+        />
+        {invariants.map((item, index) => (
+          <circle
+            key={item.invariant_id}
+            className={`verification-ring-segment tone-${VERIFICATION_TONE[item.status] ?? "neutral"}`}
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            strokeWidth="3"
+            strokeLinecap="butt"
+            strokeDasharray={`${segment} ${circumference - segment}`}
+            strokeDashoffset={-(index * (segment + gap))}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        ))}
+      </svg>
+      <b className="verification-ring-count">
+        {passed}/{total}
+      </b>
+    </span>
+  );
+}
 
 /* ---------------------------------------------------------------- evidence --- */
 

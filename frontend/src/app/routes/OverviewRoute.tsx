@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ExternalReality } from "../components/ExternalReality";
 import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import { HealthPill, StageChip } from "../components/StatusVocabulary";
 import { useOverview, useRecoveryCase } from "../data/resources";
@@ -138,14 +138,14 @@ export function OverviewRoute() {
               to={`/app/recovery/${priority.incident_id}`}
             >
               Open Recovery
-              <Icon name="arrow-right" size={14} />
+              <Icon name="arrow-right" size={ICON_SIZE.row} />
             </Link>
             <Link
               className="link-internal"
               to={`/app/evidence/${priority.incident_id}`}
             >
               See the evidence
-              <Icon name="arrow-right" size={12} />
+              <Icon name="arrow-right" size={ICON_SIZE.meta} />
             </Link>
           </div>
         ) : null}
@@ -173,7 +173,10 @@ export function OverviewRoute() {
                 <div>
                   <p>{event.human_message}</p>
                   <span className="activity-meta">
-                    <SourceMark source={event.source_authority} size={12} />
+                    <SourceMark
+                      source={event.source_authority}
+                      size={ICON_SIZE.meta}
+                    />
                     <span className="mono">
                       {humanizeEnum(event.semantic_type)}
                     </span>

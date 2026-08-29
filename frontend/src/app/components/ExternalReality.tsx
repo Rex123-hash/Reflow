@@ -6,6 +6,7 @@ import type {
 } from "../contract/uiContract";
 import { useExternalReality } from "../data/resources";
 import { formatObservedAt, humanizeEnum } from "../semantics/format";
+import { ICON_SIZE } from "./Icon";
 import { SourceMark } from "./SourceMark";
 import { CalendarMiniTimeline } from "./CalendarMiniTimeline";
 import "./external-reality.css";
@@ -52,7 +53,7 @@ export function CalendarProof({
       <div className="calendar-proof-head">
         <SourceMark
           source={resource.authority ?? "google_calendar"}
-          size={22}
+          size={ICON_SIZE.header}
         />
         <h3>Google Calendar</h3>
         <span>Read only</span>

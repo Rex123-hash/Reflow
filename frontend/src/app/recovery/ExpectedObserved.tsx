@@ -7,7 +7,7 @@ import {
   formatObservedAt,
   isHttpReference,
 } from "../semantics/format";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { VerificationPill } from "../components/StatusVocabulary";
 
 /**
@@ -78,7 +78,7 @@ function ObservedCell({ invariant }: { invariant: VerificationInvariantView }) {
               rel="noreferrer noopener"
             >
               {displayReference(invariant.evidence_provenance)}
-              <Icon name="external" size={11} />
+              <Icon name="external" size={ICON_SIZE.meta} />
             </a>
           ) : (
             invariant.evidence_provenance

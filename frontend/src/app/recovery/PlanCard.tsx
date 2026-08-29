@@ -1,5 +1,5 @@
 import type { RecoveryPlanView } from "../contract/uiContract";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import { shortSha } from "../semantics/format";
 
@@ -44,7 +44,7 @@ export function PlanCard({ plan }: { plan: RecoveryPlanView }) {
 
       {plan.candidate_sha ? (
         <p className="plan-candidate mono">
-          <SourceMark source="github" size={13} />
+          <SourceMark source="github" size={ICON_SIZE.meta} />
           candidate {shortSha(plan.candidate_sha)}
         </p>
       ) : null}
@@ -85,7 +85,7 @@ export function PlanCard({ plan }: { plan: RecoveryPlanView }) {
         <span className="plan-policy-verdict">
           <Icon
             name={policyValid ? "check" : "cross"}
-            size={13}
+            size={ICON_SIZE.meta}
             strokeWidth={2.4}
           />
           Deterministic policy

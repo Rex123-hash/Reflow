@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { HealthPill, StageChip } from "../components/StatusVocabulary";
 import { useIncidentChoices } from "../data/useIncidentChoices";
 import { formatDeadline, formatDuration } from "../semantics/format";
@@ -53,7 +53,9 @@ export function IncidentPicker({
 
   return (
     <div className="route-pad picker">
-      <header className="picker-head">
+      {/* The shared masthead, so this landing surface opens the same way as every
+          other page rather than being the one left-aligned exception. */}
+      <header className="page-head picker-head">
         <p className="field-label">
           {surface === "recovery" ? "Recovery" : "Evidence"}
         </p>
@@ -120,7 +122,7 @@ export function IncidentPicker({
               to={`${base}/${priority.incident_id}`}
             >
               {verb}
-              <Icon name="arrow-right" size={14} />
+              <Icon name="arrow-right" size={ICON_SIZE.row} />
             </Link>
           </div>
         </section>

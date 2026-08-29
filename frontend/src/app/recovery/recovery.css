@@ -1423,24 +1423,17 @@
 
 /* ------------------------------------------------------------------ picker --- */
 
+/* Wider than it was: at 940px the single priority card sat marooned in a mostly
+   empty page. It still stops well short of the full workspace so the list keeps a
+   readable measure. */
 .picker {
-  max-width: 940px;
+  max-width: 1120px;
 }
 
-.picker-head h1 {
-  margin: var(--space-2) 0 var(--space-2);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: var(--type-page);
-  letter-spacing: -0.026em;
-}
-
+/* Title and lede come from .page-head now; only the colour is the picker's own,
+   because this lede is an instruction rather than a description. */
 .picker-lede {
-  margin: 0 0 var(--space-5);
-  font-size: var(--type-secondary);
   color: var(--body);
-  line-height: 1.6;
-  max-width: 62ch;
 }
 
 .picker-priority-body {

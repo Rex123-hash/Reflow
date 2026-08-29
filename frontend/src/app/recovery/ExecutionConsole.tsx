@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ExecutionEventView } from "../contract/uiContract";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import { formatClock, humanizeEnum } from "../semantics/format";
 import {
@@ -55,7 +55,7 @@ export function ExecutionConsole({
           onClick={() => setOpen((value) => !value)}
         >
           <span className="console-icon" aria-hidden="true">
-            <Icon name="terminal" size={12} />
+            <Icon name="terminal" size={ICON_SIZE.meta} />
           </span>
           <b>Execution console</b>
           <span className="console-count">
@@ -65,7 +65,10 @@ export function ExecutionConsole({
               : ""}
             {terminal ? " · terminal" : ""}
           </span>
-          <Icon name={open ? "chevron-down" : "chevron-right"} size={15} />
+          <Icon
+            name={open ? "chevron-down" : "chevron-right"}
+            size={ICON_SIZE.row}
+          />
         </button>
 
         {open ? (
@@ -158,7 +161,7 @@ function EventRow({
       <span className="console-event-body">
         <p>{event.human_message}</p>
         <span className="console-event-meta">
-          <SourceMark source={event.source_authority} size={12} />
+          <SourceMark source={event.source_authority} size={ICON_SIZE.meta} />
           <span className="mono">{humanizeEnum(event.semantic_type)}</span>
           <time>{formatClock(event.timestamp)}</time>
         </span>

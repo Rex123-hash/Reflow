@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import type { EvidenceView } from "../contract/uiContract";
 import { EvidenceStatusPill, evidenceTone } from "./StatusVocabulary";
 import { SourceMark } from "./SourceMark";
-import { Icon } from "./Icon";
+import { Icon, ICON_SIZE } from "./Icon";
 import {
   displayReference,
   formatObservedAt,
@@ -42,7 +42,7 @@ export function EvidenceCard({
       <header>
         <div className="evidence-card-identity">
           <span className="evidence-card-source">
-            <SourceMark source={evidence.source_system} size={14} />
+            <SourceMark source={evidence.source_system} size={ICON_SIZE.row} />
             {evidence.source_label}
             {mode === "proof" ? ` · ${evidence.evidence_kind}` : null}
           </span>
@@ -71,7 +71,7 @@ export function EvidenceCard({
                     rel="noreferrer noopener"
                   >
                     {displayReference(evidence.external_reference)}
-                    <Icon name="external" size={11} />
+                    <Icon name="external" size={ICON_SIZE.meta} />
                   </a>
                 ) : (
                   evidence.external_reference
@@ -101,7 +101,7 @@ export function EvidenceCard({
         {href ? (
           <Link className="link-internal" to={href}>
             {hrefLabel ?? "Open full evidence"}
-            <Icon name="arrow-right" size={12} />
+            <Icon name="arrow-right" size={ICON_SIZE.meta} />
           </Link>
         ) : null}
       </footer>

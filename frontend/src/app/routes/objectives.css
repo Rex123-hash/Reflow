@@ -1,11 +1,20 @@
-/* Width now comes from the shared .route-pad workspace container. */
+/**
+ * A reading width, not the full workspace.
+ *
+ * The recovery room needs 1500px because it runs three columns at once. A list of
+ * objectives does not: stretched that wide, five columns of short values sat far
+ * apart with a great deal of nothing between them, and the page read as empty even
+ * when the data was complete. Held to a reading measure the same content reads as
+ * composed. The Recovery and Evidence shells keep the full workspace.
+ */
+.objectives {
+  max-width: 1180px;
+}
 
+/* Title and lede come from the shared .page-head masthead. Only the spacing below
+   the title is this page's own, because its summary counts follow immediately. */
 .objectives-head h1 {
-  margin: var(--space-2) 0 0;
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: var(--type-page);
-  letter-spacing: -0.03em;
+  margin: var(--space-2) 0 var(--space-2);
 }
 
 .objectives-filters {
@@ -45,6 +54,12 @@
 
 .objectives-table tbody td {
   vertical-align: middle;
+}
+
+/* The deadline is one value and reads as one line; at the row's new size it was
+   breaking between the date and the time. */
+.objectives-table td.mono {
+  white-space: nowrap;
 }
 
 .objective-title {
@@ -126,7 +141,7 @@
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--space-4);
   margin: 0 0 var(--space-5);
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-5);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -153,7 +168,10 @@
 .objectives-summary dd {
   margin: 0;
   font-family: var(--mono);
-  font-size: var(--type-section);
+  /* The counts are the page's summary, so they are read at a glance from across
+     the desk rather than squinted at. */
+  font-size: 1.55rem;
+  line-height: 1.15;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
@@ -169,4 +187,16 @@
     gap: var(--space-3);
     padding: var(--space-4);
   }
+}
+
+/* The identity column's entry point, ahead of the title and the objective id. */
+.objective-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.objective-identity > div {
+  min-width: 0;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE, type IconName } from "../components/Icon";
 import {
   formatDeadline,
   formatObservedAt,
@@ -31,6 +31,25 @@ const INTENT_LABELS: Record<string, string> = {
   EXPLAIN: "Explain",
   SIMULATE: "Simulation",
   ACT: "Act",
+};
+
+/**
+ * The glyph for an authoritative intent.
+ *
+ * Deliberately not the ring family the workflow stages use: an intent is what
+ * Reflow was asked to do, not where the recovery has got to, and the two must not
+ * be confusable. SIMULATE borrows the existing branch glyph because a simulation is
+ * exactly an alternative path taken from the recorded one.
+ *
+ * This appears in the provenance bar only. The human answer above it stays free of
+ * iconography — the P2I hierarchy puts plain language first and nothing here
+ * changes that.
+ */
+const INTENT_GLYPHS: Record<string, IconName> = {
+  INSPECT: "intent-inspect",
+  EXPLAIN: "intent-explain",
+  SIMULATE: "branch",
+  ACT: "intent-act",
 };
 
 const AGENT_LABELS: Record<string, string> = {
@@ -231,7 +250,7 @@ export function OperatorConversation({
     <>
       {!live && (
         <p className="operator-note" role="status">
-          <Icon name="lock" size={13} />
+          <Icon name="lock" size={ICON_SIZE.meta} />
           Real Operator reasoning requires Google sign-in. Demo context remains
           read-only; no model request is made.
         </p>
@@ -246,7 +265,7 @@ export function OperatorConversation({
         <label className="visually-hidden" htmlFor="operator-query">
           Ask Reflow
         </label>
-        <Icon name="search" size={17} />
+        <Icon name="search" size={ICON_SIZE.header} />
         <input
           id="operator-query"
           ref={field}
@@ -263,7 +282,7 @@ export function OperatorConversation({
           disabled={!live || busy || message.trim().length < 3}
         >
           {busy ? "Reasoning…" : "Ask Reflow"}
-          <Icon name="arrow-right" size={14} />
+          <Icon name="arrow-right" size={ICON_SIZE.row} />
         </button>
       </form>
 
@@ -356,6 +375,13 @@ export function OperatorConversation({
                 <span
                   className={`operator-intent is-${response.intent.intent_type?.toLowerCase()}`}
                 >
+                  {response.intent.intent_type &&
+                  INTENT_GLYPHS[response.intent.intent_type] ? (
+                    <Icon
+                      name={INTENT_GLYPHS[response.intent.intent_type]}
+                      size={ICON_SIZE.meta}
+                    />
+                  ) : null}
                   {intentLabel}
                 </span>
               )}
@@ -467,7 +493,7 @@ export function OperatorConversation({
                           onClick={approve}
                         >
                           Confirm and execute
-                          <Icon name="arrow-right" size={14} />
+                          <Icon name="arrow-right" size={ICON_SIZE.row} />
                         </button>
                       )}
                     </div>

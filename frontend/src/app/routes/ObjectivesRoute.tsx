@@ -1,7 +1,7 @@
 import { Link, useSearchParams } from "react-router-dom";
 import type { ObjectiveFilter } from "../contract/uiContract";
 import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { HealthPill, StageChip } from "../components/StatusVocabulary";
 import { useObjectives, useOverview } from "../data/resources";
 import {
@@ -51,6 +51,12 @@ export function ObjectivesRoute() {
         <div>
           <p className="field-label">Objectives</p>
           <h1>Outcomes Reflow is protecting</h1>
+          {/* Describes the columns below and nothing more — the page states no
+              verdict of its own. */}
+          <p>
+            Every objective Reflow protects, with its health, its position in
+            the recovery workflow and the deadline it may not move.
+          </p>
         </div>
         <div
           className="page-head-aside objectives-filters"
@@ -118,22 +124,32 @@ export function ObjectivesRoute() {
               <tr>
                 {/* The identity column takes the slack on a wide desktop canvas; the
                     rest are sized to their content so no column stretches absurdly. */}
-                <th style={{ width: "31%" }}>Objective</th>
+                <th style={{ width: "28%" }}>Objective</th>
                 <th style={{ width: "12%" }}>Health</th>
-                <th style={{ width: "17%" }}>Workflow stage</th>
-                <th style={{ width: "16%" }}>Protected deadline</th>
-                <th style={{ width: "16%" }}>Last observed</th>
-                <th className="numeric" style={{ width: "8%" }} />
+                <th style={{ width: "18%" }}>Workflow stage</th>
+                <th style={{ width: "19%" }}>Protected deadline</th>
+                <th style={{ width: "14%" }}>Last observed</th>
+                <th className="numeric" style={{ width: "9%" }} />
               </tr>
             </thead>
             <tbody>
               {objectives.data.items.map((item) => (
                 <tr key={`${item.objective_id}:${item.objective_version}`}>
                   <td>
-                    <b className="objective-title">{item.title}</b>
-                    <span className="objective-id mono">
-                      {item.objective_id}
-                    </span>
+                    {/* The row's entry point. It marks WHAT the row is about — an
+                        objective — and carries no state, so it never competes with
+                        the health pill one column right. */}
+                    <div className="objective-identity">
+                      <span className="entity-mark" aria-hidden="true">
+                        <Icon name="objective" size={ICON_SIZE.row} />
+                      </span>
+                      <div>
+                        <b className="objective-title">{item.title}</b>
+                        <span className="objective-id mono">
+                          {item.objective_id}
+                        </span>
+                      </div>
+                    </div>
                   </td>
                   <td>
                     <HealthPill health={item.health} compact />
@@ -184,7 +200,7 @@ export function ObjectivesRoute() {
                         to={`/app/recovery/${item.active_incident_id}`}
                       >
                         Open
-                        <Icon name="chevron-right" size={12} />
+                        <Icon name="chevron-right" size={ICON_SIZE.meta} />
                       </Link>
                     ) : (
                       <span className="observed-absent">no incident</span>
@@ -198,7 +214,7 @@ export function ObjectivesRoute() {
       ) : null}
 
       <p className="objectives-footnote">
-        <Icon name="lock" size={13} />
+        <Icon name="lock" size={ICON_SIZE.meta} />
         Protected commitments cannot be moved. Reflow recovers these objectives
         without changing their deadlines.
       </p>

@@ -1,19 +1,13 @@
 /* Width now comes from the shared .route-pad workspace container. */
 
-.evidence-head h1 {
-  margin: var(--space-2) 0 var(--space-2);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: var(--type-page);
-  letter-spacing: -0.03em;
+/* Title and lede come from the shared .page-head masthead. */
+.evidence-lede {
+  color: var(--body);
 }
 
-.evidence-lede {
-  margin: 0;
-  font-size: var(--type-secondary);
-  color: var(--body);
-  line-height: 1.6;
-  max-width: 64ch;
+/* The link back to Recovery closes the masthead on the same axis. */
+.evidence-head > .link-internal {
+  margin-top: var(--space-5);
 }
 
 .evidence-focus {

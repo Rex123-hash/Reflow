@@ -14,6 +14,7 @@ import {
   type CalendarInterval,
 } from "../semantics/calendarTimeline";
 import { formatObservedAt, humanizeEnum } from "../semantics/format";
+import { ICON_SIZE } from "./Icon";
 import { SourceMark } from "./SourceMark";
 import "./calendar-mini-timeline.css";
 
@@ -165,7 +166,7 @@ export function CalendarMiniTimeline({
           <span aria-hidden="true">
             <SourceMark
               source={resource.authority ?? "google_calendar"}
-              size={22}
+              size={ICON_SIZE.header}
             />
           </span>
           Google Calendar

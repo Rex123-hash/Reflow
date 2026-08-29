@@ -17,38 +17,19 @@
 
 /**
  * The console's masthead is centred on the canvas, the way every titled surface in
- * the Reflow visual language is. The state badge keeps the header's own geometry —
- * it is pulled out of the centred flow and pinned to the canvas's right edge, so
- * centring the title does not shove it off-axis.
+ * the Reflow visual language is — and now composed for that centre rather than
+ * merely centred. The state badge used to be pulled out of the flow and pinned to
+ * the canvas's right edge, which left the title on one axis and the badge on
+ * another; it closes the masthead on the same axis as everything above it.
  *
  * The input below is untouched by this: it keeps its own position and full width.
  */
-/* Allowed the full canvas measure so the sentence sets on as few lines as it can
-   rather than being folded into a narrow column beside empty space. */
-.operator-lede {
-  margin: 0 auto;
-  font-size: var(--type-secondary);
-  color: var(--body);
-  line-height: 1.6;
-  max-width: none;
-  text-wrap: balance;
-}
-
-.operator-head .operator-readonly {
-  position: absolute;
-  top: 2px;
-  right: 0;
-}
-
 .operator-lede {
   color: var(--text-secondary);
 }
 
-@media (max-width: 900px) {
-  .operator-head .operator-readonly {
-    position: static;
-    margin-bottom: var(--space-3);
-  }
+.operator-head .operator-readonly {
+  margin-top: var(--space-5);
 }
 
 .operator-readonly {
@@ -1225,4 +1206,68 @@
   .operator-context {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* The intent glyph rides with the word it qualifies, at the bar's own weight. */
+.operator-intent {
+  gap: 6px;
+}
+
+.operator-intent svg {
+  opacity: 0.9;
+}
+
+.operator-verification-head {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/**
+ * With the verdict stated once in the card head, each invariant needs only to name
+ * itself and say how it landed. A check for the ones that passed, the word for the
+ * ones that did not — quieter than a column of identical pills, and countable.
+ */
+.operator-invariant-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--type-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-metadata);
+  white-space: nowrap;
+}
+
+.operator-invariants li.tone-verified .operator-invariant-state {
+  color: var(--verified-ink);
+}
+
+.operator-invariants li.tone-failed .operator-invariant-state {
+  color: var(--failed-ink);
+}
+
+.operator-invariant-state > i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1.6px solid currentColor;
+  flex: 0 0 auto;
+}
+
+/* The objective card leads with its entity mark, so the title is no longer the
+   only thing holding the top-left of an otherwise empty card. */
+.operator-objective {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: var(--space-3) var(--space-4);
+  justify-items: stretch;
+}
+
+.operator-objective-body {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  min-width: 0;
 }

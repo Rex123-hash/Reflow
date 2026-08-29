@@ -1,5 +1,5 @@
 import type { ActionReceiptView } from "../contract/uiContract";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import {
   ReceiptStatusPill,
@@ -105,7 +105,7 @@ export function ReceiptLadder({ action }: { action: ActionReceiptView }) {
   return (
     <article className="receipt">
       <header className="receipt-head">
-        <SourceMark source={action.system} framed size={17} />
+        <SourceMark source={action.system} framed size={ICON_SIZE.header} />
         <div>
           <span className="field-label">{action.system_label}</span>
           <b>{humanizeEnum(action.kind)}</b>
@@ -125,6 +125,8 @@ export function ReceiptLadder({ action }: { action: ActionReceiptView }) {
             className={rung.reached ? "is-reached" : "is-open"}
           >
             <span className="receipt-rung-index" aria-hidden="true">
+              {/* The check is drawn inside the rung's own marker, so it sits
+                  outside the ICON_SIZE scale on purpose. */}
               {rung.reached ? (
                 <Icon name="check" size={10} strokeWidth={3.2} />
               ) : (
@@ -141,7 +143,7 @@ export function ReceiptLadder({ action }: { action: ActionReceiptView }) {
                   rel="noreferrer noopener"
                 >
                   {rung.value}
-                  <Icon name="external" size={11} />
+                  <Icon name="external" size={ICON_SIZE.meta} />
                 </a>
               ) : (
                 <span className="receipt-rung-value">{rung.value}</span>

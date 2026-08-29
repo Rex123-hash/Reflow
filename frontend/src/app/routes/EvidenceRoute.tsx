@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { EvidenceCard } from "../components/EvidenceCard";
 import { ErrorState, LoadingState } from "../components/Feedback";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import { SourceMark } from "../components/SourceMark";
 import { VerificationPill } from "../components/StatusVocabulary";
 import { useEvidencePage } from "../data/resources";
@@ -119,7 +119,7 @@ export function EvidenceRoute() {
         </div>
         <Link className="link-internal" to={`/app/recovery/${incidentId}`}>
           Back to Recovery
-          <Icon name="arrow-right" size={12} />
+          <Icon name="arrow-right" size={ICON_SIZE.meta} />
         </Link>
       </header>
 
@@ -170,7 +170,10 @@ export function EvidenceRoute() {
               <div>
                 <p>{event.human_message}</p>
                 <span className="evidence-event-meta">
-                  <SourceMark source={event.source_authority} size={12} />
+                  <SourceMark
+                    source={event.source_authority}
+                    size={ICON_SIZE.meta}
+                  />
                   <span className="mono">
                     {humanizeEnum(event.semantic_type)}
                   </span>

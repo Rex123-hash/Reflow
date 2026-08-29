@@ -1,5 +1,5 @@
 import { EvidenceCard } from "../components/EvidenceCard";
-import { Icon } from "../components/Icon";
+import { Icon, ICON_SIZE } from "../components/Icon";
 import type { RailContents } from "../semantics/evidence";
 
 /**
@@ -34,7 +34,7 @@ export function EvidenceRail({
       <div className="rail-scroll">
         {scope.kind === "attempt" ? (
           <div className="rail-note">
-            <Icon name="info" size={13} />
+            <Icon name="info" size={ICON_SIZE.meta} />
             <p>
               No evidence is anchored to this stage. Showing everything{" "}
               {scope.attemptLabel} produced.

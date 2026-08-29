@@ -86,14 +86,22 @@
    * and a hard floor: no meaningful application text below `--type-label` (12px).
    * These are application sizes only — the marketing surface keeps its own
    * expressive scale in src/styles.css and is deliberately not folded into this.
+   *
+   * The whole scale was raised one notch. The previous values were sized for a
+   * dense console and read as small on a full desktop canvas: body text at 15.2px
+   * with secondary copy at 13.6px left every page looking thin and half-empty
+   * rather than calm. Body is now a genuine 16px reading size, the page title has
+   * the presence to anchor a centred masthead, and the label floor moved up off
+   * 12px instead of sitting on it. The steps keep their old ratios, so nothing
+   * that depended on the relationship between two of them shifted.
    */
-  --type-page: 2rem;
-  --type-section: 1.125rem;
-  --type-body: 0.95rem;
-  --type-secondary: 0.85rem;
-  --type-label: 0.75rem;
-  --type-meta: 0.75rem;
-  --type-mono: 0.75rem;
+  --type-page: 2.35rem;
+  --type-section: 1.24rem;
+  --type-body: 1rem;
+  --type-secondary: 0.92rem;
+  --type-label: 0.785rem;
+  --type-meta: 0.8rem;
+  --type-mono: 0.8rem;
 
   /* --- density: the application is tighter than the marketing surface --- */
   --space-1: 4px;

@@ -19,11 +19,20 @@ const here = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(here, "../src/app/assets/integrationMarks.ts");
 const require = createRequire(import.meta.url);
 
-/** Only the external authorities Reflow actually integrates with. */
+/**
+ * Only the external authorities Reflow actually integrates with.
+ *
+ * Slack is deliberately absent: simple-icons no longer ships a Slack mark, so there
+ * is no official path to vendor. Rather than draw a lookalike and present it as
+ * Slack's own logo, Slack is named as an external authority with a Reflow-drawn
+ * channel glyph in `SourceMark`. Attribution stays correct either way, which is the
+ * point of this module.
+ */
 const WANTED = [
   { key: "github", slug: "github" },
   { key: "google_calendar", slug: "googlecalendar" },
   { key: "gmail", slug: "gmail" },
+  { key: "jira", slug: "jira" },
 ];
 
 const data = JSON.parse(
