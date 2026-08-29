@@ -1,0 +1,489 @@
+/**
+ * The FAQ surface.
+ *
+ * Lives on the marketing side, so it borrows that surface's language rather than
+ * the application's: the serif headline, the brass eyebrow rule, the cream canvas,
+ * generous measure. It deliberately loads none of the story's WebGL — a page of
+ * text should not pull 900 kB of Three.js to render a circle, so the instrument is
+ * echoed here as flat SVG instead.
+ */
+
+/**
+ * The story shell clips — `overflow: clip` — because the story is a pinned,
+ * full-viewport composition whose layers must not leak past it. The FAQ is an
+ * ordinary long document, and inheriting that clip broke it in two ways at once:
+ * the fixed site header became positioned against the shell and slid down the page
+ * as you scrolled, and everything past the first viewport went unpainted. It is a
+ * scrolling article, so it scrolls like one.
+ */
+.faq-shell {
+  overflow: visible;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 253, 249, 0.9), transparent 46%),
+    linear-gradient(180deg, #f9f6ef 0%, var(--canvas) 100%);
+}
+
+.faq-main {
+  --faq-measure: 940px;
+  padding: calc(var(--header-height) + 64px) clamp(20px, 5vw, 72px) 0;
+}
+
+.faq-main > * {
+  max-width: var(--faq-measure);
+  margin-inline: auto;
+}
+
+/**
+ * The eyebrow rule centres itself inside the story's own centred blocks; those
+ * selectors do not know about this route, so the FAQ's centred blocks are named
+ * here. The primer keeps the default left margin, because its copy is left-aligned
+ * beside the diagram.
+ */
+.faq-hero .reflow-rule,
+.faq-section-head .reflow-rule,
+.faq-cta .reflow-rule {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ------------------------------------------------------------------- hero --- */
+
+.faq-hero {
+  text-align: center;
+  padding-bottom: clamp(48px, 6vw, 84px);
+}
+
+.faq-hero h1 {
+  margin: 22px 0 24px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 5.4vw, 4.4rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+}
+
+.faq-hero-lede {
+  max-width: 62ch;
+  margin: 0 auto;
+  font-size: clamp(1.02rem, 1.35vw, 1.15rem);
+  line-height: 1.62;
+  color: rgba(23, 33, 28, 0.68);
+  text-wrap: balance;
+}
+
+.faq-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 30px 0 0;
+  color: var(--forest);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.faq-hero-meta i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--brass);
+}
+
+/* ----------------------------------------------------------------- primer --- */
+
+.faq-primer {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: center;
+  gap: clamp(28px, 4vw, 64px);
+  padding: clamp(28px, 3.4vw, 46px);
+  border: 1px solid rgba(38, 57, 48, 0.16);
+  border-radius: 24px;
+  background: rgba(255, 253, 248, 0.9);
+  box-shadow:
+    0 1px 2px rgba(23, 33, 28, 0.04),
+    0 18px 46px rgba(23, 33, 28, 0.06);
+}
+
+.faq-primer h2 {
+  margin: 18px 0 18px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2.5vw, 2.15rem);
+  line-height: 1.14;
+  letter-spacing: -0.032em;
+  color: var(--ink);
+}
+
+.faq-primer p {
+  margin: 0 0 14px;
+  font-size: 1.02rem;
+  line-height: 1.66;
+  color: rgba(23, 33, 28, 0.72);
+}
+
+.faq-primer-facts {
+  display: grid;
+  gap: 12px;
+  margin: 26px 0 0;
+}
+
+.faq-primer-facts > div {
+  display: grid;
+  gap: 3px;
+  padding-left: 14px;
+  border-left: 2px solid var(--brass);
+}
+
+.faq-primer-facts dt {
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.64rem;
+  font-weight: 750;
+  color: var(--forest);
+}
+
+.faq-primer-facts dd {
+  margin: 0;
+  font-size: 0.96rem;
+  color: rgba(23, 33, 28, 0.82);
+}
+
+/* --------------------------------------------------------- the loop figure --- */
+
+.faq-loop {
+  margin: 0;
+}
+
+.faq-loop svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.faq-loop-orbit {
+  stroke: rgba(38, 57, 48, 0.26);
+  stroke-width: 1;
+}
+
+.faq-loop-return {
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 4;
+  stroke-linecap: round;
+}
+
+.faq-loop-return-head {
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.faq-loop-core {
+  fill: rgba(38, 57, 48, 0.05);
+  stroke: rgba(38, 57, 48, 0.2);
+  stroke-width: 1;
+}
+
+.faq-loop-pip {
+  fill: var(--forest);
+}
+
+.faq-loop-node {
+  fill: #fffdf9;
+  stroke: var(--forest);
+  stroke-width: 1.6;
+}
+
+.faq-loop-node.is-terminal {
+  fill: var(--forest);
+}
+
+.faq-loop-label {
+  fill: var(--forest);
+  font-family: inherit;
+  font-size: 8.4px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+}
+
+.faq-loop figcaption {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: rgba(23, 33, 28, 0.62);
+}
+
+.faq-loop figcaption b {
+  font-weight: 700;
+  color: var(--forest);
+}
+
+/* ------------------------------------------------------------------ index --- */
+
+.faq-index {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  margin-top: clamp(40px, 5vw, 72px);
+}
+
+.faq-index a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(38, 57, 48, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.72);
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.faq-index a:hover,
+.faq-index a:focus-visible,
+.faq-index a.is-hovered {
+  border-color: var(--brass);
+  background: #fffdf9;
+}
+
+.faq-index-title {
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.faq-index-count {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(38, 57, 48, 0.07);
+  color: var(--forest);
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------- sections --- */
+
+.faq-section {
+  padding: clamp(52px, 6.5vw, 96px) 0 0;
+  scroll-margin-top: calc(var(--header-height) + 28px);
+}
+
+.faq-section-head {
+  text-align: center;
+  margin-bottom: clamp(26px, 3vw, 42px);
+}
+
+.faq-section-head h2 {
+  margin: 18px 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 3.1vw, 2.7rem);
+  line-height: 1.08;
+  letter-spacing: -0.038em;
+  color: var(--ink);
+}
+
+.faq-section-blurb {
+  max-width: 58ch;
+  margin: 0 auto;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(23, 33, 28, 0.62);
+  text-wrap: balance;
+}
+
+/* -------------------------------------------------------------- questions --- */
+
+.faq-list {
+  border-top: 1px solid rgba(38, 57, 48, 0.14);
+}
+
+.faq-q {
+  border-bottom: 1px solid rgba(38, 57, 48, 0.14);
+}
+
+.faq-q > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 22px 8px 22px 4px;
+  cursor: pointer;
+  list-style: none;
+}
+
+/* Safari draws its own triangle without this. */
+.faq-q > summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-q > summary:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.faq-q-index {
+  flex: 0 0 auto;
+  min-width: 26px;
+  color: var(--brass);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.faq-q-text {
+  flex: 1 1 auto;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.08rem, 1.6vw, 1.3rem);
+  line-height: 1.32;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+
+/* The disclosure's own state, drawn rather than animated: a plus that becomes a
+   minus. Nothing here moves, because nothing here is working. */
+.faq-q-chevron {
+  position: relative;
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  align-self: center;
+  color: var(--forest);
+}
+
+.faq-q-chevron::before,
+.faq-q-chevron::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1.6px;
+  background: currentColor;
+  border-radius: 2px;
+  transform: translateY(-50%);
+}
+
+.faq-q-chevron::after {
+  inset: 0 50% auto auto;
+  width: 1.6px;
+  height: 100%;
+  transform: translateX(50%);
+}
+
+.faq-q[open] .faq-q-chevron::after {
+  display: none;
+}
+
+.faq-q[open] > summary .faq-q-text {
+  color: var(--forest);
+}
+
+.faq-a {
+  padding: 0 8px 26px 48px;
+  max-width: 74ch;
+}
+
+.faq-a p {
+  margin: 0 0 14px;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: rgba(23, 33, 28, 0.74);
+}
+
+.faq-a p:last-child {
+  margin-bottom: 0;
+}
+
+.faq-a code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 1px solid rgba(38, 57, 48, 0.15);
+  background: rgba(38, 57, 48, 0.045);
+  color: var(--forest);
+  font-family:
+    ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.86em;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------- cta --- */
+
+.faq-cta {
+  margin-top: clamp(64px, 8vw, 118px);
+  margin-bottom: clamp(64px, 8vw, 118px);
+  padding: clamp(40px, 5vw, 72px) clamp(24px, 4vw, 56px);
+  text-align: center;
+  border-top: 1px solid rgba(38, 57, 48, 0.16);
+}
+
+.faq-cta h2 {
+  margin: 18px 0 14px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.faq-cta p {
+  max-width: 52ch;
+  margin: 0 auto 28px;
+  font-size: 1.02rem;
+  line-height: 1.62;
+  color: rgba(23, 33, 28, 0.68);
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------------- responsive --- */
+
+@media (max-width: 900px) {
+  .faq-primer {
+    grid-template-columns: 1fr;
+  }
+
+  /* The diagram leads on a narrow screen only if it still reads; below this it is
+     the copy that carries the primer, so the figure is capped rather than shrunk
+     to illegibility. */
+  .faq-loop {
+    max-width: 340px;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .faq-main {
+    padding-top: calc(var(--header-height) + 36px);
+  }
+
+  .faq-q > summary {
+    gap: 12px;
+    padding: 18px 2px;
+  }
+
+  .faq-a {
+    padding-left: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-index a {
+    transition: none;
+  }
+}

@@ -12,6 +12,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
  */
 const MarketingApp = lazy(() => import("./App"));
 const AppRoutes = lazy(() => import("./app/AppRoutes"));
+// Text only: the FAQ deliberately does not pull the story bundle.
+const FaqPage = lazy(() => import("./faq/FaqPage"));
 
 export function Root() {
   return (
@@ -21,6 +23,7 @@ export function Root() {
       >
         <Routes>
           <Route path="/app/*" element={<AppRoutes />} />
+          <Route path="/faq" element={<FaqPage />} />
           <Route path="*" element={<MarketingApp />} />
         </Routes>
       </Suspense>
