@@ -1,0 +1,269 @@
+{
+  "candidateName": "reflow-p2i-operational-regression",
+  "evalCases": [
+    {
+      "evalCaseId": "explain_failure",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Why did Recovery 1 fail?"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"request_id\": \"1f607d3b-9164-4347-a16d-6f75d67545e4\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"revision\": 16, \"snapshot_fingerprint\": \"912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402\", \"generated_at\": \"2026-08-29T08:42:28.771438+00:00\", \"disposition\": \"SUPPORTED\", \"conversation\": {\"mode\": \"TASK\", \"user_goal\": \"Understand why Recovery 1 failed\", \"normalized_request\": \"Explain why Recovery 1 failed for incident incident-0fc3af5b0bd1ad847aea.\", \"requested_capability\": \"RECOVERY_EXPLAIN\", \"entities\": [{\"name\": \"recovery_plan\", \"value\": \"Recovery 1\"}, {\"name\": \"incident_id\", \"value\": \"incident-0fc3af5b0bd1ad847aea\"}], \"constraints\": [], \"missing_information\": [], \"requires_operator\": true, \"tone\": \"concise\", \"confidence\": \"HIGH\", \"direct_response\": null}, \"human_response\": {\"human_summary\": \"Recovery 1 failed because the replacement did not pass CI. Reflow reopened the recovery, tried a revised plan, and the objective is healthy now.\", \"situation_type\": \"OBJECTIVE_RESTORED\", \"current_state\": \"The objective is restored after a second recovery.\", \"why\": \"Independent release validation failed even though coordination work succeeded.\", \"next_step\": \"Open the technical details to inspect the evidence and recovery sequence.\", \"truth_boundary\": \"This explains recorded recovery state; nothing was changed.\", \"suggestions\": [\"Show the evidence\", \"What happened next?\", \"Simulate another outcome\"]}, \"intent\": {\"disposition\": \"SUPPORTED\", \"intent_type\": \"EXPLAIN\", \"subject\": \"RECOVERY\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": 1, \"question\": \"Why did Recovery 1 fail?\", \"hypothetical_changes\": [], \"constraints\": [], \"fact_ids\": [\"action:calendar-9899dba7a849a328a49d\", \"action:validate-release-v2\", \"invariant:1:release-validation-green\"], \"target\": null, \"requested_operations\": [], \"clarification\": null}, \"answer\": \"Recovery 1, Google Calendar: Create a private recovery coordination block. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:07:45.772017+00:00; action comparison PASSED. Action verified does not imply objective restored.\\n\\nRecovery 1, GitHub: Create/adopt Candidate A prerelease and validate its exact workflow run. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:04.820939+00:00; action comparison FAILED. Action verified does not imply objective restored.\\n\\nRecovery 1: release-validation-green FAILED; expected true, observed false. external state violates the invariant\", \"facts\": [{\"fact_id\": \"action:calendar-9899dba7a849a328a49d\", \"text\": \"Recovery 1, Google Calendar: Create a private recovery coordination block. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:07:45.772017+00:00; action comparison PASSED. Action verified does not imply objective restored.\", \"evidence_ids\": [\"calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c\"]}, {\"fact_id\": \"action:validate-release-v2\", \"text\": \"Recovery 1, GitHub: Create/adopt Candidate A prerelease and validate its exact workflow run. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:04.820939+00:00; action comparison FAILED. Action verified does not imply objective restored.\", \"evidence_ids\": [\"github-run:33106938744\"]}, {\"fact_id\": \"invariant:1:release-validation-green\", \"text\": \"Recovery 1: release-validation-green FAILED; expected true, observed false. external state violates the invariant\", \"evidence_ids\": [\"objective-verification:1\"]}], \"evidence\": [{\"evidence_id\": \"calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c\", \"title\": \"Recovery coordination preserved\", \"observed_at\": \"2026-08-27T19:07:45.772017+00:00\"}, {\"evidence_id\": \"github-run:33106938744\", \"title\": \"Candidate validation run 33106938744\", \"observed_at\": \"2026-08-27T19:08:04.820939+00:00\"}, {\"evidence_id\": \"objective-verification:1\", \"title\": \"Recovery 01 objective verification\", \"observed_at\": \"2026-08-27T19:08:04.820939+00:00\"}], \"simulation\": null, \"inspection\": null, \"action\": null, \"hypothetical_deadline\": null, \"provenance\": \"AUTHORITATIVE_SNAPSHOT\", \"external_effects_executed\": false, \"agents\": [{\"agent_id\": \"conversation_understanding_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"1f607d3b-9164-4347-a16d-6f75d67545e4\", \"latency_ms\": 5971, \"attempts\": 1, \"input_tokens\": 1312, \"output_tokens\": 243, \"total_tokens\": 1555, \"validation\": \"PASSED\"}, {\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"1f607d3b-9164-4347-a16d-6f75d67545e4\", \"latency_ms\": 4288, \"attempts\": 1, \"input_tokens\": 8005, \"output_tokens\": 181, \"total_tokens\": 8186, \"validation\": \"PASSED\"}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"explain_failure\", \"message\": \"Why did Recovery 1 fail?\", \"intent\": \"EXPLAIN\", \"disposition\": \"SUPPORTED\", \"required_fact_prefixes\": [\"action:calendar-\", \"invariant:1:release-validation-green\"]}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "evalCaseId": "inspect_calendar",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What did Reflow change in Google Calendar?"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"request_id\": \"694af19a-a450-4fea-a9af-f930c9c9bdb4\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"revision\": 16, \"snapshot_fingerprint\": \"912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402\", \"generated_at\": \"2026-08-29T08:43:09.597308+00:00\", \"disposition\": \"SUPPORTED\", \"conversation\": {\"mode\": \"TASK\", \"user_goal\": \"Inspect what changes Reflow made to Google Calendar\", \"normalized_request\": \"What did Reflow change in Google Calendar?\", \"requested_capability\": \"CALENDAR_INSPECT\", \"entities\": [{\"name\": \"incident_id\", \"value\": \"incident-0fc3af5b0bd1ad847aea\"}, {\"name\": \"system\", \"value\": \"Google Calendar\"}], \"constraints\": [], \"missing_information\": [], \"requires_operator\": true, \"tone\": \"neutral\", \"confidence\": \"HIGH\", \"direct_response\": null}, \"human_response\": {\"human_summary\": \"Here's what I found. Recovery 1, Google Calendar: Create a private recovery coordination block. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:07:45.772017+00:00; action comparison PASSED. Action verified does not imply objective restored. Recovery coordination preserved: The private coordination event was independently read back. Recorded 2026-08-27T19:07:45.772017+00:00; status VERIFIED_HEALTHY. Current Calendar read status: NOT_REQUESTED. No fresh observed event is asserted; recorded evidence is historical.\", \"situation_type\": \"INSPECTION\", \"current_state\": \"The configured resource was inspected.\", \"why\": null, \"next_step\": \"Open the technical details for exact provenance.\", \"truth_boundary\": \"Nothing was changed.\", \"suggestions\": [\"Explain the latest update\", \"Show verification details\"]}, \"intent\": {\"disposition\": \"SUPPORTED\", \"intent_type\": \"INSPECT\", \"subject\": \"CALENDAR\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": null, \"question\": \"What did Reflow change in Google Calendar?\", \"hypothetical_changes\": [], \"constraints\": [], \"fact_ids\": [\"action:calendar-9899dba7a849a328a49d\", \"evidence:calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c\"], \"target\": null, \"requested_operations\": [], \"clarification\": null}, \"answer\": \"Recovery 1, Google Calendar: Create a private recovery coordination block. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:07:45.772017+00:00; action comparison PASSED. Action verified does not imply objective restored.\\n\\nRecovery coordination preserved: The private coordination event was independently read back. Recorded 2026-08-27T19:07:45.772017+00:00; status VERIFIED_HEALTHY.\\n\\nCurrent Calendar read status: NOT_REQUESTED. No fresh observed event is asserted; recorded evidence is historical.\", \"facts\": [{\"fact_id\": \"action:calendar-9899dba7a849a328a49d\", \"text\": \"Recovery 1, Google Calendar: Create a private recovery coordination block. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:07:45.772017+00:00; action comparison PASSED. Action verified does not imply objective restored.\", \"evidence_ids\": [\"calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c\"]}, {\"fact_id\": \"evidence:calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c\", \"text\": \"Recovery coordination preserved: The private coordination event was independently read back. Recorded 2026-08-27T19:07:45.772017+00:00; status VERIFIED_HEALTHY.\", \"evidence_ids\": [\"calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c\"]}, {\"fact_id\": \"calendar:current\", \"text\": \"Current Calendar read status: NOT_REQUESTED. No fresh observed event is asserted; recorded evidence is historical.\", \"evidence_ids\": [\"calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c\"]}], \"evidence\": [{\"evidence_id\": \"calendar:receipt-9899dba7a849a328a49dbd134ac2b35d440284b687f39ca2a349599ad675604c\", \"title\": \"Recovery coordination preserved\", \"observed_at\": \"2026-08-27T19:07:45.772017+00:00\"}], \"simulation\": null, \"inspection\": null, \"action\": null, \"hypothetical_deadline\": null, \"provenance\": \"AUTHORITATIVE_SNAPSHOT\", \"external_effects_executed\": false, \"agents\": [{\"agent_id\": \"conversation_understanding_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"694af19a-a450-4fea-a9af-f930c9c9bdb4\", \"latency_ms\": 9069, \"attempts\": 1, \"input_tokens\": 1314, \"output_tokens\": 372, \"total_tokens\": 1686, \"validation\": \"PASSED\"}, {\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"694af19a-a450-4fea-a9af-f930c9c9bdb4\", \"latency_ms\": 5823, \"attempts\": 1, \"input_tokens\": 7990, \"output_tokens\": 583, \"total_tokens\": 8573, \"validation\": \"PASSED\"}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"inspect_calendar\", \"message\": \"What did Reflow change in Google Calendar?\", \"intent\": \"INSPECT\", \"disposition\": \"SUPPORTED\", \"required_fact_prefixes\": [\"action:calendar-\"]}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "evalCaseId": "explain_reopen",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What happened after the first recovery failed?"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"request_id\": \"79d7f408-aa55-441f-b4a8-2813193ed1d5\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"revision\": 16, \"snapshot_fingerprint\": \"912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402\", \"generated_at\": \"2026-08-29T08:43:33.457685+00:00\", \"disposition\": \"SUPPORTED\", \"conversation\": {\"mode\": \"TASK\", \"user_goal\": \"Explain what events occurred after the initial recovery attempt failed.\", \"normalized_request\": \"What happened after the first recovery failed?\", \"requested_capability\": \"RECOVERY_EXPLAIN\", \"entities\": [{\"name\": \"incident_id\", \"value\": \"incident-0fc3af5b0bd1ad847aea\"}], \"constraints\": [], \"missing_information\": [], \"requires_operator\": true, \"tone\": \"neutral\", \"confidence\": \"HIGH\", \"direct_response\": null}, \"human_response\": {\"human_summary\": \"Recovery 1 failed because the replacement did not pass CI. Reflow reopened the recovery, tried a revised plan, and the objective is healthy now.\", \"situation_type\": \"OBJECTIVE_RESTORED\", \"current_state\": \"The objective is restored after a second recovery.\", \"why\": \"Independent release validation failed even though coordination work succeeded.\", \"next_step\": \"Open the technical details to inspect the evidence and recovery sequence.\", \"truth_boundary\": \"This explains recorded recovery state; nothing was changed.\", \"suggestions\": [\"Show the evidence\", \"What happened next?\", \"Simulate another outcome\"]}, \"intent\": {\"disposition\": \"SUPPORTED\", \"intent_type\": \"EXPLAIN\", \"subject\": \"CHRONOLOGY\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": 1, \"question\": \"What happened after the first recovery failed?\", \"hypothetical_changes\": [], \"constraints\": [], \"fact_ids\": [\"event:REPLAN_STARTED-454d377459df3a19\", \"event:INCIDENT_REOPENED-9d92468d22f6ad48\", \"action:p1d-github_release_validation-56a4daae83fa8f95\", \"action:p1d-promote-64f1b1432d794060\", \"verification:2\", \"recovery:2\"], \"target\": null, \"requested_operations\": [], \"clarification\": null}, \"answer\": \"2026-08-27T19:08:11.285047+00:00 \\u2014 Recovery 2: Recovery 02 replanning started from failed evidence.\\n\\n2026-08-27T19:08:49.909247+00:00 \\u2014 Recovery 2: The failed objective reopened for another recovery.\\n\\nRecovery 2, GitHub: Create/adopt Candidate B prerelease and validate its exact workflow run. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:50.023382+00:00; action comparison PASSED. Action verified does not imply objective restored.\\n\\nRecovery 2, GitHub: Promote the exact validated Candidate B release to latest full release. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:52.074028+00:00; action comparison PASSED. Action verified does not imply objective restored.\\n\\nRecovery 2 objective verification PASSED at 2026-08-27T19:08:54.504926+00:00.\\n\\nRecovery 2: COMPLETED. Recovery 01 was action-verified, but release-validation-green was false.\", \"facts\": [{\"fact_id\": \"event:REPLAN_STARTED-454d377459df3a19\", \"text\": \"2026-08-27T19:08:11.285047+00:00 \\u2014 Recovery 2: Recovery 02 replanning started from failed evidence.\", \"evidence_ids\": []}, {\"fact_id\": \"event:INCIDENT_REOPENED-9d92468d22f6ad48\", \"text\": \"2026-08-27T19:08:49.909247+00:00 \\u2014 Recovery 2: The failed objective reopened for another recovery.\", \"evidence_ids\": []}, {\"fact_id\": \"action:p1d-github_release_validation-56a4daae83fa8f95\", \"text\": \"Recovery 2, GitHub: Create/adopt Candidate B prerelease and validate its exact workflow run. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:50.023382+00:00; action comparison PASSED. Action verified does not imply objective restored.\", \"evidence_ids\": [\"github-run:33106995963\"]}, {\"fact_id\": \"action:p1d-promote-64f1b1432d794060\", \"text\": \"Recovery 2, GitHub: Promote the exact validated Candidate B release to latest full release. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:52.074028+00:00; action comparison PASSED. Action verified does not imply objective restored.\", \"evidence_ids\": [\"github-promotion:378060699\"]}, {\"fact_id\": \"verification:2\", \"text\": \"Recovery 2 objective verification PASSED at 2026-08-27T19:08:54.504926+00:00.\", \"evidence_ids\": [\"objective-verification:2\"]}, {\"fact_id\": \"recovery:2\", \"text\": \"Recovery 2: COMPLETED. Recovery 01 was action-verified, but release-validation-green was false.\", \"evidence_ids\": []}], \"evidence\": [{\"evidence_id\": \"github-run:33106995963\", \"title\": \"Candidate validation run 33106995963\", \"observed_at\": \"2026-08-27T19:08:50.023382+00:00\"}, {\"evidence_id\": \"github-promotion:378060699\", \"title\": \"Validated release promoted to full latest release\", \"observed_at\": \"2026-08-27T19:08:52.074028+00:00\"}, {\"evidence_id\": \"objective-verification:2\", \"title\": \"Recovery 02 objective verification\", \"observed_at\": \"2026-08-27T19:08:54.504926+00:00\"}], \"simulation\": null, \"inspection\": null, \"action\": null, \"hypothetical_deadline\": null, \"provenance\": \"AUTHORITATIVE_SNAPSHOT\", \"external_effects_executed\": false, \"agents\": [{\"agent_id\": \"conversation_understanding_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"79d7f408-aa55-441f-b4a8-2813193ed1d5\", \"latency_ms\": 7178, \"attempts\": 1, \"input_tokens\": 1313, \"output_tokens\": 202, \"total_tokens\": 1515, \"validation\": \"PASSED\"}, {\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"79d7f408-aa55-441f-b4a8-2813193ed1d5\", \"latency_ms\": 4667, \"attempts\": 1, \"input_tokens\": 7976, \"output_tokens\": 257, \"total_tokens\": 8233, \"validation\": \"PASSED\"}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"explain_reopen\", \"message\": \"What happened after the first recovery failed?\", \"intent\": \"EXPLAIN\", \"disposition\": \"SUPPORTED\", \"required_fact_prefixes\": [\"event:INCIDENT_REOPENED\", \"recovery:2\"]}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "evalCaseId": "simulate_ci",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What if Candidate A had passed CI?"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"request_id\": \"b86441d5-6ffc-4df2-bfde-957be4e64dfd\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"revision\": 16, \"snapshot_fingerprint\": \"912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402\", \"generated_at\": \"2026-08-29T08:44:02.553428+00:00\", \"disposition\": \"SUPPORTED\", \"conversation\": {\"mode\": \"TASK\", \"user_goal\": \"Simulate the outcome if Candidate A had passed CI\", \"normalized_request\": \"Simulate the scenario where Candidate A had passed CI.\", \"requested_capability\": \"RECOVERY_SIMULATE\", \"entities\": [{\"name\": \"candidate\", \"value\": \"Candidate A\"}, {\"name\": \"incident_id\", \"value\": \"incident-0fc3af5b0bd1ad847aea\"}], \"constraints\": [], \"missing_information\": [], \"requires_operator\": true, \"tone\": \"neutral\", \"confidence\": \"HIGH\", \"direct_response\": null}, \"human_response\": {\"human_summary\": \"This is hypothetical \\u2014 nothing was changed. Simulating a counterfactual where Candidate A passed its workflow run instead of failing in Recovery 1.\", \"situation_type\": \"SIMULATION\", \"current_state\": \"The scenario is a simulation, not an observed outcome.\", \"why\": null, \"next_step\": \"Review what would still need independent verification.\", \"truth_boundary\": \"No external action occurred.\", \"suggestions\": [\"Show the evidence\", \"Simulate another outcome\"]}, \"intent\": {\"disposition\": \"SUPPORTED\", \"intent_type\": \"SIMULATE\", \"subject\": \"RECOVERY\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": 1, \"question\": \"What if Candidate A had passed CI?\", \"hypothetical_changes\": [{\"kind\": \"CI_PASSED\", \"target\": \"Candidate A\", \"value\": \"true\"}], \"constraints\": [], \"fact_ids\": [\"action:validate-release-v2\", \"evidence:github-run:33106938744\", \"invariant:1:release-validation-green\"], \"target\": null, \"requested_operations\": [], \"clarification\": null}, \"answer\": \"Hypothetical only \\u2014 no external action occurred. Simulating a counterfactual where Candidate A passed its workflow run instead of failing in Recovery 1.\", \"facts\": [{\"fact_id\": \"action:validate-release-v2\", \"text\": \"Recovery 1, GitHub: Create/adopt Candidate A prerelease and validate its exact workflow run. Receipt VERIFIED; write acknowledged True; independent read-back True at 2026-08-27T19:08:04.820939+00:00; action comparison FAILED. Action verified does not imply objective restored.\", \"evidence_ids\": [\"github-run:33106938744\"]}, {\"fact_id\": \"evidence:github-run:33106938744\", \"text\": \"Candidate validation run 33106938744: Exact pinned run completed with conclusion failure. Recorded 2026-08-27T19:08:04.820939+00:00; status VERIFIED_UNHEALTHY.\", \"evidence_ids\": [\"github-run:33106938744\"]}, {\"fact_id\": \"invariant:1:release-validation-green\", \"text\": \"Recovery 1: release-validation-green FAILED; expected true, observed false. external state violates the invariant\", \"evidence_ids\": [\"objective-verification:1\"]}], \"evidence\": [{\"evidence_id\": \"github-run:33106938744\", \"title\": \"Candidate validation run 33106938744\", \"observed_at\": \"2026-08-27T19:08:04.820939+00:00\"}, {\"evidence_id\": \"objective-verification:1\", \"title\": \"Recovery 01 objective verification\", \"observed_at\": \"2026-08-27T19:08:04.820939+00:00\"}], \"simulation\": {\"provenance\": \"HYPOTHETICAL_NO_ACTION\", \"scenario_summary\": \"Simulating a counterfactual where Candidate A passed its workflow run instead of failing in Recovery 1.\", \"assumptions\": [\"Candidate A workflow run 33106938744 hypothetically completed with conclusion success instead of failure.\", \"The real protected deadline 2026-08-28T17:00:00+00:00 and historical evidence remain unchanged.\"], \"threatened_invariants\": [\"shipped-full-release\", \"active-release-candidate-revised\"], \"candidate_futures\": [{\"title\": \"Hypothetical Recovery 1 Promotion\", \"consequence\": \"If Candidate A had passed CI, Recovery 1 might have proceeded to full release promotion without triggering Recovery 2 replanning for Candidate B.\", \"tradeoffs\": [\"Candidate A code shipped instead of Candidate B revised candidate.\"], \"required_verification\": [\"Independent verification of full release promotion receipt.\", \"Independent read-back of objective invariants for Candidate A.\"]}], \"risk_critique\": [\"A hypothetical CI pass for Candidate A does not guarantee downstream release promotion would succeed without execution errors.\", \"Historical verified records for Recovery 1 remain failed in observed reality.\"], \"likely_objective_outcome\": \"MAY_IMPROVE\", \"unsupported_assumptions\": [\"Assuming Candidate A meets all production criteria beyond CI pass.\"], \"evidence_ids\": [\"github-run:33106938744\", \"objective-verification:1\"], \"external_effects_executed\": false}, \"inspection\": null, \"action\": null, \"hypothetical_deadline\": null, \"provenance\": \"HYPOTHETICAL_NO_ACTION\", \"external_effects_executed\": false, \"agents\": [{\"agent_id\": \"conversation_understanding_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"b86441d5-6ffc-4df2-bfde-957be4e64dfd\", \"latency_ms\": 4759, \"attempts\": 1, \"input_tokens\": 1313, \"output_tokens\": 238, \"total_tokens\": 1551, \"validation\": \"PASSED\"}, {\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"b86441d5-6ffc-4df2-bfde-957be4e64dfd\", \"latency_ms\": 5877, \"attempts\": 1, \"input_tokens\": 7993, \"output_tokens\": 215, \"total_tokens\": 8208, \"validation\": \"PASSED\"}, {\"agent_id\": \"simulation_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"b86441d5-6ffc-4df2-bfde-957be4e64dfd\", \"latency_ms\": 6444, \"attempts\": 1, \"input_tokens\": 6857, \"output_tokens\": 429, \"total_tokens\": 7286, \"validation\": \"PASSED\"}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"simulate_ci\", \"message\": \"What if Candidate A had passed CI?\", \"intent\": \"SIMULATE\", \"disposition\": \"SUPPORTED\", \"required_fact_prefixes\": []}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "evalCaseId": "simulate_deadline",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What if the deadline moved two hours later?"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"request_id\": \"4e9c8c29-f60a-41c8-99d3-87ae0a12a275\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"revision\": 16, \"snapshot_fingerprint\": \"912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402\", \"generated_at\": \"2026-08-29T08:44:30.991901+00:00\", \"disposition\": \"SUPPORTED\", \"conversation\": {\"mode\": \"TASK\", \"user_goal\": \"Simulate moving the deadline two hours later\", \"normalized_request\": \"Simulate the recovery scenario if the deadline moved two hours later.\", \"requested_capability\": \"RECOVERY_SIMULATE\", \"entities\": [{\"name\": \"incident_id\", \"value\": \"incident-0fc3af5b0bd1ad847aea\"}, {\"name\": \"deadline_offset\", \"value\": \"two hours later\"}], \"constraints\": [], \"missing_information\": [], \"requires_operator\": true, \"tone\": \"neutral\", \"confidence\": \"HIGH\", \"direct_response\": null}, \"human_response\": {\"human_summary\": \"This is hypothetical \\u2014 nothing was changed. Evaluating the counterfactual impact of shifting the release-v2 deadline forward by 120 minutes to 2026-08-28T19:00:00+00:00 against the frozen snapshot.\", \"situation_type\": \"SIMULATION\", \"current_state\": \"The scenario is a simulation, not an observed outcome.\", \"why\": null, \"next_step\": \"Review what would still need independent verification.\", \"truth_boundary\": \"No external action occurred.\", \"suggestions\": [\"Show the evidence\", \"Simulate another outcome\"]}, \"intent\": {\"disposition\": \"SUPPORTED\", \"intent_type\": \"SIMULATE\", \"subject\": \"OBJECTIVE\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": null, \"question\": \"What if the deadline moved two hours later?\", \"hypothetical_changes\": [{\"kind\": \"DEADLINE_SHIFT_MINUTES\", \"target\": \"release-v2\", \"value\": \"120\"}], \"constraints\": [], \"fact_ids\": [\"objective\", \"invariant:2:protected-release-deadline-satisfied\"], \"target\": null, \"requested_operations\": [], \"clarification\": null}, \"answer\": \"Hypothetical only \\u2014 no external action occurred. Evaluating the counterfactual impact of shifting the release-v2 deadline forward by 120 minutes to 2026-08-28T19:00:00+00:00 against the frozen snapshot.\", \"facts\": [{\"fact_id\": \"objective\", \"text\": \"SHIP RELEASE V2: observed objective state RESTORED. Protected deadline 2026-08-28T17:00:00+00:00. This is recorded state, not a new execution or verification.\", \"evidence_ids\": []}, {\"fact_id\": \"invariant:2:protected-release-deadline-satisfied\", \"text\": \"Recovery 2: protected-release-deadline-satisfied PASSED; expected true, observed true. fresh external evidence satisfies the invariant\", \"evidence_ids\": [\"objective-verification:2\"]}], \"evidence\": [{\"evidence_id\": \"github-run:33106995963\", \"title\": \"Candidate validation run 33106995963\", \"observed_at\": \"2026-08-27T19:08:50.023382+00:00\"}, {\"evidence_id\": \"github-promotion:378060699\", \"title\": \"Validated release promoted to full latest release\", \"observed_at\": \"2026-08-27T19:08:52.074028+00:00\"}, {\"evidence_id\": \"objective-verification:2\", \"title\": \"Recovery 02 objective verification\", \"observed_at\": \"2026-08-27T19:08:54.504926+00:00\"}], \"simulation\": {\"provenance\": \"HYPOTHETICAL_NO_ACTION\", \"scenario_summary\": \"Evaluating the counterfactual impact of shifting the release-v2 deadline forward by 120 minutes to 2026-08-28T19:00:00+00:00 against the frozen snapshot.\", \"assumptions\": [\"The target objective deadline for release-v2 is hypothetically extended to 2026-08-28T19:00:00+00:00 instead of 2026-08-28T17:00:00+00:00.\", \"Observed historical records and existing completed recovery verifications remain unchanged.\"], \"threatened_invariants\": [], \"candidate_futures\": [{\"title\": \"Expanded Buffer for Objective Delivery\", \"consequence\": \"The additional 2-hour margin provides extended operational tolerance for any post-release validation, monitoring, or rollback procedures.\", \"tradeoffs\": [\"Delays strict release boundary expectations for downstream consumers.\"], \"required_verification\": [\"Independent verification of production health post-promotion.\", \"Confirmation that downstream teams acknowledge the revised deadline.\"]}], \"risk_critique\": [\"Shifting the deadline does not rewrite the historical failure of Recovery 1 or alter the completed status of Recovery 2.\", \"A relaxed deadline does not substitute for active invariant checking and pipeline verification.\"], \"likely_objective_outcome\": \"MAY_IMPROVE\", \"unsupported_assumptions\": [\"Assuming team availability or staging pipeline performance changes simply due to a hypothetical deadline shift.\"], \"evidence_ids\": [\"objective-verification:2\", \"github-promotion:378060699\", \"github-run:33106995963\"], \"external_effects_executed\": false}, \"inspection\": null, \"action\": null, \"hypothetical_deadline\": \"2026-08-28T19:00:00+00:00\", \"provenance\": \"HYPOTHETICAL_NO_ACTION\", \"external_effects_executed\": false, \"agents\": [{\"agent_id\": \"conversation_understanding_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"4e9c8c29-f60a-41c8-99d3-87ae0a12a275\", \"latency_ms\": 5407, \"attempts\": 1, \"input_tokens\": 1314, \"output_tokens\": 218, \"total_tokens\": 1532, \"validation\": \"PASSED\"}, {\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"4e9c8c29-f60a-41c8-99d3-87ae0a12a275\", \"latency_ms\": 4114, \"attempts\": 1, \"input_tokens\": 7997, \"output_tokens\": 196, \"total_tokens\": 8193, \"validation\": \"PASSED\"}, {\"agent_id\": \"simulation_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"4e9c8c29-f60a-41c8-99d3-87ae0a12a275\", \"latency_ms\": 6919, \"attempts\": 1, \"input_tokens\": 6867, \"output_tokens\": 477, \"total_tokens\": 7344, \"validation\": \"PASSED\"}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"simulate_deadline\", \"message\": \"What if the deadline moved two hours later?\", \"intent\": \"SIMULATE\", \"disposition\": \"SUPPORTED\", \"required_fact_prefixes\": []}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "evalCaseId": "reject_calendar_edit",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Reschedule the Calendar event."
+          }
+        ]
+      },
+      "responses": [
+        {
+          "response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"request_id\": \"7b7c775f-63d0-4373-a71b-2f21036c3574\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"revision\": 16, \"snapshot_fingerprint\": \"912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402\", \"generated_at\": \"2026-08-29T08:44:51.219051+00:00\", \"disposition\": \"UNSUPPORTED\", \"conversation\": {\"mode\": \"TASK\", \"user_goal\": \"Reschedule the calendar event.\", \"normalized_request\": \"Reschedule the Calendar event.\", \"requested_capability\": \"CALENDAR_UPDATE\", \"entities\": [], \"constraints\": [], \"missing_information\": [], \"requires_operator\": true, \"tone\": \"concise\", \"confidence\": \"HIGH\", \"direct_response\": null}, \"human_response\": {\"human_summary\": \"I understand the request, but Reflow can't perform that kind of action yet.\", \"situation_type\": \"UNSUPPORTED\", \"current_state\": \"The requested capability is not available.\", \"why\": null, \"next_step\": \"Ask what bounded actions are currently supported.\", \"truth_boundary\": \"No action was taken.\", \"suggestions\": [\"What can you do?\"]}, \"intent\": {\"disposition\": \"UNSUPPORTED\", \"intent_type\": null, \"subject\": \"CALENDAR\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": null, \"question\": \"Reschedule the Calendar event.\", \"hypothetical_changes\": [], \"constraints\": [], \"fact_ids\": [], \"target\": null, \"requested_operations\": [], \"clarification\": \"Google Calendar rescheduling mutations are not configured or supported in the available capabilities.\"}, \"answer\": \"This request is not a supported Operator capability. Google Calendar rescheduling mutations are not configured or supported in the available capabilities.\", \"facts\": [], \"evidence\": [], \"simulation\": null, \"inspection\": null, \"action\": null, \"hypothetical_deadline\": null, \"provenance\": \"AUTHORITATIVE_SNAPSHOT\", \"external_effects_executed\": false, \"agents\": [{\"agent_id\": \"conversation_understanding_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"7b7c775f-63d0-4373-a71b-2f21036c3574\", \"latency_ms\": 4163, \"attempts\": 1, \"input_tokens\": 1311, \"output_tokens\": 183, \"total_tokens\": 1494, \"validation\": \"PASSED\"}, {\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"7b7c775f-63d0-4373-a71b-2f21036c3574\", \"latency_ms\": 4060, \"attempts\": 1, \"input_tokens\": 7937, \"output_tokens\": 138, \"total_tokens\": 8075, \"validation\": \"PASSED\"}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"reject_calendar_edit\", \"message\": \"Reschedule the Calendar event.\", \"intent\": null, \"disposition\": \"UNSUPPORTED\", \"required_fact_prefixes\": []}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "evalCaseId": "reject_release",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Ship another release now."
+          }
+        ]
+      },
+      "responses": [
+        {
+          "response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"request_id\": \"49047ef3-b80b-49f6-a2de-5f7f467329fa\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"revision\": 16, \"snapshot_fingerprint\": \"912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402\", \"generated_at\": \"2026-08-29T08:45:17.121616+00:00\", \"disposition\": \"UNSUPPORTED\", \"conversation\": {\"mode\": \"TASK\", \"user_goal\": \"Ship another release now.\", \"normalized_request\": \"Ship another release now.\", \"requested_capability\": \"UNKNOWN_OPERATIONAL\", \"entities\": [{\"name\": \"incident_id\", \"value\": \"incident-0fc3af5b0bd1ad847aea\"}], \"constraints\": [], \"missing_information\": [], \"requires_operator\": true, \"tone\": \"urgent\", \"confidence\": \"HIGH\", \"direct_response\": null}, \"human_response\": {\"human_summary\": \"I understand the request, but Reflow can't perform that kind of action yet.\", \"situation_type\": \"UNSUPPORTED\", \"current_state\": \"The requested capability is not available.\", \"why\": null, \"next_step\": \"Ask what bounded actions are currently supported.\", \"truth_boundary\": \"No action was taken.\", \"suggestions\": [\"What can you do?\"]}, \"intent\": {\"disposition\": \"UNSUPPORTED\", \"intent_type\": null, \"subject\": \"RECOVERY\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"recovery_attempt\": null, \"question\": \"Ship another release now.\", \"hypothetical_changes\": [], \"constraints\": [], \"fact_ids\": [], \"target\": null, \"requested_operations\": [], \"clarification\": \"Shipping a release is not supported by the configured capabilities.\"}, \"answer\": \"This request is not a supported Operator capability. Shipping a release is not supported by the configured capabilities.\", \"facts\": [], \"evidence\": [], \"simulation\": null, \"inspection\": null, \"action\": null, \"hypothetical_deadline\": null, \"provenance\": \"AUTHORITATIVE_SNAPSHOT\", \"external_effects_executed\": false, \"agents\": [{\"agent_id\": \"conversation_understanding_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"49047ef3-b80b-49f6-a2de-5f7f467329fa\", \"latency_ms\": 6446, \"attempts\": 1, \"input_tokens\": 1310, \"output_tokens\": 410, \"total_tokens\": 1720, \"validation\": \"PASSED\"}, {\"agent_id\": \"operator_intent_interpreter\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"49047ef3-b80b-49f6-a2de-5f7f467329fa\", \"latency_ms\": 7451, \"attempts\": 1, \"input_tokens\": 7962, \"output_tokens\": 134, \"total_tokens\": 8096, \"validation\": \"PASSED\"}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"reject_release\", \"message\": \"Ship another release now.\", \"intent\": null, \"disposition\": \"UNSUPPORTED\", \"required_fact_prefixes\": []}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "evalCaseId": "ambiguous",
+      "prompt": {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Do the best thing."
+          }
+        ]
+      },
+      "responses": [
+        {
+          "response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"request_id\": \"db5c46af-c538-4fe8-8fb9-a23dff5da73a\", \"incident_id\": \"incident-0fc3af5b0bd1ad847aea\", \"revision\": 16, \"snapshot_fingerprint\": \"912ae928d64e99212cb03f10e4be21db1e08a73fde442fc3bb2d9aa257937402\", \"generated_at\": \"2026-08-29T08:45:36.723749+00:00\", \"disposition\": \"CLARIFICATION_REQUIRED\", \"conversation\": {\"mode\": \"CLARIFY\", \"user_goal\": \"Take the optimal action for the active incident\", \"normalized_request\": null, \"requested_capability\": null, \"entities\": [{\"name\": \"incident_id\", \"value\": \"incident-0fc3af5b0bd1ad847aea\"}], \"constraints\": [], \"missing_information\": [\"The specific action, recovery plan, or resource change to apply\"], \"requires_operator\": false, \"tone\": \"concise\", \"confidence\": \"MEDIUM\", \"direct_response\": \"Please specify which action, recovery plan, or change you would like me to execute.\"}, \"human_response\": {\"human_summary\": \"Please specify which action, recovery plan, or change you would like me to execute.\", \"situation_type\": \"NEEDS_CLARIFICATION\", \"current_state\": \"I understand part of the goal, but one useful detail is missing.\", \"why\": null, \"next_step\": \"The specific action, recovery plan, or resource change to apply\", \"truth_boundary\": \"No action was requested or taken.\", \"suggestions\": []}, \"intent\": null, \"answer\": \"Please specify which action, recovery plan, or change you would like me to execute.\", \"facts\": [], \"evidence\": [], \"simulation\": null, \"inspection\": null, \"action\": null, \"hypothetical_deadline\": null, \"provenance\": \"CONVERSATION_ONLY\", \"external_effects_executed\": false, \"agents\": [{\"agent_id\": \"conversation_understanding_agent\", \"model\": \"gemini-3.7-flash\", \"request_id\": \"db5c46af-c538-4fe8-8fb9-a23dff5da73a\", \"latency_ms\": 7602, \"attempts\": 1, \"input_tokens\": 1310, \"output_tokens\": 563, \"total_tokens\": 1873, \"validation\": \"PASSED\"}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "reference": {
+        "response": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "{\"id\": \"ambiguous\", \"message\": \"Do the best thing.\", \"intent\": null, \"disposition\": \"CLARIFICATION_REQUIRED\", \"required_fact_prefixes\": []}"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

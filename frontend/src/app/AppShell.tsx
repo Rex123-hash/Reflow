@@ -1,5 +1,5 @@
-import { Suspense } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Suspense, useEffect, useRef } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import reflowMarkUrl from "../assets/reflow/reflow-mark.svg";
 import { LoadingState } from "./components/Feedback";
 import { ScenarioSwitch } from "./components/ScenarioSwitch";
@@ -39,6 +39,14 @@ function PrimaryNav() {
 
 export function AppShell() {
   const { session, signOut } = useAuthSession();
+  const location = useLocation();
+  const mobileNavigation = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const active = mobileNavigation.current?.querySelector<HTMLElement>(
+      '[aria-current="page"]',
+    );
+    active?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [location.pathname]);
   const initials = (session.display_name ?? session.email ?? "Reflow")
     .split(/\s+|@/)
     .filter(Boolean)
@@ -88,7 +96,11 @@ export function AppShell() {
           </div>
         </div>
 
-        <nav className="app-nav-rail" aria-label="Primary">
+        <nav
+          ref={mobileNavigation}
+          className="app-nav-rail"
+          aria-label="Primary"
+        >
           <div className="app-nav-links">
             <PrimaryNav />
           </div>

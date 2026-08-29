@@ -1,4 +1,8 @@
-import type { OperatorActionView, OperatorResponse } from "./operatorContract";
+import type {
+  ConversationContext,
+  OperatorActionView,
+  OperatorResponse,
+} from "./operatorContract";
 import {
   validateOperatorAction,
   validateOperatorResponse,
@@ -28,6 +32,7 @@ export async function queryOperator(
   incidentId: string,
   message: string,
   idempotencyKey: string,
+  conversationContext?: ConversationContext,
   signal?: AbortSignal,
 ): Promise<OperatorResponse> {
   const response = await fetch("/api/v1/operator/query", {
@@ -38,6 +43,9 @@ export async function queryOperator(
       incident_id: incidentId,
       message,
       idempotency_key: idempotencyKey,
+      ...(conversationContext
+        ? { conversation_context: conversationContext }
+        : {}),
     }),
     signal: AbortSignal.any([
       AbortSignal.timeout(90_000),

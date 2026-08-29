@@ -2,6 +2,8 @@
 
 .app-root {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   background: var(--canvas);
@@ -232,30 +234,23 @@
     display: block;
     height: var(--app-nav-rail-height);
     border-top: 1px solid var(--line-soft);
-    overflow: hidden;
-    /* Fades the last route into the edge so the rail reads as scrollable rather
-       than as a label clipped by accident. */
-    mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      #000 var(--workspace-gutter),
-      #000 calc(100% - 26px),
-      transparent 100%
-    );
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    scroll-padding-inline: var(--workspace-gutter);
   }
 
   .app-nav-rail .app-nav-links {
     height: 100%;
     justify-content: flex-start;
     gap: var(--space-5);
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
+    width: max-content;
+    min-width: 100%;
     padding-inline: var(--workspace-gutter);
-    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
   }
 
-  .app-nav-rail .app-nav-links::-webkit-scrollbar {
+  .app-nav-rail::-webkit-scrollbar {
     display: none;
   }
 
@@ -265,6 +260,7 @@
     align-items: center;
     height: 100%;
     padding: 0;
+    scroll-snap-align: center;
   }
 
   .app-nav-rail .app-nav-links a[aria-current="page"]::after {
@@ -296,6 +292,14 @@
   .app-brand-block .workspace-mode {
     display: inline-flex;
     padding-left: 2px;
+  }
+
+  .app-nav-rail .app-nav-links {
+    gap: var(--space-3);
+  }
+
+  .app-nav-rail .app-nav-links a {
+    font-size: 0.79rem;
   }
 }
 
