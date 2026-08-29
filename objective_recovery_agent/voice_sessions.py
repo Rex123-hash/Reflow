@@ -271,6 +271,15 @@ class VoiceSessionIssuer:
             token = self._create(config)
         # Category only: no provider message, body, or credential enters the error.
         except Exception as error:
+            # Without this a credential failure is invisible in production - the route
+            # returns one opaque category and nothing records why. The exception class
+            # and the provider's HTTP status are metadata; the message body is not.
+            emit_operational_event(
+                "VOICE_SESSION_CREDENTIAL_FAILED",
+                model=constraints.model,
+                error_type=type(error).__name__,
+                status_code=getattr(error, "code", None),
+            )
             raise VoiceCredentialError(type(error).__name__) from error
         name = getattr(token, "name", None)
         if not isinstance(name, str) or not name:
