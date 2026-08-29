@@ -611,6 +611,29 @@ def test_the_token_client_ignores_the_ambient_vertex_configuration(monkeypatch: 
     assert developer_api_client(settings()).vertexai is False
 
 
+def test_the_default_token_factory_keeps_one_live_client(monkeypatch: Any) -> None:
+    # Constructing the client inline per call leaves it a temporary, and the SDK finalizer
+    # closes its HTTP client mid-request. One client, held for the factory's lifetime.
+    from objective_recovery_agent import voice_sessions
+
+    built: list[object] = []
+
+    class Client:
+        def __init__(self) -> None:
+            built.append(self)
+            self.auth_tokens = self
+
+        def create(self, *, config: Any) -> types.AuthToken:
+            return fake_token()
+
+    monkeypatch.setattr(voice_sessions, "developer_api_client", lambda _: Client())
+    factory = voice_sessions._default_token_factory(settings())
+    assert len(built) == 1
+    for _ in range(3):
+        assert factory(types.CreateAuthTokenConfig(uses=1)).name
+    assert len(built) == 1
+
+
 def test_the_live_session_holds_exactly_one_handoff_capability() -> None:
     voice, _ = issuer()
     session = voice.live_session(INCIDENT, GOOGLE_SUBJECT, "r")

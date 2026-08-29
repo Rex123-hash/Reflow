@@ -242,8 +242,14 @@ def _credential_mode(settings: VoiceSettings) -> dict[str, Any]:
 
 
 def _default_token_factory(settings: VoiceSettings) -> TokenFactory:
+    # Built once and held by this closure for the issuer's lifetime. Constructing it
+    # inline per call leaves it a temporary: the SDK's finalizer closes the underlying
+    # HTTP client while the request is still in flight, and every mint fails with
+    # "Cannot send a request, as the client has been closed."
+    client = developer_api_client(settings)
+
     def create(config: types.CreateAuthTokenConfig) -> types.AuthToken:
-        return developer_api_client(settings).auth_tokens.create(config=config)
+        return client.auth_tokens.create(config=config)
 
     return create
 
