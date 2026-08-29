@@ -1301,12 +1301,21 @@ a {
   background: var(--forest);
 }
 
+/**
+ * ACT's copy column.
+ *
+ * Capped tighter than the proof card's lane so the headline's last line cannot be
+ * drawn under the card. At 1536 — a 1080p panel at Windows' 125% scaling, so a
+ * common width rather than an edge — the old `min(43vw, 590px)` column and the old
+ * 650px card left no corridor between them and the headline's final glyphs sat
+ * beneath the card. Lifted slightly so the phase vocabulary clears the instrument.
+ */
 .action-copy {
   position: absolute;
-  top: calc(var(--header-height) + 86px);
+  top: calc(var(--header-height) + 52px);
   left: clamp(38px, 5.5vw, 96px);
   z-index: 4;
-  width: min(43vw, 590px);
+  width: min(36vw, 560px);
 }
 
 .action-copy .evidence-badge,
@@ -1368,7 +1377,7 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 28px;
+  margin-top: 20px;
   color: var(--forest);
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -1383,10 +1392,12 @@ a {
 
 .receipt-card {
   position: absolute;
-  top: calc(var(--header-height) + 44px);
+  /* Seated a little lower, and narrowed, so its left edge stands clear of the copy
+     column. The rail's safe gutter on the right is unchanged. */
+  top: calc(var(--header-height) + 62px);
   right: max(clamp(38px, 5.5vw, 96px), var(--story-rail-safe));
   z-index: 5;
-  width: clamp(500px, 43vw, 650px);
+  width: clamp(460px, 39vw, 620px);
   padding: 0 22px 20px;
   border-radius: 22px;
   border: 1px solid rgba(38, 57, 48, 0.17);

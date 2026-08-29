@@ -334,7 +334,7 @@ export function useStoryController({ rootRef, trackRef }: UseStoryControllerOpti
         // `y` seats it lower in frame; a slightly smaller scale keeps its silhouette
         // clear of the text column so the headline owns the upper-left and the
         // instrument owns the lower-left quadrant, as the reference composes it.
-        timeline.to(p, { x: xAction, y: conditions.mobile ? 1.55 : 1.28, scale: riskScale * 0.68, duration: action.settleAt - futures.exitAt, ease: "sine.inOut" }, futures.exitAt);
+        timeline.to(p, { x: xAction, y: conditions.mobile ? 1.55 : 1.95, scale: riskScale * 0.6, duration: action.settleAt - futures.exitAt, ease: "sine.inOut" }, futures.exitAt);
 
         // --- ACT, then VERIFY -------------------------------------------------
         //
