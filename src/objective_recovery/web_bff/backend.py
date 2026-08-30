@@ -123,7 +123,12 @@ class GoogleIdentityBackendGateway:
         return BackendResponse(response.status_code, response.content, response.headers)
 
     def create_voice_session(
-        self, capability: str, payload: bytes, subject: str, request_id: str
+        self,
+        capability: str,
+        payload: bytes,
+        subject: str,
+        request_id: str,
+        role: str = "VIEWER",
     ) -> BackendResponse:
         """Two fixed paths that mint a constrained voice credential and nothing else."""
         path = _VOICE_SESSION_PATHS.get(capability)
@@ -140,6 +145,7 @@ class GoogleIdentityBackendGateway:
                 "Content-Type": "application/json",
                 "X-Reflow-Operator-Subject": subject,
                 "X-Reflow-Request-Id": request_id,
+                "X-Reflow-Operator-Role": role,
             },
             timeout=(3.05, 20),
             allow_redirects=False,

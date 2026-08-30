@@ -12,6 +12,7 @@ from typing import Annotated, Protocol, cast
 
 import requests
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from objective_recovery_agent.demo_policy import is_canonical_demo_incident
 from objective_recovery_agent.operator_schemas import OperatorQuery, OperatorResponse
 from objective_recovery_agent.voice_handoff import failed_handoff_result, handoff_result
 from objective_recovery_agent.voice_schemas import (
@@ -27,16 +28,19 @@ from pydantic import ValidationError
 
 from objective_recovery.web_bff.auth import SessionPrincipal
 from objective_recovery.web_bff.backend import BackendGateway, BackendResponse
-from objective_recovery.web_bff.operator import OperatorBackendGateway, subject_role
+from objective_recovery.web_bff.operator import (
+    OperatorBackendGateway,
+    backend_role,
+)
 
 _MAX_SESSION_BODY = 1024
 _MAX_HANDOFF_BODY = 4096
-_HEADERS = {"Cache-Control": "no-store", "X-Reflow-Workspace": "live"}
+_NO_STORE = {"Cache-Control": "no-store"}
 
 
 class VoiceBackendGateway(OperatorBackendGateway, Protocol):
     def create_voice_session(
-        self, capability: str, payload: bytes, subject: str, request_id: str
+        self, capability: str, payload: bytes, subject: str, request_id: str, role: str
     ) -> BackendResponse: ...
 
 
@@ -51,16 +55,15 @@ async def _read(request: Request, limit: int) -> bytes:
     return bytes(body)
 
 
-def _require_live(principal: SessionPrincipal) -> None:
-    if principal.mode != "live":
-        raise HTTPException(403, "Voice requires Google sign-in. The demo workspace is read-only.")
+def _headers(principal: SessionPrincipal) -> dict[str, str]:
+    return {**_NO_STORE, "X-Reflow-Workspace": principal.mode}
 
 
-def _unavailable(code: str, message: str) -> HTTPException:
+def _unavailable(code: str, message: str, principal: SessionPrincipal) -> HTTPException:
     return HTTPException(
         503,
         VoiceFailureView.model_validate({"code": code, "message": message}).model_dump(),
-        headers=_HEADERS,
+        headers=_headers(principal),
     )
 
 
@@ -74,7 +77,6 @@ def register_voice_routes(
     async def _session(
         request: Request, principal: SessionPrincipal, capability: VoiceCapability
     ) -> Response:
-        _require_live(principal)
         body = await _read(request, _MAX_SESSION_BODY)
         try:
             payload = VoiceSessionRequest.model_validate_json(body)
@@ -82,21 +84,29 @@ def register_voice_routes(
             raise HTTPException(400, "Invalid bounded voice session request.") from error
         if payload.capability != capability:
             raise HTTPException(400, "The requested capability does not match this endpoint.")
+        if principal.mode == "guest" and not is_canonical_demo_incident(payload.incident_id):
+            raise HTTPException(404, "Demo incident context unavailable.")
         subject = hashlib.sha256(principal.uid.encode()).hexdigest()
         request_id = str(uuid.uuid4())
         try:
             result = cast(VoiceBackendGateway, session_backend).create_voice_session(
-                capability, payload.model_dump_json().encode(), subject, request_id
+                capability,
+                payload.model_dump_json().encode(),
+                subject,
+                request_id,
+                backend_role(principal),
             )
         except (requests.RequestException, ValueError) as error:
             raise _unavailable(
                 "SESSION_CREDENTIAL_FAILED",
                 "A voice session credential could not be issued. Retry shortly.",
+                principal,
             ) from error
         if result.status_code != 200:
             raise _unavailable(
                 "VOICE_UNAVAILABLE" if result.status_code == 503 else "SESSION_CREDENTIAL_FAILED",
                 "Voice is unavailable for this workspace right now.",
+                principal,
             )
         schema = VoiceTranscriptionSession if capability == "TRANSCRIPTION" else LiveVoiceSession
         try:
@@ -105,11 +115,12 @@ def register_voice_routes(
             raise _unavailable(
                 "SESSION_CREDENTIAL_FAILED",
                 "The voice session failed contract validation and was discarded.",
+                principal,
             ) from error
         return Response(
             session.model_dump_json(),
             media_type="application/json",
-            headers={**_HEADERS, "X-Reflow-Request-Id": request_id},
+            headers={**_headers(principal), "X-Reflow-Request-Id": request_id},
         )
 
     @app.post("/api/v1/voice/transcription/session")
@@ -134,12 +145,13 @@ def register_voice_routes(
         principal: Annotated[SessionPrincipal, Depends(require_principal)],
         _: Annotated[None, Depends(require_allowed_origin)],
     ) -> Response:
-        _require_live(principal)
         body = await _read(request, _MAX_HANDOFF_BODY)
         try:
             handoff = VoiceOperatorHandoff.model_validate_json(body)
         except ValidationError as error:
             raise HTTPException(400, "Invalid bounded voice handoff request.") from error
+        if principal.mode == "guest" and not is_canonical_demo_incident(handoff.incident_id):
+            raise HTTPException(404, "Demo incident context unavailable.")
         subject = hashlib.sha256(principal.uid.encode()).hexdigest()
         request_id = str(uuid.uuid4())
         # The spoken utterance is the authoritative input, unedited and unsummarized.
@@ -149,7 +161,7 @@ def register_voice_routes(
             idempotency_key=handoff.idempotency_key,
             conversation_context=handoff.conversation_context,
         )
-        headers = {**_HEADERS, "X-Reflow-Request-Id": request_id}
+        headers = {**_headers(principal), "X-Reflow-Request-Id": request_id}
 
         def failed(detail: str) -> Response:
             result = failed_handoff_result(
@@ -168,7 +180,7 @@ def register_voice_routes(
                 query.model_dump_json().encode(),
                 subject,
                 request_id,
-                subject_role(principal),
+                backend_role(principal),
             )
         except (requests.RequestException, ValueError):
             return failed("Reflow's Operator did not answer. Nothing was attempted.")

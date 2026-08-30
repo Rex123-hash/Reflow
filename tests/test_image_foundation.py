@@ -298,7 +298,10 @@ async def test_explicit_read_only_task_reuses_agent_6_without_reinvoking_agent_8
 
 
 @pytest.mark.asyncio
-async def test_explicit_mutation_reaches_agent_6_but_not_the_action_coordinator() -> None:
+@pytest.mark.parametrize("role", ["OPERATOR", "DEMO"])
+async def test_explicit_mutation_reaches_agent_6_but_not_the_action_coordinator(
+    role: str,
+) -> None:
     agents = FakeAgents(slack_intent("ACT"))
     action_control = coordinator(SlackSession())
     baseline = service(agents)
@@ -312,7 +315,7 @@ async def test_explicit_mutation_reaches_agent_6_but_not_the_action_coordinator(
     result = await ImageUnderstandingService(
         operator,
         ImageAgentStub(analysis(mode="TASK", capability="SLACK_POST", message=message)),
-    ).understand(upload(message), REQUEST, "a" * 64, "OPERATOR")
+    ).understand(upload(message), REQUEST, "a" * 64, role)
     assert result.operator_handoff.status == "MUTATION_REQUIRES_TYPED_OPERATOR"
     assert result.operator_handoff.response is not None
     assert result.operator_handoff.response.disposition == "UNSUPPORTED"
@@ -363,7 +366,7 @@ def private_image_client() -> Any:
         async def understand(
             self, value: ValidatedImageUpload, request_id: str, subject: str, role: str
         ) -> ImageUnderstandingResponse:
-            assert subject == "a" * 64 and role == "VIEWER"
+            assert subject == "a" * 64 and role in {"VIEWER", "DEMO"}
             return response_for(value.provenance, request_id)
 
     backend_app.dependency_overrides[image_api.get_image_service] = lambda: EndpointService()
@@ -394,6 +397,27 @@ def test_private_endpoint_requires_service_identity_context_and_returns_typed_er
     assert valid.status_code == 200 and valid.headers["cache-control"] == "no-store"
 
 
+def test_private_demo_image_is_canonical_only(private_image_client: TestClient) -> None:
+    demo_headers = {
+        "X-Reflow-Operator-Subject": "a" * 64,
+        "X-Reflow-Request-Id": REQUEST,
+        "X-Reflow-Operator-Role": "DEMO",
+    }
+    canonical = private_image_client.post(
+        "/api/v1/operator/image",
+        headers=demo_headers,
+        **multipart(image_bytes("PNG"), "image/png"),
+    )
+    arbitrary_request = multipart(image_bytes("PNG"), "image/png")
+    arbitrary_request["data"]["incident_id"] = "incident-private-arbitrary"
+    arbitrary = private_image_client.post(
+        "/api/v1/operator/image", headers=demo_headers, **arbitrary_request
+    )
+    assert canonical.status_code == 200
+    assert arbitrary.status_code == 404
+    assert arbitrary.json()["error"]["code"] == "incident_unavailable"
+
+
 def test_private_openapi_publishes_the_typed_multipart_contract() -> None:
     operation = backend_app.openapi()["paths"]["/api/v1/operator/image"]["post"]
     schema = operation["requestBody"]["content"]["multipart/form-data"]["schema"]
@@ -402,7 +426,7 @@ def test_private_openapi_publishes_the_typed_multipart_contract() -> None:
     assert "200" in operation["responses"] and "413" in operation["responses"]
 
 
-def test_bff_rejects_unauthenticated_guest_cross_origin_and_bad_media_before_backend(
+def test_bff_rejects_unauthenticated_cross_origin_and_bad_media_before_backend(
     monkeypatch: Any,
 ) -> None:
     client, _, backend = make_client()
@@ -411,8 +435,6 @@ def test_bff_rejects_unauthenticated_guest_cross_origin_and_bad_media_before_bac
     request = multipart(image_bytes("PNG"), "image/png")
     path = "/api/v1/operator/image"
     assert client.post(path, headers={"Origin": ORIGIN}, **request).status_code == 401
-    sign_in(client, "guest-id-token")
-    assert client.post(path, headers={"Origin": ORIGIN}, **request).status_code == 403
     sign_in(client, "google-id-token")
     assert client.post(path, headers={"Origin": "https://evil.test"}, **request).status_code == 403
     bad = multipart(image_bytes("PNG"), "image/jpeg")
@@ -421,8 +443,19 @@ def test_bff_rejects_unauthenticated_guest_cross_origin_and_bad_media_before_bac
     assert calls == []
 
 
+@pytest.mark.parametrize(
+    ("token", "uid", "expected_role", "workspace"),
+    [
+        ("google-id-token", b"google-user", "VIEWER", "live"),
+        ("guest-id-token", b"guest-user", "DEMO", "guest"),
+    ],
+)
 def test_authenticated_bff_forwards_one_validated_image_and_validates_response(
     monkeypatch: Any,
+    token: str,
+    uid: bytes,
+    expected_role: str,
+    workspace: str,
 ) -> None:
     client, _, backend = make_client()
     calls: list[Any] = []
@@ -431,21 +464,36 @@ def test_authenticated_bff_forwards_one_validated_image_and_validates_response(
         calls.append(args)
         content, mime_type, incident_id, _, subject, request_id, role = args
         provenance = validate_image(content, mime_type, upload().metadata).provenance
-        assert incident_id == INCIDENT and subject == hashlib.sha256(b"google-user").hexdigest()
-        assert role == "VIEWER"
+        assert incident_id == INCIDENT and subject == hashlib.sha256(uid).hexdigest()
+        assert role == expected_role
         body = response_for(provenance, request_id).model_dump_json().encode()
         return BackendResponse(200, body, {})
 
     monkeypatch.setattr(backend, "query_image", query_image, raising=False)
-    sign_in(client, "google-id-token")
+    sign_in(client, token)
     result = client.post(
         "/api/v1/operator/image",
         headers={"Origin": ORIGIN},
         **multipart(image_bytes("PNG"), "image/png", "What does this show?"),
     )
     assert result.status_code == 200 and len(calls) == 1
-    assert result.headers["x-reflow-workspace"] == "live"
+    assert result.headers["x-reflow-workspace"] == workspace
     assert result.json()["external_effects_executed"] is False
+
+
+def test_guest_image_cannot_select_an_arbitrary_incident(monkeypatch: Any) -> None:
+    client, _, backend = make_client()
+    calls: list[Any] = []
+    monkeypatch.setattr(backend, "query_image", lambda *args: calls.append(args), raising=False)
+    sign_in(client, "guest-id-token")
+    request = multipart(image_bytes("PNG"), "image/png")
+    request["data"]["incident_id"] = "incident-private-arbitrary"
+    result = client.post(
+        "/api/v1/operator/image", headers={"Origin": ORIGIN}, **request
+    )
+    assert result.status_code == 404
+    assert result.json()["error"]["code"] == "incident_unavailable"
+    assert calls == []
 
 
 def test_private_gateway_uses_fixed_path_audience_token_and_no_caller_filename(

@@ -17,6 +17,10 @@ from objective_recovery_agent.calendar_operator_adapter import (
     CalendarOperatorAdapter,
     OperatorCalendarGateway,
 )
+from objective_recovery_agent.demo_policy import (
+    DEMO_OPERATOR_ROLE,
+    is_canonical_demo_incident,
+)
 from objective_recovery_agent.external_reality import ExternalRealityService
 from objective_recovery_agent.jira_operator_adapter import JiraOperatorAdapter
 from objective_recovery_agent.operator_actions import (
@@ -166,16 +170,25 @@ async def operator_query(
         r"[a-f0-9-]{36}", correlation
     ):
         raise HTTPException(403, "Authenticated Operator context required.")
-    if role not in {"VIEWER", "OPERATOR"}:
+    if role not in {"VIEWER", "OPERATOR", DEMO_OPERATOR_ROLE}:
         raise HTTPException(403, "Authenticated Operator role required.")
-    role = authorized_role(subject, role)
     payload = await bounded_query(request)
+    demo_authority = role == DEMO_OPERATOR_ROLE
+    if demo_authority and not is_canonical_demo_incident(payload.incident_id):
+        raise HTTPException(404, "Demo incident context unavailable.")
+    effective_role = "VIEWER" if demo_authority else authorized_role(subject, role)
     try:
         await asyncio.wait_for(asyncio.to_thread(quota.consume, subject), timeout=8)
         if _slots.locked():
             raise OperatorRateLimited("Operator is busy")
         async with _slots:
-            result = await service.query(payload, correlation, subject, role)
+            result = await service.query(
+                payload,
+                correlation,
+                subject,
+                effective_role,
+                authority="DEMO" if demo_authority else "LIVE",
+            )
         return JSONResponse(result.model_dump(mode="json"), headers={"Cache-Control": "no-store"})
     except OperatorRateLimited as error:
         raise HTTPException(

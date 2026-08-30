@@ -65,7 +65,7 @@ async function requestSession<T>(
   if (response.status === 403) {
     throw new VoiceSessionError(
       "VOICE_UNAVAILABLE",
-      "Voice requires Google sign-in. The demo workspace is read-only.",
+      "Voice is not authorized for this workspace.",
     );
   }
   if (!response.ok) {

@@ -270,7 +270,7 @@
     right: 0;
   }
 
-  /* The workspace label carries "Demo workspace · Read only", which is truth the
+  /* The workspace label carries "Demo workspace · Safe mode", which is truth the
      mobile header must not drop; it wraps under the brand rather than competing
      with the account controls for the same row. */
   .workspace-mode {

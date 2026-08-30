@@ -45,7 +45,7 @@ export class ImageRequestFailure extends Error {
  */
 const MESSAGES: Record<ImageErrorCode, string> = {
   authentication_required:
-    "Reading an image requires Google sign-in. Demo context stays read-only.",
+    "Your session cannot use image understanding right now.",
   origin_rejected: "That request did not come from this workspace.",
   multipart_required: "The image could not be packaged for upload. Try again.",
   invalid_form: "The image request was incomplete. Attach the image again.",
@@ -58,6 +58,8 @@ const MESSAGES: Record<ImageErrorCode, string> = {
     "That image could not be read. It may be truncated, animated, or malformed.",
   image_dimensions_exceeded:
     "Those image dimensions are beyond what Reflow will process.",
+  incident_unavailable:
+    "Image understanding in this demo is limited to the canonical recovery.",
   upstream_unavailable:
     "Image understanding is busy or its request budget is reached. Try the same image again shortly.",
   response_invalid: "Reflow could not confirm the image result.",

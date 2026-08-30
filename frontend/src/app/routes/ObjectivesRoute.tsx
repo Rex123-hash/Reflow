@@ -12,9 +12,9 @@ import {
 import "./objectives.css";
 
 const FILTERS: { id: ObjectiveFilter; label: string }[] = [
+  { id: "all", label: "All" },
   { id: "active", label: "Active" },
   { id: "restored", label: "Restored" },
-  { id: "all", label: "All" },
 ];
 
 const isFilter = (value: string | null): value is ObjectiveFilter =>

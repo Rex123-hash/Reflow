@@ -1,4 +1,4 @@
-"""Authenticated, origin-checked, bounded Operator POST; Guest never invokes Gemini."""
+"""Authenticated, origin-checked Operator POST with server-owned workspace authority."""
 
 import hashlib
 import os
@@ -9,6 +9,10 @@ from typing import Annotated, Protocol, cast
 
 import requests
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from objective_recovery_agent.demo_policy import (
+    DEMO_OPERATOR_ROLE,
+    is_canonical_demo_incident,
+)
 from objective_recovery_agent.operator_schemas import (
     OperatorActionView,
     OperatorQuery,
@@ -40,6 +44,12 @@ def subject_role(principal: SessionPrincipal) -> str:
     return "OPERATOR" if hashlib.sha256(principal.uid.encode()).hexdigest() in allowed else "VIEWER"
 
 
+def backend_role(principal: SessionPrincipal) -> str:
+    """Translate verified identity into a private-backend authority the browser cannot set."""
+
+    return DEMO_OPERATOR_ROLE if principal.mode == "guest" else subject_role(principal)
+
+
 def register_operator_route(
     app: FastAPI,
     backend: BackendGateway,
@@ -52,10 +62,6 @@ def register_operator_route(
         principal: Annotated[SessionPrincipal, Depends(require_principal)],
         _: Annotated[None, Depends(require_allowed_origin)],
     ) -> Response:
-        if principal.mode != "live":
-            raise HTTPException(
-                403, "Real Operator reasoning requires Google sign-in. Demo is read-only."
-            )
         if request.headers.get("content-type", "").split(";")[0] != "application/json":
             raise HTTPException(415, "JSON required.")
         body = bytearray()
@@ -67,9 +73,11 @@ def register_operator_route(
             payload = OperatorQuery.model_validate_json(body)
         except ValidationError as error:
             raise HTTPException(400, "Invalid bounded Operator request.") from error
+        if principal.mode == "guest" and not is_canonical_demo_incident(payload.incident_id):
+            raise HTTPException(404, "Demo incident context unavailable.")
         subject = hashlib.sha256(principal.uid.encode()).hexdigest()
         request_id = str(uuid.uuid4())
-        role = subject_role(principal)
+        role = backend_role(principal)
         try:
             result = await run_in_threadpool(
                 cast(OperatorBackendGateway, backend).query_operator,
@@ -84,7 +92,7 @@ def register_operator_route(
             ) from error
         headers = {
             "Cache-Control": "no-store",
-            "X-Reflow-Workspace": "live",
+            "X-Reflow-Workspace": principal.mode,
             "X-Reflow-Request-Id": request_id,
         }
         if result.status_code != 200:

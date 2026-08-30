@@ -1,0 +1,157 @@
+@media (pointer: fine) and (hover: hover) {
+  html.reflow-cursor-ready,
+  html.reflow-cursor-ready body {
+    cursor:
+      url("/cursors/reflow-pointer.svg") 2 2,
+      default;
+  }
+
+  html.reflow-cursor-ready
+    :where(a, button, summary, select, [role="button"], [role="link"]) {
+    cursor:
+      url("/cursors/reflow-pointer.svg") 2 2,
+      pointer;
+  }
+
+  html.reflow-cursor-ready
+    :where(
+      p,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      li,
+      dt,
+      dd,
+      code,
+      pre,
+      blockquote,
+      figcaption,
+      td,
+      th
+    ) {
+    cursor: text;
+  }
+
+  html.reflow-cursor-ready
+    :where(
+      a,
+      button,
+      summary,
+      select,
+      [role="button"],
+      [role="link"],
+      [data-cursor-interactive]
+    ),
+  html.reflow-cursor-ready
+    :where(
+      a,
+      button,
+      summary,
+      select,
+      [role="button"],
+      [role="link"],
+      [data-cursor-interactive]
+    )
+    * {
+    cursor:
+      url("/cursors/reflow-pointer.svg") 2 2,
+      pointer;
+  }
+
+  html.reflow-cursor-ready
+    :where(
+      input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
+          [type="checkbox"]
+        ):not([type="radio"]):not([type="range"]),
+      textarea,
+      [contenteditable="true"]
+    ) {
+    cursor: text;
+  }
+
+  html.reflow-cursor-ready :where(button, input, select, textarea):disabled,
+  html.reflow-cursor-ready [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  html.reflow-cursor-ready [draggable="true"] {
+    cursor:
+      url("/cursors/reflow-grab.svg") 13 10,
+      grab;
+  }
+
+  html.reflow-cursor-ready [draggable="true"]:active {
+    cursor:
+      url("/cursors/reflow-grabbing.svg") 13 11,
+      grabbing;
+  }
+
+  .reflow-cursor-follower {
+    position: fixed;
+    z-index: 2147483646;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform;
+    transition: opacity 70ms linear;
+  }
+
+  .reflow-cursor-follower::before {
+    content: "";
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(184, 154, 100, 0.72);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    transition:
+      border-color 90ms ease,
+      opacity 90ms ease,
+      transform 110ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .reflow-cursor-follower.is-visible {
+    opacity: 0.62;
+  }
+
+  .reflow-cursor-follower.is-interactive::before,
+  .reflow-cursor-follower.is-draggable::before {
+    border-color: rgba(29, 76, 57, 0.86);
+    transform: translate(-50%, -50%) scale(1.18);
+  }
+
+  .reflow-cursor-follower.is-text {
+    opacity: 0;
+  }
+
+  .reflow-cursor-follower.is-clicking::before {
+    animation: reflow-cursor-click 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+@media (pointer: fine) and (hover: hover) and (prefers-reduced-motion: reduce) {
+  .reflow-cursor-follower::before {
+    transition: none;
+  }
+}
+
+@keyframes reflow-cursor-click {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  48% {
+    opacity: 0.76;
+    transform: translate(-50%, -50%) scale(1.62);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

@@ -1,0 +1,23 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none"
+     xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Reflow brand mark</title>
+  <desc id="desc">A centered objective hub surrounded by broken recovery orbit arcs and a small brass satellite.</desc>
+
+  <path d="M 135.50 91.84 A 190 190 0 0 1 425.28 177.63"
+        stroke="#1D4C39" stroke-width="24" stroke-linecap="round"/>
+  <path d="M 438.46 244.04 A 190 190 0 0 1 349.23 425.62"
+        stroke="#1D4C39" stroke-width="24" stroke-linecap="round"/>
+  <path d="M 290.78 442.78 A 190 190 0 0 1 83.83 332.61"
+        stroke="#1D4C39" stroke-width="24" stroke-linecap="round"/>
+
+  <path d="M 170.00 143.42 A 132 132 0 0 1 372.15 178.95"
+        stroke="#1D4C39" stroke-width="20" stroke-linecap="round"/>
+  <path d="M 386.74 232.13 A 132 132 0 0 1 306.90 378.88"
+        stroke="#1D4C39" stroke-width="20" stroke-linecap="round"/>
+  <path d="M 249.09 387.82 A 132 132 0 0 1 143.95 292.31"
+        stroke="#1D4C39" stroke-width="20" stroke-linecap="round"/>
+
+  <circle cx="256" cy="256" r="42" fill="#1D4C39"/>
+  <circle cx="394" cy="137" r="15" fill="#B89A64"/>
+  <circle cx="123" cy="341" r="10" fill="#91A995"/>
+</svg>

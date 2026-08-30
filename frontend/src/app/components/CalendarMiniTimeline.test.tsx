@@ -296,6 +296,6 @@ describe("Calendar Overview timeline", () => {
       createHash("sha256")
         .update(readFileSync("src/app/auth/AuthSessionContext.tsx"))
         .digest("hex"),
-    ).toBe("3ec865f1c61916c62eef131528cd77f65a31caec65f78ec46b2515e425b35886");
+    ).toBe("dfe63fce6efc06dcfa57c0384c146d27076ab6a2541ebdc9865a7191bfccaf12");
   });
 });

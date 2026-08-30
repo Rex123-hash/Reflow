@@ -10,6 +10,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
+from objective_recovery_agent.demo_policy import (
+    DEMO_OPERATOR_ROLE,
+    is_canonical_demo_incident,
+)
 from objective_recovery_agent.image_schemas import (
     ImageErrorDetail,
     ImageErrorResponse,
@@ -87,7 +91,7 @@ async def understand_image(
     if (
         not re.fullmatch(r"[a-f0-9]{64}", subject)
         or not re.fullmatch(r"[a-f0-9-]{36}", request_id)
-        or role not in {"VIEWER", "OPERATOR"}
+        or role not in {"VIEWER", "OPERATOR", DEMO_OPERATOR_ROLE}
     ):
         return _error(
             ImageRequestError(
@@ -98,6 +102,16 @@ async def understand_image(
         upload = await parse_and_validate_image_request(request)
     except ImageRequestError as error:
         return _error(error)
+    if role == DEMO_OPERATOR_ROLE and not is_canonical_demo_incident(
+        upload.metadata.incident_id
+    ):
+        return _error(
+            ImageRequestError(
+                "incident_unavailable",
+                "Image understanding is limited to the canonical demo incident.",
+                404,
+            )
+        )
     try:
         await asyncio.wait_for(asyncio.to_thread(quota.consume, subject), timeout=8)
         if _slots.locked():
@@ -107,7 +121,9 @@ async def understand_image(
                 upload,
                 request_id,
                 subject,
-                authorized_role(subject, role),
+                DEMO_OPERATOR_ROLE
+                if role == DEMO_OPERATOR_ROLE
+                else authorized_role(subject, role),
             )
         return JSONResponse(result.model_dump(mode="json"), headers={"Cache-Control": "no-store"})
     except OperatorRateLimited:

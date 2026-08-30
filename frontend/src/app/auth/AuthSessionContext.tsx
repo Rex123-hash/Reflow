@@ -177,8 +177,8 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
             </p>
           ) : null}
           <p className="auth-note">
-            No Google account required. Uses Reflow’s dedicated, read-only demo
-            workspace.
+            No Google account required. Real Reflow reasoning is enabled;
+            external changes remain disabled.
           </p>
         </section>
       </main>

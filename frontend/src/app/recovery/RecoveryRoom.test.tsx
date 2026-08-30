@@ -106,7 +106,7 @@ describe("Recovery Room", () => {
     renderRoom();
 
     expect(
-      await screen.findByText(/Recorded presentation/),
+      await screen.findByText(/Demo workspace · Safe mode/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/^Live$/)).not.toBeInTheDocument();
   });

@@ -81,7 +81,7 @@ export function ObjectiveContextBar({
         <span className="revision-note">revision {objective.revision}</span>
         <span className={`provenance${provenance.live ? " is-live" : ""}`}>
           <i aria-hidden="true" />
-          {provenance.live ? "Live" : provenance.label}
+          {provenance.live ? "Live" : "Demo workspace · Safe mode"}
         </span>
       </div>
     </div>

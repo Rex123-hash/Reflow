@@ -86,7 +86,7 @@ class ImageUnderstandingService:
                 initial_conversation=classification,
                 initial_trace=trace,
                 visual_context=visual_context,
-                allow_actions=False,
+                authority="DEMO" if role == "DEMO" else "IMAGE",
             )
             if operator_response.external_effects_executed or operator_response.action is not None:
                 raise OperatorReasoningError("Read-only image handoff reached an action result")

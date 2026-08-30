@@ -65,7 +65,7 @@ def _session_view(principal: SessionPrincipal) -> SessionView:
         mode=principal.mode,
         workspace_label="Live workspace"
         if principal.mode == "live"
-        else "Demo workspace · Read only",
+        else "Demo workspace · Safe mode",
         email=principal.email,
         display_name=principal.display_name,
         read_only=principal.mode == "guest",

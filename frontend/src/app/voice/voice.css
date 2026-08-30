@@ -779,7 +779,13 @@
   width: min(560px, 100%);
   max-height: 100%;
   overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
   padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.voice-call-frame::-webkit-scrollbar {
+  display: none;
 }
 
 .voice-call-head {

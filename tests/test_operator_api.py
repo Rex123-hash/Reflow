@@ -80,7 +80,7 @@ def test_private_safe_failures(private_client: Any, error: Exception, status: in
     client, _ = private_client
 
     class Failing:
-        async def query(self, *args: Any) -> Any:
+        async def query(self, *args: Any, **kwargs: Any) -> Any:
             raise error
 
     app.dependency_overrides[operator_api.get_operator_service] = lambda: Failing()
@@ -93,7 +93,9 @@ def test_private_safe_failures(private_client: Any, error: Exception, status: in
     assert "secret" not in response.text and "credentials" not in response.text
 
 
-def test_bff_requires_google_session_and_allowed_origin_before_backend(monkeypatch: Any) -> None:
+def test_bff_requires_a_verified_session_and_allowed_origin_before_backend(
+    monkeypatch: Any,
+) -> None:
     client, _, backend = make_client()
     calls: list[Any] = []
 
@@ -105,8 +107,6 @@ def test_bff_requires_google_session_and_allowed_origin_before_backend(monkeypat
     body = {"incident_id": INCIDENT, "message": "Explain recovery"}
     path = "/api/v1/operator/query"
     assert client.post(path, json=body, headers={"Origin": ORIGIN}).status_code == 401
-    sign_in(client, "guest-id-token")
-    assert client.post(path, json=body, headers={"Origin": ORIGIN}).status_code == 403
     sign_in(client, "google-id-token")
     assert client.post(path, json=body).status_code == 403
     assert client.post(path, json=body, headers={"Origin": "https://evil.test"}).status_code == 403
@@ -126,8 +126,20 @@ def test_bff_requires_google_session_and_allowed_origin_before_backend(monkeypat
     assert calls == []
 
 
+@pytest.mark.parametrize(
+    ("token", "uid", "expected_role", "workspace"),
+    [
+        ("google-id-token", b"google-user", "VIEWER", "live"),
+        ("guest-id-token", b"guest-user", "DEMO", "guest"),
+    ],
+)
 def test_bff_private_backend_chain_with_exact_response_and_correlation(
-    monkeypatch: Any, private_client: Any
+    monkeypatch: Any,
+    private_client: Any,
+    token: str,
+    uid: bytes,
+    expected_role: str,
+    workspace: str,
 ) -> None:
     private, _ = private_client
     client, _, backend = make_client()
@@ -148,7 +160,7 @@ def test_bff_private_backend_chain_with_exact_response_and_correlation(
         return BackendResponse(response.status_code, response.content, response.headers)
 
     monkeypatch.setattr(backend, "query_operator", post, raising=False)
-    sign_in(client, "google-id-token")
+    sign_in(client, token)
     result = client.post(
         "/api/v1/operator/query",
         headers={"Origin": ORIGIN, "X-Reflow-Operator-Subject": "forged"},
@@ -156,10 +168,41 @@ def test_bff_private_backend_chain_with_exact_response_and_correlation(
     )
     assert result.status_code == 200
     assert result.headers["cache-control"] == "no-store"
-    assert captured[0][1] == hashlib.sha256(b"google-user").hexdigest()
-    assert captured[0][3] == "VIEWER"
+    assert captured[0][1] == hashlib.sha256(uid).hexdigest()
+    assert captured[0][3] == expected_role
+    assert result.headers["x-reflow-workspace"] == workspace
     assert result.json()["request_id"] == captured[0][2]
     assert "Authorization" not in result.text and "access_token" not in result.text
+
+
+def test_guest_operator_cannot_select_an_arbitrary_incident(monkeypatch: Any) -> None:
+    client, _, backend = make_client()
+    calls: list[Any] = []
+    monkeypatch.setattr(backend, "query_operator", lambda *args: calls.append(args), raising=False)
+    sign_in(client, "guest-id-token")
+    response = client.post(
+        "/api/v1/operator/query",
+        headers={"Origin": ORIGIN},
+        json={"incident_id": "incident-private-arbitrary", "message": "Explain recovery"},
+    )
+    assert response.status_code == 404
+    assert calls == []
+
+
+def test_guest_direct_approval_is_denied_before_backend(monkeypatch: Any) -> None:
+    client, _, backend = make_client()
+    calls: list[Any] = []
+    monkeypatch.setattr(
+        backend, "approve_operator", lambda *args: calls.append(args), raising=False
+    )
+    sign_in(client, "guest-id-token")
+    response = client.post(
+        f"/api/v1/operator/actions/{'b' * 64}/approve",
+        headers={"Origin": ORIGIN},
+        json={},
+    )
+    assert response.status_code == 403
+    assert calls == []
 
 
 @pytest.mark.parametrize(

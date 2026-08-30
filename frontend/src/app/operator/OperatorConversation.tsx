@@ -152,7 +152,7 @@ export function OperatorConversation({
    * a dictated take is: it lands, it waits, and the reader still presses the button.
    * Nothing about attaching an image executes anything.
    */
-  const show = useShowReflow(incidentId, live);
+  const show = useShowReflow(incidentId, true);
   const imageInput = useRef<HTMLInputElement>(null);
   const visual = useRef<HTMLElement>(null);
   const [holding, setHolding] = useState(false);
@@ -200,13 +200,13 @@ export function OperatorConversation({
    * instead and identifies itself once, so Enter opens the picker from there.
    */
   useEffect(() => {
-    if (params.get("show") !== "image" || priming.current || !live) return;
+    if (params.get("show") !== "image" || priming.current) return;
     priming.current = true;
     imageInput.current?.focus();
     setPrimed(true);
     const settle = window.setTimeout(() => setPrimed(false), 2800);
     return () => window.clearTimeout(settle);
-  }, [live, params]);
+  }, [params]);
 
   /**
    * A chip hands its text to the console.
@@ -242,12 +242,12 @@ export function OperatorConversation({
    * the image and stops — it never submits.
    */
   const onDragEnter = (event: DragEvent) => {
-    if (!live || busy || !dragCarriesFile(event.dataTransfer)) return;
+    if (busy || !dragCarriesFile(event.dataTransfer)) return;
     dragDepth.current += 1;
     setHolding(true);
   };
   const onDragOver = (event: DragEvent) => {
-    if (!live || busy || !dragCarriesFile(event.dataTransfer)) return;
+    if (busy || !dragCarriesFile(event.dataTransfer)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
   };
@@ -256,7 +256,7 @@ export function OperatorConversation({
     if (dragDepth.current === 0) setHolding(false);
   };
   const onDrop = (event: DragEvent) => {
-    if (!live || busy) return;
+    if (busy) return;
     event.preventDefault();
     dragDepth.current = 0;
     setHolding(false);
@@ -265,7 +265,7 @@ export function OperatorConversation({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!live || busy) return;
+    if (busy) return;
     // A mounted image is what the console is about, so the button reads it. The
     // typed question rides along when there is one, and is omitted when there is
     // not — the backend supplies its own bounded prompt rather than the browser
@@ -360,8 +360,8 @@ export function OperatorConversation({
       {!live && (
         <p className="operator-note" role="status">
           <Icon name="lock" size={ICON_SIZE.meta} />
-          Real Operator reasoning requires Google sign-in. Demo context remains
-          read-only; no model request is made.
+          Real Reflow reasoning is enabled in this demo workspace. External
+          changes remain disabled.
         </p>
       )}
 
@@ -393,7 +393,7 @@ export function OperatorConversation({
             into this same field, and the user still presses Ask Reflow. */}
         <VoiceComposer
           incidentId={incidentId}
-          disabled={!live || busy}
+          disabled={busy}
           onTranscript={(text) => {
             setMessage(text);
             setTranscriptReady(true);
@@ -417,7 +417,7 @@ export function OperatorConversation({
                   ref={field}
                   value={message}
                   maxLength={1200}
-                  disabled={!live || busy}
+                  disabled={busy}
                   placeholder={
                     show.attachment
                       ? "What failed here? (optional)"
@@ -450,7 +450,7 @@ export function OperatorConversation({
               <ImageAttachControl
                 id="operator-image"
                 inputRef={imageInput}
-                disabled={!live || busy}
+                disabled={busy}
                 primed={primed}
                 onFile={(file) => show.attach(file)}
               />
@@ -458,7 +458,6 @@ export function OperatorConversation({
                 type="submit"
                 className="btn btn-primary"
                 disabled={
-                  !live ||
                   busy ||
                   strip !== null ||
                   (!show.attachment && message.trim().length < 3)
@@ -502,7 +501,7 @@ export function OperatorConversation({
       <VoiceLaunchBar
         incidentId={incidentId}
         objectiveTitle={objectiveTitle}
-        disabled={!live || busy}
+        disabled={busy}
       />
 
       <div className="operator-examples">
@@ -512,7 +511,7 @@ export function OperatorConversation({
             key={example}
             type="button"
             className={`operator-example${sending === example ? " is-sending" : ""}`}
-            disabled={!live || busy}
+            disabled={busy}
             onClick={() => useExample(example)}
           >
             {example}

@@ -26,6 +26,7 @@ from objective_recovery_agent.operator_schemas import (
     ConversationCapability,
     ConversationEnvelope,
     ConversationInput,
+    HumanResponse,
     IntentInput,
     OperatorActionView,
     OperatorAgentTrace,
@@ -40,6 +41,8 @@ from objective_recovery_agent.operator_schemas import (
     SimulationInput,
     SimulationResult,
 )
+
+QueryAuthority = Literal["LIVE", "DEMO", "IMAGE"]
 
 
 class ReasoningAgents(Protocol):
@@ -202,7 +205,7 @@ class OperatorService:
         initial_conversation: ConversationEnvelope | None = None,
         initial_trace: OperatorAgentTrace | None = None,
         visual_context: tuple[str, ...] = (),
-        allow_actions: bool = True,
+        authority: QueryAuthority = "LIVE",
     ) -> OperatorResponse:
         if (initial_conversation is None) != (initial_trace is None):
             raise ValueError("Pre-understood conversation and trace must travel together")
@@ -210,7 +213,7 @@ class OperatorService:
             snapshot = await self._snapshot_reader(query.incident_id)
             fingerprint = query_fingerprint(query)
             replay = None
-            if query.idempotency_key and self._actions:
+            if query.idempotency_key and self._actions and authority == "LIVE":
                 replay = await asyncio.to_thread(
                     self._actions.replay, subject_hash, query.idempotency_key, fingerprint
                 )
@@ -301,9 +304,10 @@ class OperatorService:
             # Validate even injected implementations; no unvalidated model output is used.
             intent = OperatorIntent.model_validate(intent)
             deadline = None if replay else validate_intent(intent, snapshot, self._registry)
-            if intent.intent_type == "ACT" and not allow_actions:
-                # Image requests must still traverse Agent 6, but this endpoint-specific
-                # boundary cannot enter the action coordinator or create a receipt.
+            demo_denial: Literal["ACTION", "PROVIDER_READ"] | None = None
+            if intent.intent_type == "ACT" and authority != "LIVE":
+                # Demo and image requests still traverse Agent 6, but their server-owned
+                # authority cannot enter the action coordinator or create a receipt.
                 intent = OperatorIntent(
                     disposition="UNSUPPORTED",
                     subject=intent.subject,
@@ -314,10 +318,37 @@ class OperatorService:
                     constraints=intent.constraints,
                     fact_ids=(),
                     clarification=(
-                        "Image uploads cannot authorize an action. Submit the explicit "
+                        "Demo mode can reason about and simulate this operation, but "
+                        "external changes are disabled."
+                        if authority == "DEMO"
+                        else "Image uploads cannot authorize an action. Submit the explicit "
                         "request separately through the typed Operator path."
                     ),
                 )
+                if authority == "DEMO":
+                    demo_denial = "ACTION"
+            elif (
+                authority == "DEMO"
+                and intent.intent_type in {"INSPECT", "EXPLAIN"}
+                and intent.target is not None
+            ):
+                # The demo may reason over its reviewed canonical snapshot, never fresh
+                # private-provider state selected by model output or request prose.
+                intent = OperatorIntent(
+                    disposition="UNSUPPORTED",
+                    subject=intent.subject,
+                    incident_id=intent.incident_id,
+                    recovery_attempt=intent.recovery_attempt,
+                    question=intent.question,
+                    hypothetical_changes=(),
+                    constraints=intent.constraints,
+                    fact_ids=(),
+                    clarification=(
+                        "Demo reasoning is limited to the canonical recovery record; "
+                        "connected-provider reads are disabled."
+                    ),
+                )
+                demo_denial = "PROVIDER_READ"
             if (
                 intent.disposition == "SUPPORTED"
                 and intent.intent_type in {"INSPECT", "EXPLAIN"}
@@ -499,34 +530,40 @@ class OperatorService:
                     )
                     answer = facts[0].text
                 elif intent.subject == "CALENDAR":
-                    calendar = await self._calendar_reader(query.incident_id)
-                    if calendar.revision != snapshot.revision:
-                        raise OperatorReasoningError("Calendar context revision changed")
-                    for resource in calendar.resources[:2]:
-                        latest = resource.latest_readback
-                        fresh = (
-                            resource.fresh_read_status == "READ_BACK"
-                            and latest is not None
-                            and latest.source_freshness == "FRESH_READ"
-                        )
-                        text = (
-                            f"Fresh Google Calendar read-back at {latest.observed_at}: "
-                            f"{latest.state.start} to {latest.state.end}, {latest.state.status}; "
-                            f"comparison {latest.verification_status}."
-                            if fresh and latest
-                            else f"Current Calendar read status: {resource.fresh_read_status}. "
-                            "No fresh observed event is asserted; recorded evidence is historical."
-                        )
-                        facts += (
-                            OperatorFact(
-                                fact_id="calendar:current",
-                                text=text,
-                                evidence_ids=(resource.evidence_id,),
-                            ),
-                        )
-                        evidence_ids.add(resource.evidence_id)
-                    # Selected facts remain the only source of answer prose.
-                    answer = "\n\n".join(fact.text for fact in facts)
+                    if authority == "DEMO":
+                        # Selected canonical facts remain the only answer source.
+                        answer = "\n\n".join(fact.text for fact in facts)
+                    else:
+                        calendar = await self._calendar_reader(query.incident_id)
+                        if calendar.revision != snapshot.revision:
+                            raise OperatorReasoningError("Calendar context revision changed")
+                        for resource in calendar.resources[:2]:
+                            latest = resource.latest_readback
+                            fresh = (
+                                resource.fresh_read_status == "READ_BACK"
+                                and latest is not None
+                                and latest.source_freshness == "FRESH_READ"
+                            )
+                            text = (
+                                f"Fresh Google Calendar read-back at {latest.observed_at}: "
+                                f"{latest.state.start} to {latest.state.end}, "
+                                f"{latest.state.status}; comparison "
+                                f"{latest.verification_status}."
+                                if fresh and latest
+                                else f"Current Calendar read status: "
+                                f"{resource.fresh_read_status}. No fresh observed event is "
+                                "asserted; recorded evidence is historical."
+                            )
+                            facts += (
+                                OperatorFact(
+                                    fact_id="calendar:current",
+                                    text=text,
+                                    evidence_ids=(resource.evidence_id,),
+                                ),
+                            )
+                            evidence_ids.add(resource.evidence_id)
+                        # Selected facts remain the only source of answer prose.
+                        answer = "\n\n".join(fact.text for fact in facts)
                 else:
                     answer = "\n\n".join(fact.text for fact in facts)
             human = compose_task_response(
@@ -540,6 +577,21 @@ class OperatorService:
                 action=action,
                 response_disposition=response_disposition,
             )
+            if demo_denial is not None:
+                human = HumanResponse(
+                    human_summary=(
+                        "Demo mode can reason about and simulate this operation, but "
+                        "external changes are disabled."
+                        if demo_denial == "ACTION"
+                        else "Demo reasoning is limited to the canonical recovery record; "
+                        "connected-provider reads are disabled."
+                    ),
+                    situation_type="DENIED",
+                    current_state="The demo workspace remains isolated from connected systems.",
+                    next_step="Ask Reflow to explain or simulate the recovery using demo evidence.",
+                    truth_boundary="No external read or change occurred.",
+                    suggestions=("Explain the recovery", "Simulate another outcome"),
+                )
             return OperatorResponse(
                 request_id=request_id,
                 incident_id=snapshot.incident_id,

@@ -9,6 +9,7 @@ from typing import Protocol, cast
 
 import requests
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from objective_recovery_agent.demo_policy import is_canonical_demo_incident
 from objective_recovery_agent.image_schemas import (
     ImageErrorDetail,
     ImageErrorResponse,
@@ -22,7 +23,7 @@ from starlette.concurrency import run_in_threadpool
 
 from objective_recovery.web_bff.auth import SessionPrincipal
 from objective_recovery.web_bff.backend import BackendGateway, BackendResponse
-from objective_recovery.web_bff.operator import subject_role
+from objective_recovery.web_bff.operator import backend_role
 
 
 class ImageBackendGateway(Protocol):
@@ -67,21 +68,23 @@ def register_image_route(
         principal: SessionPrincipal = principal_dependency,
         _: None = origin_dependency,
     ) -> Response:
-        if principal.mode != "live":
-            return _error(
-                ImageRequestError(
-                    "authentication_required",
-                    "Real image understanding requires Google sign-in.",
-                    403,
-                )
-            )
         try:
             upload = await parse_and_validate_image_request(request)
         except ImageRequestError as error:
             return _error(error)
+        if principal.mode == "guest" and not is_canonical_demo_incident(
+            upload.metadata.incident_id
+        ):
+            return _error(
+                ImageRequestError(
+                    "incident_unavailable",
+                    "Image understanding is limited to the canonical demo incident.",
+                    404,
+                )
+            )
         subject = hashlib.sha256(principal.uid.encode()).hexdigest()
         request_id = str(uuid.uuid4())
-        role = subject_role(principal)
+        role = backend_role(principal)
         try:
             upstream = await run_in_threadpool(
                 cast(ImageBackendGateway, backend).query_image,
@@ -103,7 +106,7 @@ def register_image_route(
             ) from error
         headers = {
             "Cache-Control": "no-store",
-            "X-Reflow-Workspace": "live",
+            "X-Reflow-Workspace": principal.mode,
             "X-Reflow-Request-Id": request_id,
         }
         if upstream.status_code != 200:

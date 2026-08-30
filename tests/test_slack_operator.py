@@ -585,12 +585,42 @@ def test_bff_to_private_backend_contract_and_forged_role_cannot_elevate(
     assert authorized_role("c" * 64, "OPERATOR") == "VIEWER"
 
 
-def test_guest_slack_request_stops_before_backend(monkeypatch: Any) -> None:
+def test_guest_slack_request_reasons_in_demo_authority_without_adapter(
+    monkeypatch: Any,
+) -> None:
+    from objective_recovery.web_bff.backend import BackendResponse
     from test_p2d_web_bff import ORIGIN, make_client, sign_in
 
     client, _, backend = make_client()
     calls: list[Any] = []
-    monkeypatch.setattr(backend, "query_operator", lambda *args: calls.append(args), raising=False)
+    session = SlackSession()
+
+    def query(payload: bytes, subject: str, request_id: str, role: str) -> BackendResponse:
+        calls.append((subject, role))
+
+        async def read(_: str) -> Any:
+            return snapshot()
+
+        async def calendar(_: str) -> Any:
+            raise AssertionError("Demo Slack ACT must not read Calendar")
+
+        result = asyncio.run(
+            OperatorService(
+                read,
+                calendar,
+                FakeAgents(intent()),
+                coordinator(session),
+            ).query(
+                OperatorQuery.model_validate_json(payload),
+                request_id,
+                subject,
+                "VIEWER",
+                authority="DEMO",
+            )
+        )
+        return BackendResponse(200, result.model_dump_json().encode(), {})
+
+    monkeypatch.setattr(backend, "query_operator", query, raising=False)
     sign_in(client, "guest-id-token")
     response = client.post(
         "/api/v1/operator/query",
@@ -601,7 +631,11 @@ def test_guest_slack_request_stops_before_backend(monkeypatch: Any) -> None:
             "idempotency_key": "guest-slack-key",
         },
     )
-    assert response.status_code == 403 and calls == []
+    assert response.status_code == 200
+    assert calls == [(hashlib.sha256(b"guest-user").hexdigest(), "DEMO")]
+    assert response.json()["external_effects_executed"] is False
+    assert response.json()["action"] is None
+    assert session.messages == []
 
 
 def test_malformed_provider_shapes_and_safe_correlation() -> None:

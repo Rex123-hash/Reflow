@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ReflowCursor } from "./cursor/ReflowCursor";
 
 /**
  * Top-level split between the frozen public surface and the logged-in application.
@@ -17,17 +18,20 @@ const FaqPage = lazy(() => import("./faq/FaqPage"));
 
 export function Root() {
   return (
-    <BrowserRouter>
-      <Suspense
-        fallback={<div className="lab-loading" aria-label="Loading Reflow" />}
-      >
-        <Routes>
-          <Route path="/app/*" element={<AppRoutes />} />
-          <Route path="/faq" element={<FaqPage />} />
-          <Route path="*" element={<MarketingApp />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    <>
+      <ReflowCursor />
+      <BrowserRouter>
+        <Suspense
+          fallback={<div className="lab-loading" aria-label="Loading Reflow" />}
+        >
+          <Routes>
+            <Route path="/app/*" element={<AppRoutes />} />
+            <Route path="/faq" element={<FaqPage />} />
+            <Route path="*" element={<MarketingApp />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </>
   );
 }
 

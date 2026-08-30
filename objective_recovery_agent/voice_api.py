@@ -16,6 +16,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from objective_recovery_agent.demo_policy import (
+    DEMO_OPERATOR_ROLE,
+    is_canonical_demo_incident,
+)
 from objective_recovery_agent.voice_schemas import (
     LiveVoiceSession,
     VoiceCapability,
@@ -62,14 +66,20 @@ def _credential_failed() -> HTTPException:
     )
 
 
-def authenticated_context(request: Request) -> tuple[str, str]:
+def authenticated_context(request: Request) -> tuple[str, str, str]:
     subject = request.headers.get("X-Reflow-Operator-Subject", "")
     correlation = request.headers.get("X-Reflow-Request-Id", "")
+    role = request.headers.get("X-Reflow-Operator-Role", "VIEWER")
     if not re.fullmatch(r"[a-f0-9]{64}", subject) or not re.fullmatch(
         r"[a-f0-9-]{36}", correlation
-    ):
+    ) or role not in {"VIEWER", "OPERATOR", DEMO_OPERATOR_ROLE}:
         raise HTTPException(403, "Authenticated voice context required.")
-    return subject, correlation
+    return subject, correlation, role
+
+
+def require_demo_scope(payload: VoiceSessionRequest, role: str) -> None:
+    if role == DEMO_OPERATOR_ROLE and not is_canonical_demo_incident(payload.incident_id):
+        raise HTTPException(404, "Demo incident context unavailable.")
 
 
 async def bounded_session_request(
@@ -101,11 +111,12 @@ def _issuer() -> VoiceSessionIssuer:
 @router.post("/api/v1/voice/transcription/session", response_model=VoiceTranscriptionSession)
 async def create_transcription_session(
     request: Request,
-    context: Annotated[tuple[str, str], Depends(authenticated_context)],
+    context: Annotated[tuple[str, str, str], Depends(authenticated_context)],
 ) -> JSONResponse:
-    await bounded_session_request(request, "TRANSCRIPTION")
+    payload = await bounded_session_request(request, "TRANSCRIPTION")
     issuer = _issuer()
-    subject, correlation = context
+    subject, correlation, role = context
+    require_demo_scope(payload, role)
     try:
         session = await asyncio.wait_for(
             asyncio.to_thread(issuer.transcription_session, subject, correlation), timeout=15
@@ -118,11 +129,12 @@ async def create_transcription_session(
 @router.post("/api/v1/voice/live/session", response_model=LiveVoiceSession)
 async def create_live_session(
     request: Request,
-    context: Annotated[tuple[str, str], Depends(authenticated_context)],
+    context: Annotated[tuple[str, str, str], Depends(authenticated_context)],
 ) -> JSONResponse:
     payload = await bounded_session_request(request, "LIVE_CALL")
     issuer = _issuer()
-    subject, correlation = context
+    subject, correlation, role = context
+    require_demo_scope(payload, role)
     try:
         session = await asyncio.wait_for(
             asyncio.to_thread(issuer.live_session, payload.incident_id, subject, correlation),

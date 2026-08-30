@@ -255,16 +255,21 @@ class VoiceBackend(FakeBackend):
 
     def __init__(self, root: Path) -> None:
         super().__init__(root)
-        self.voice_calls: list[tuple[str, bytes, str, str]] = []
+        self.voice_calls: list[tuple[str, bytes, str, str, str]] = []
         self.operator_calls: list[tuple[bytes, str, str, str]] = []
         self.voice_response: BackendResponse | Exception | None = None
         self.operator_response: BackendResponse | Exception | None = None
         self.operator_response_factory: Callable[[str], OperatorResponse] | None = None
 
     def create_voice_session(
-        self, capability: str, payload: bytes, subject: str, request_id: str
+        self,
+        capability: str,
+        payload: bytes,
+        subject: str,
+        request_id: str,
+        role: str = "VIEWER",
     ) -> BackendResponse:
-        self.voice_calls.append((capability, payload, subject, request_id))
+        self.voice_calls.append((capability, payload, subject, request_id, role))
         if isinstance(self.voice_response, Exception):
             raise self.voice_response
         if self.voice_response is not None:
@@ -362,7 +367,7 @@ VOICE_SESSION_PATHS = (
 
 
 @pytest.mark.parametrize("path", VOICE_SESSION_PATHS)
-def test_voice_sessions_require_an_authenticated_google_session(path: str) -> None:
+def test_voice_sessions_require_an_authenticated_session_and_allowed_origin(path: str) -> None:
     client, backend = make_client()
     capability = "TRANSCRIPTION" if "transcription" in path else "LIVE_CALL"
     body = {"capability": capability, "incident_id": INCIDENT}
@@ -372,15 +377,16 @@ def test_voice_sessions_require_an_authenticated_google_session(path: str) -> No
 
     sign_in(client, "guest-id-token")
     guest = client.post(path, headers={"Origin": ORIGIN}, json=body)
-    assert guest.status_code == 403
+    assert guest.status_code == 200
+    assert backend.voice_calls[-1][4] == "DEMO"
 
     client.cookies.clear()
     sign_in(client, "google-id-token")
     assert client.post(path, json=body).status_code == 403  # Origin rejected.
-    assert backend.voice_calls == []
+    assert len(backend.voice_calls) == 1
 
 
-def test_voice_handoff_requires_an_authenticated_google_session() -> None:
+def test_voice_handoff_requires_an_authenticated_session() -> None:
     client, backend = make_client()
     body = {
         "voice_session_id": SESSION_ID,
@@ -389,9 +395,53 @@ def test_voice_handoff_requires_an_authenticated_google_session() -> None:
     }
     assert client.post("/api/v1/voice/operator/handoff", json=body).status_code == 401
     sign_in(client, "guest-id-token")
-    denied = client.post("/api/v1/voice/operator/handoff", headers={"Origin": ORIGIN}, json=body)
-    assert denied.status_code == 403
+    bounded = client.post("/api/v1/voice/operator/handoff", headers={"Origin": ORIGIN}, json=body)
+    assert bounded.status_code == 200
+    assert backend.operator_calls[0][3] == "DEMO"
+    assert bounded.json()["external_effects_executed"] is False
+
+
+def test_guest_voice_cannot_select_an_arbitrary_incident() -> None:
+    client, backend = make_client()
+    sign_in(client, "guest-id-token")
+    session = client.post(
+        "/api/v1/voice/live/session",
+        headers={"Origin": ORIGIN},
+        json={"capability": "LIVE_CALL", "incident_id": "incident-private-arbitrary"},
+    )
+    handoff = client.post(
+        "/api/v1/voice/operator/handoff",
+        headers={"Origin": ORIGIN},
+        json={
+            "voice_session_id": SESSION_ID,
+            "incident_id": "incident-private-arbitrary",
+            "spoken_request": SPOKEN,
+        },
+    )
+    assert session.status_code == handoff.status_code == 404
+    assert backend.voice_calls == []
     assert backend.operator_calls == []
+
+
+def test_guest_voice_act_handoff_carries_demo_authority_and_no_external_effect() -> None:
+    client, backend = make_client()
+    sign_in(client, "guest-id-token")
+    spoken = "Move the release calendar event by one hour."
+    response = client.post(
+        "/api/v1/voice/operator/handoff",
+        headers={"Origin": ORIGIN},
+        json={
+            "voice_session_id": SESSION_ID,
+            "incident_id": INCIDENT,
+            "spoken_request": spoken,
+            "idempotency_key": "voice-demo-calendar-act",
+        },
+    )
+    payload, _, _, role = backend.operator_calls[0]
+    assert role == "DEMO"
+    assert OperatorQuery.model_validate_json(payload).message == spoken
+    assert response.status_code == 200
+    assert response.json()["external_effects_executed"] is False
 
 
 def test_private_voice_route_requires_the_authenticated_operator_context() -> None:
@@ -1192,9 +1242,10 @@ def test_an_authenticated_session_is_issued_through_the_fixed_backend_path(
     assert body["capability"] == capability
     assert body["api_version"] == "v1alpha"
     assert API_KEY not in response.text
-    recorded_capability, payload, subject, _ = backend.voice_calls[0]
+    recorded_capability, payload, subject, _, role = backend.voice_calls[0]
     assert recorded_capability == capability
     assert subject == GOOGLE_SUBJECT
+    assert role == "VIEWER"
     assert VoiceSessionRequest.model_validate_json(payload).capability == capability
 
 

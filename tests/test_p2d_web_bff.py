@@ -203,10 +203,10 @@ def test_health_and_invalid_session_cookie_behavior() -> None:
     assert client.get("/api/auth/session").status_code == 401
 
 
-def test_guest_gets_bounded_read_only_demo_and_never_invokes_backend() -> None:
+def test_guest_gets_bounded_safe_demo_presentation_without_invoking_backend() -> None:
     client, _, backend = make_client()
     body = sign_in(client, "guest-id-token")
-    assert body["workspace_label"] == "Demo workspace · Read only"
+    assert body["workspace_label"] == "Demo workspace · Safe mode"
     overview = client.get("/api/v1/ui/overview")
     assert overview.status_code == 200
     assert overview.headers["x-reflow-workspace"] == "guest"

@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import json
 from datetime import UTC, datetime, timedelta
-from typing import Any, cast
+from typing import Any, cast, get_args
 
 import pytest
 import requests
@@ -379,6 +379,114 @@ async def test_agent_6_act_routes_to_code_policy_and_adapter_only_for_operator()
     assert verified.action is not None and verified.action.lifecycle == "VERIFIED"
     assert verified.external_effects_executed is True
     assert verified.simulation is None and operator_adapter.executions == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("subject", "authority", "resource_type", "identifier", "operation_name"),
+    [
+        ("JIRA", "JIRA", "ISSUE", "API-42", "JIRA_TRANSITION"),
+        (
+            "CALENDAR",
+            "GOOGLE_CALENDAR",
+            "EVENT",
+            "release-validation-window",
+            "CALENDAR_UPDATE_TITLE",
+        ),
+        ("SLACK", "SLACK", "CHANNEL", "release-v2", "SLACK_POST_MESSAGE"),
+    ],
+)
+async def test_demo_authority_denies_provider_act_before_receipt_or_adapter_execution(
+    subject: str,
+    authority: str,
+    resource_type: str,
+    identifier: str,
+    operation_name: str,
+) -> None:
+    async def read(_: str) -> Any:
+        return snapshot()
+
+    async def calendar(_: str) -> Any:
+        raise AssertionError("Demo ACT must not enter an external read")
+
+    adapter = FakeAdapter()
+    adapter.authority = cast(Authority, authority)
+    adapter.resource_type = cast(ResourceType, resource_type)
+    adapter.operations = frozenset({operation_name})
+    adapter.resource_identifiers = (identifier,)
+    control = coordinator(adapter)
+    requested = RequestedOperation(operation=cast(OperationType, operation_name), value="Denied")
+    interpreted = OperatorIntent(
+        disposition="SUPPORTED",
+        intent_type="ACT",
+        subject=cast(Any, subject),
+        incident_id=INCIDENT,
+        question="Attempt an external change",
+        hypothetical_changes=(),
+        constraints=(),
+        fact_ids=(),
+        target=OperatorTarget(
+            authority=cast(Authority, authority),
+            resource_type=cast(ResourceType, resource_type),
+            resource_identifier=identifier,
+        ),
+        requested_operations=(requested,),
+    )
+    bounded = OperatorService(read, calendar, FakeAgents(interpreted), control)
+    result = await bounded.query(
+        OperatorQuery(
+            incident_id=INCIDENT,
+            message=f"Attempt a {subject} mutation",
+            idempotency_key=f"browser-demo-denied-{subject.casefold()}",
+        ),
+        REQUEST,
+        "3" * 64,
+        "OPERATOR",
+        authority="DEMO",
+    )
+    assert result.disposition == "UNSUPPORTED"
+    assert result.action is None and result.external_effects_executed is False
+    assert adapter.executions == adapter.inspects == 0
+    assert control._store.actions == {}  # type: ignore[attr-defined]
+    assert "external changes are disabled" in result.human_response.human_summary
+
+
+@pytest.mark.asyncio
+async def test_demo_authority_blocks_fresh_provider_inspection() -> None:
+    async def read(_: str) -> Any:
+        return snapshot()
+
+    async def calendar(_: str) -> Any:
+        raise AssertionError("Demo inspection must not enter a live provider")
+
+    adapter = FakeAdapter()
+    inspection = OperatorIntent(
+        disposition="SUPPORTED",
+        intent_type="INSPECT",
+        subject="JIRA",
+        incident_id=INCIDENT,
+        question="Inspect API-42",
+        hypothetical_changes=(),
+        constraints=(),
+        fact_ids=(),
+        target=target(),
+    )
+    bounded = OperatorService(read, calendar, FakeAgents(inspection), coordinator(adapter))
+    result = await bounded.query(
+        OperatorQuery(incident_id=INCIDENT, message="Inspect API-42"),
+        REQUEST,
+        authority="DEMO",
+    )
+    assert result.disposition == "UNSUPPORTED"
+    assert adapter.inspects == adapter.executions == 0
+    assert "connected-provider reads are disabled" in result.human_response.human_summary
+
+
+def test_operator_mutation_surface_has_no_github_or_gmail_capability() -> None:
+    authorities = set(get_args(Authority))
+    operations = set(get_args(OperationType))
+    assert not {"GITHUB", "GMAIL"} & authorities
+    assert not any(value.startswith(("GITHUB_", "GMAIL_")) for value in operations)
 
 
 @pytest.mark.asyncio

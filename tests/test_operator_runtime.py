@@ -210,11 +210,16 @@ def service(agents: FakeAgents) -> OperatorService:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("kind", ["EXPLAIN", "INSPECT", "SIMULATE"])
-async def test_grounded_paths_and_immutable_value_only_simulation(kind: str) -> None:
+@pytest.mark.parametrize("authority", ["LIVE", "DEMO"])
+async def test_grounded_paths_and_immutable_value_only_simulation(
+    kind: str, authority: str
+) -> None:
     agents = FakeAgents(intent(kind))
     before = snapshot().model_dump_json()
     result = await service(agents).query(
-        OperatorQuery(incident_id=INCIDENT, message="Bounded request"), REQUEST
+        OperatorQuery(incident_id=INCIDENT, message="Bounded request"),
+        REQUEST,
+        authority=authority,  # type: ignore[arg-type]
     )
     assert result.external_effects_executed is False
     assert snapshot().model_dump_json() == before
@@ -243,12 +248,54 @@ async def test_grounded_paths_and_immutable_value_only_simulation(kind: str) -> 
 
 
 @pytest.mark.asyncio
+async def test_demo_follow_up_context_reaches_conversation_agent_without_authority_change() -> None:
+    agents = FakeAgents(intent("EXPLAIN"))
+    previous = ConversationContext(
+        mode="CLARIFY",
+        user_goal="Explain the failed recovery",
+        normalized_request="Explain why Recovery 1 failed.",
+        human_summary="Which recovery should I explain?",
+    )
+    result = await service(agents).query(
+        OperatorQuery(
+            incident_id=INCIDENT,
+            message="Recovery 1",
+            conversation_context=previous,
+        ),
+        REQUEST,
+        authority="DEMO",
+    )
+    assert agents.conversation_inputs[0].previous == previous
+    assert result.disposition == "SUPPORTED"
+    assert result.external_effects_executed is False
+
+
+@pytest.mark.asyncio
 async def test_inspect_calendar_uses_existing_fresh_read_contract() -> None:
     result = await service(FakeAgents(intent("INSPECT", subject="CALENDAR"))).query(
         OperatorQuery(incident_id=INCIDENT, message="Show Calendar"), REQUEST
     )
     assert "Fresh Google Calendar read-back" in result.answer
     assert "2026-08-28T13:00:00" in result.answer
+
+
+@pytest.mark.asyncio
+async def test_demo_calendar_inspection_uses_recorded_facts_without_live_read() -> None:
+    agents = FakeAgents(intent("INSPECT", subject="CALENDAR"))
+    baseline = service(agents)
+
+    async def no_live_calendar(_: str) -> Any:
+        raise AssertionError("Demo reasoning must not read the live Calendar provider")
+
+    bounded = OperatorService(baseline._snapshot_reader, no_live_calendar, agents)
+    result = await bounded.query(
+        OperatorQuery(incident_id=INCIDENT, message="What changed in Calendar?"),
+        REQUEST,
+        authority="DEMO",
+    )
+    assert result.disposition == "SUPPORTED"
+    assert "release-validation-green FAILED" in result.answer
+    assert result.external_effects_executed is False
 
 
 @pytest.mark.asyncio
@@ -555,7 +602,7 @@ def test_frozen_calendar_and_existing_five_agent_semantics_unchanged() -> None:
             [
                 "git",
                 "diff",
-                "6b9b6f1",
+                    "0893f925870f7b2b561f64d3fe8337f80d0a1f67",
                 "--exit-code",
                 "--",
                 "objective_recovery_agent/calendar_gateway.py",

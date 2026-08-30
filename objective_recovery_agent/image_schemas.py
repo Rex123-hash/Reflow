@@ -26,6 +26,7 @@ ImageErrorCode = Literal[
     "image_too_large",
     "invalid_image",
     "image_dimensions_exceeded",
+    "incident_unavailable",
     "upstream_unavailable",
     "response_invalid",
 ]

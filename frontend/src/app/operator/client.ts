@@ -61,7 +61,7 @@ export async function queryOperator(
       response.status === 429
         ? "Operator is busy or its request budget is reached. Retry the same request later."
         : response.status === 403
-          ? "Real Operator reasoning requires Google sign-in."
+          ? "This workspace is not authorized for that Operator request."
           : "Operator could not confirm the result. Retry the same request safely.",
     );
   const value: unknown = await response.json();

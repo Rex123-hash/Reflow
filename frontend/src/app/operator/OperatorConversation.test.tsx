@@ -525,8 +525,14 @@ describe("real Operator conversation", () => {
     expect(body.idempotency_key).toMatch(/^[0-9a-f-]{36}$/);
   });
 
-  it("never invokes the model endpoint for Guest/fixture context", () => {
-    const fetcher = vi.fn();
+  it("invokes bounded real reasoning for Guest context", async () => {
+    const fetcher = vi.fn(
+      async () =>
+        new Response(JSON.stringify(response), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+    );
     vi.stubGlobal("fetch", fetcher);
     render(
       <MemoryRouter>
@@ -539,10 +545,17 @@ describe("real Operator conversation", () => {
         </VoiceLaunchProvider>
       </MemoryRouter>,
     );
-    expect(screen.getByText(/requires Google sign-in/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Ask Reflow/ })).toBeDisabled();
+    expect(
+      screen.getByText(/Real Reflow reasoning is enabled/),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByText("Why did Recovery 1 fail?"));
-    expect(fetcher).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Ask Reflow/ })).toBeEnabled(),
+    );
+    fireEvent.submit(
+      screen.getByRole("button", { name: /Ask Reflow/ }).closest("form")!,
+    );
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
   });
 
   it("contains transport failures without claiming an unknown result", async () => {
