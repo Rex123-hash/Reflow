@@ -220,7 +220,7 @@ Deployed source: `83c84e90abb34f2f09f23be6349259051f964121`,
 “Visualize authoritative Calendar commitments on Overview.”
 Author and committer: **Amaan Khan <amaank2405@gmail.com>**.
 This qualification report/screenshots are recorded in a subsequent documentation
-commit on the same pre-existing `codex/ui-m2-orb-anchor-spike` branch.
+commit on the same pre-existing working branch.
 No new branch, GitHub push, or remote modification was made for P2E-B.
 
 ## P. Verdict

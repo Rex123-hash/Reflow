@@ -12,19 +12,19 @@ htmlcov/
 !.env.example
 tmp/
 dist/
+node_modules/
 build/
 *.egg-info/
 firebase-debug.log
 .firebase/
-artifacts/
+/artifacts/
 .terraform/
 *.tfplan
 *.tfstate
 *.tfstate.*
 
-# Local editor/agent tooling
-/.claude/
-/.codex-p1e-build-*/
+# Local scratch build directories
+/.*-build-*/
 
 # Design exploration scratch and generated reference imagery
 /design/

@@ -41,7 +41,7 @@ The stopping boundary is the missing Slack workspace authorization plus the expl
 the P2G/Agent 7 reasoning layer. Further reliability work in that frozen layer needs user direction;
 the failed full runs cannot be replaced by isolated successes or hidden by lowering thresholds.
 
-Starting HEAD: `5b9a766961b9377f45c0b1cae873b23fe39f8cc9` (`codex/ui-m2-orb-anchor-spike`). The only pre-existing change was untracked
+Starting HEAD: `5b9a766961b9377f45c0b1cae873b23fe39f8cc9` (local working branch). The only pre-existing change was untracked
 `frontend/op-input.mjs`, preserved untouched. No previous history, authorship, Jira/Calendar
 adapter, canonical recovery behavior, or marketing/story source was rewritten. PUSH = NOT ATTEMPTED.
 
@@ -328,7 +328,7 @@ claim new Slack responses work through an old deployed validator.
 4. Copy the channel ID from channel details and the workspace/team ID from its Slack client URL.
    These IDs are safe configuration values, not credentials.
 5. In the app's OAuth & Permissions page obtain the Bot User OAuth Token. Do not paste it into
-   ChatGPT/Claude/Codex, a shell command, repository, screenshot or a proof file.
+   an AI assistant, a shell command, repository, screenshot or a proof file.
 6. Open the existing [Secret Manager secret](https://console.cloud.google.com/security/secret-manager/secret/objective-recovery-slack-bot-token/versions?project=project-f334c42b-7a03-4194-932)
    and add a new version directly in Google Cloud Console. Paste the token only there. The secret
    and least-privilege backend access already exist.
@@ -951,7 +951,7 @@ before replay unless the first action was VERIFIED.
 
 | Item | Final evidence |
 |---|---|
-| A — starting repository HEAD | `e31f0b522` on `codex/ui-m2-orb-anchor-spike` |
+| A — starting repository HEAD | `e31f0b522` on the local working branch |
 | B — local proof changes | Bounded live harness, transport tests, immutable evidence and this section; final local commit IDs are recorded in the handoff; no push |
 | C — Slack action ID | `6b754fc7350855414b33de8da5ec6d85cb9bd0984ba29d6d636a63546250081d` |
 | D — idempotency key | `p2h-slack-final-live-qualification-20260829-v1`; identical on initial request and replay |

@@ -221,7 +221,7 @@ as Amaan Khan `<amaank2405@gmail.com>` and were not pushed.
 
 **AG. Remaining debt.** No conversation-memory platform or admin quota UI exists by
 design. Collect a larger reliability/latency sample before statistical claims.
-The Codex in-app browser's Google popup can still report its known
+An in-app browser's Google popup can still report its known
 `auth/network-request-failed`; production signed-in BFF 200 logs and the user's
 signed-in page are independent of that browser transport issue. Broad Operator UI
 polish and multimodality remain intentionally deferred.

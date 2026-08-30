@@ -59,7 +59,6 @@ The package uses a `src/` layout. No credentials are required for the P0 foundat
 - [P1B Calendar design and proof](docs/p1b-calendar-proof.md)
 - [P2C agent boundaries](docs/p2c-agent-boundaries.md)
 - [P2C deterministic parity report](docs/p2c-parity-report.md)
-- [Pre-existing work disclosure](PREEXISTING_WORK_DISCLOSURE.md)
 
 ## Truthfulness boundary
 

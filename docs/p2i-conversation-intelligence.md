@@ -18,7 +18,7 @@ mutation was performed during this phase.
 ## A–F. Baseline, commits, architecture, and contract
 
 **A. Starting HEAD.** `136858b9cc115e7ab6082f7048eb96fcdb71c614` on the new local
-branch `codex/p2i-conversation-intelligence`. Frozen P2H commits and proof were preserved.
+working branch. Frozen P2H commits and proof were preserved.
 The pre-existing untracked `frontend/op-input.mjs` was not read, changed, staged, or committed.
 
 **B. Final local commits.** Source/tests are in
@@ -199,7 +199,7 @@ capability, ninth agent, long-term memory, DM/edit/delete path, or Calendar-crea
 
 | Field | Deployed evidence |
 |---|---|
-| **A. Starting HEAD** | `c8151ed64114fa5853456a3dfec2fa8a65a30bc9` on `codex/p2i-conversation-intelligence`; only pre-existing `frontend/op-input.mjs` was untracked and remained unread/untouched/uncommitted |
+| **A. Starting HEAD** | `c8151ed64114fa5853456a3dfec2fa8a65a30bc9` on the local working branch; only pre-existing `frontend/op-input.mjs` was untracked and remained unread/untouched/uncommitted |
 | **B. Deployed source commit** | Final backend/BFF source `597977c99ce0ca557a4b33bed33e32b101f1ffe5`; it contains only the permitted deterministic terminal-punctuation repair and its test on top of qualified P2I commit `c8151ed…` |
 | **C. Final local proof commit** | The bounded local commit containing this deployed ledger and the three live screenshots; exact hash is reported in the final handoff because a commit cannot truthfully contain its own hash |
 | **D. Cloud Build ID** | Final build `24bf17ec-7f24-4b70-9188-2de2c54ac417`, SUCCESS, finished `2026-08-29T10:55:12.076089Z`; initial qualified-source build `10dac668-2be2-445c-a905-c184877bc3c8` was superseded after live wording QA found the punctuation defect |

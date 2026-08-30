@@ -8,7 +8,6 @@ function lazyNamed<T extends Record<string, ComponentType>>(loader: () => Promis
 }
 
 const OrbFidelityLab = lazyNamed(() => import("./fidelity/OrbFidelityLab"), "OrbFidelityLab");
-const ProductionOrbLab = lazyNamed(() => import("./fidelity/ProductionOrbLab"), "ProductionOrbLab");
 const AuthoredOrbLab = lazyNamed(() => import("./fidelity/AuthoredOrbLab"), "AuthoredOrbLab");
 const ProductionPresentationLab = lazyNamed(() => import("./fidelity/ProductionPresentationLab"), "ProductionPresentationLab");
 const BrowserConvergenceLab = lazyNamed(() => import("./fidelity/BrowserConvergenceLab"), "BrowserConvergenceLab");
@@ -27,9 +26,6 @@ function App() {
   }
   if (lab === "authored-orb") {
     return <LabShell><AuthoredOrbLab /></LabShell>;
-  }
-  if (lab === "production-orb") {
-    return <LabShell><ProductionOrbLab /></LabShell>;
   }
   if (lab === "orb") {
     return <LabShell><OrbFidelityLab /></LabShell>;

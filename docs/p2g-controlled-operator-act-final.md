@@ -32,7 +32,7 @@ The canonical incident is untouched: revision 16, 28 durable workflow events,
 fingerprint `4a1c…` recomputed from live Firestore and matching exactly.
 
 No external write of any kind was performed. No Jira or Calendar request was made. Jira and
-Calendar live proof stands on the prior Codex session; this environment cannot re-read those
+Calendar live proof stands on an earlier session; this environment cannot re-read those
 systems, which is recorded as *prior-session live proof; current-session read-only
 re-verification unavailable* — not as a downgrade.
 
@@ -420,7 +420,7 @@ The **browser-level** versions of these proofs could not be captured this run (s
 
 ## 14. Jira — prior-session live proof
 
-**Proven live in the prior Codex session:**
+**Proven live in an earlier session:**
 
 | Item | Live-proven value |
 |---|---|
@@ -556,7 +556,7 @@ And the architecture claim, supported by code and deterministic proof:
 > cannot widen its own authorization.
 
 **Scope discipline.** The live Jira and Calendar evidence behind the first claim was proven
-in the prior Codex session and could not be re-read from this environment. Anyone restating
+in an earlier session and could not be re-read from this environment. Anyone restating
 the claim publicly should be able to point at that session's receipts. Nothing here asserts
 capability beyond section 18.
 

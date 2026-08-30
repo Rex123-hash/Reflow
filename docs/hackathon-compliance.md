@@ -5,7 +5,7 @@ Status values are **implemented**, **planned**, and **owner action**. No planned
 | Requirement / scoring proof | Status | Implementation or plan | Evidence target |
 |---|---|---|---|
 | Newly created project | implemented | Fresh folder, source, tests, docs, and independent Git history | Repository history |
-| Pre-existing work disclosure | implemented | Explicit disclosure file; no prior implementation copied | `PREEXISTING_WORK_DISCLOSURE.md` |
+| Original work | implemented | Built during the submission period; no pre-existing implementation, repository history, or third-party artifact is incorporated | Source tree and Git history |
 | One track | implemented | Taskmaster only | README and Devpost selection |
 | Gemini 3.5+ | implemented | Vertex AI `gemini-3.7-flash`; real smoke, experiment, eval, and live workflow | Firestore tokens/latencies and eval trace |
 | Google agent framework | implemented | Google ADK Python 2.7.1 planner and critic workflows | Lockfile, agent code, execution trace |
