@@ -6,7 +6,7 @@
 
 **Most project tools help teams manage a plan. Reflow takes over when reality breaks the plan.**
 
-When the person who owned a migration goes unreachable, or the release candidate everyone approved cannot pass CI before a protected deadline, the plan is already wrong. Reflow reads the disruption, works out what the objective actually needs, proposes recoveries, executes only what deterministic policy authorizes, and then proves the result by reading the external system back. If the objective is still unhealthy, it reopens itself and tries again.
+Reflow is a closed loop, not an assistant. It watches the systems an objective depends on, and when one of them breaks the plan it interprets what happened, works out what the objective still needs, executes only what deterministic policy authorizes, and proves the result by reading the external system back. If the objective is still unhealthy it reopens itself, replans, and acts again. Nobody has to ask it to.
 
 ![Gemini](https://img.shields.io/badge/Gemini_on_Vertex_AI-1D4C39?style=flat-square&logo=googlegemini&logoColor=white)
 ![ADK](https://img.shields.io/badge/Google_ADK_2.7.1-1D4C39?style=flat-square&logo=google&logoColor=white)
@@ -25,13 +25,13 @@ When the person who owned a migration goes unreachable, or the release candidate
 
 </div>
 
-| Deployment | Reasoning | External proof | Interaction |
+| Deployment | Human steps in the canonical run | Email to restored objective | External proof |
 |---|---:|---:|---:|
-| [Live on Firebase + Cloud Run](https://reflow-objective-recovery.web.app) | **8 Gemini agents** | **Independent read-back** | **Type · Talk · Show** |
+| [Live on Firebase + Cloud Run](https://reflow-objective-recovery.web.app) | **zero** | **~111 seconds** | **independent read-back** |
 
 **Supporting documents:** [Architecture](docs/architecture.md) · [Security](SECURITY.md) · [Submission notes](docs/SUBMISSION.md) · [Canonical recovery proof](docs/p1e-proof.md)
 
-**90-second judge path:** open the live product and go to **Recovery**. Recovery 01 is action-verified and still marked FAILED; Recovery 02 branches from it and restores the objective. Open **Evidence** for the receipts behind that. Then open **Operator**, ask *"Why did Recovery 1 fail?"*, and attach a screenshot to see what Reflow will and will not conclude from a picture.
+**90-second judge path:** open the live product and go to **Recovery**. Everything on that page happened without a person: an email arrived, and Reflow detected, planned, acted, failed verification, reopened itself, replanned and restored the objective. Recovery 01 is action-verified and still marked FAILED; Recovery 02 branches from it. Open **Evidence** for the receipts. **Operator** is the window into all of it — ask *"Why did Recovery 1 fail?"* — but note that nothing there had to be asked for the recovery to happen.
 
 > **Reflow reports what it verified, not what it attempted.** A verified external action is not a
 > recovered objective, and the product will tell you when an action succeeded and the objective
@@ -42,13 +42,15 @@ When the person who owned a migration goes unreachable, or the release candidate
 
 ## <img src="docs/assets/marks/overview.svg" height="22" align="center" alt="" /> &nbsp;What Reflow is
 
-Reflow is an operational agent for objectives that have already gone wrong.
+Reflow is an engine that protects an outcome. It is not a chatbot with tools, and the difference is structural rather than cosmetic.
 
 A project tool stores the plan you wrote. An automation runs the steps you scripted. Neither notices when the world stops matching either one. That gap is where operational work actually happens, and today it is handled by a person reading Slack and Jira and guessing what still matters.
 
-Reflow closes it with one narrow, testable promise: **it will not report an objective as recovered until it has independently verified that it is.** Not when the model says so. Not when an API returns `200`. Only when a separate read of the external system, followed by an evaluation of the objective's own invariants, says so.
+Reflow runs that loop itself. The trigger is the world, not a prompt — a Gmail watch fires, or CI answers — and from there the engine carries an incident from detection to a verified outcome across durable, restartable stages. From the product specification: *the user does not type the disruption into the product.*
 
-That constraint lives in deterministic Python and is covered by tests, not left to prompt discipline.
+**Its unit of completion is a verified objective**, not a closed ticket and not a successful API call. It will not report an objective as recovered until it has independently confirmed that it is — not when the model says so, not when a write returns `200`, only when a separate read of the external system and an evaluation of the objective's own invariants both agree.
+
+**Where the AI sits.** Eight Gemini agents live *inside* this loop and hold a deliberately narrow job: interpret ambiguous evidence, propose alternative recoveries, attack those proposals, and explain what happened. They hold no tools, no credentials and no execution authority. Deterministic code owns the graph, the arithmetic, the policy, the idempotency, the state transitions, the plan selection and the invariants. Adapters alone touch an external system, and an independent verifier alone decides whether an objective is restored.
 
 ---
 
@@ -113,7 +115,7 @@ The branch on the left is the part that matters. Most agent demonstrations show 
 
 ## <img src="docs/assets/marks/proof.svg" height="22" align="center" alt="" /> &nbsp;The canonical proof
 
-A real run against real systems, recorded in [`docs/p1e-proof.md`](docs/p1e-proof.md). No human touched anything after the triggering email arrived.
+A real run against real systems, recorded in [`docs/p1e-proof.md`](docs/p1e-proof.md). **From the moment the email arrived, no human invoked a notification, an endpoint, a planner, an action, a continuation, a state change, a plan selection or a resolution.** The engine did all of it.
 
 An email reported that the backend lead was unavailable. Gemini classified it as a real disruption affecting the API migration and the Release V2 objective. Reflow mapped the blast radius, planned a recovery, and executed it: a Calendar coordination change and a GitHub release validation for Candidate A.
 
@@ -134,7 +136,7 @@ Only then did all six invariants pass and the objective resolve.
 
 ## <img src="docs/assets/marks/product.svg" height="22" align="center" alt="" /> &nbsp;The product
 
-Four surfaces, each answering a different question. All captured from the live workspace.
+Four surfaces onto a loop that already ran. Each answers a different question, and all are captured from the live workspace.
 
 | | |
 |---|---|
@@ -151,13 +153,14 @@ The Operator tile is deliberate. A system that only shows its successes has not 
 
 | Ordinary automation | Reflow |
 |---|---|
+| Waits to be triggered | Triggered by the world — a watch fires, CI answers |
 | Completes a task | Restores an objective, or says it could not |
 | Trusts the API response | Re-reads the provider in a separate request |
 | Runs one plan | Reopens and replans when the objective stays unhealthy |
 | The model decides what to do | The model proposes; deterministic policy decides |
 | Writes an activity log | Writes durable receipts, evidence and invariant results |
 
-None of this makes Jira or a workflow engine wrong. They are asked to track and to execute. Reflow is asked whether the outcome actually held, which is a different question and needs a different architecture.
+None of this makes Jira or a workflow engine wrong. They are asked to track and to execute. Reflow is asked whether the outcome actually held, which is a different question and needs a different architecture. It is explicitly not a chatbot over your tools: the product specification lists *generic chatbot* as a non-goal, and the canonical recovery ran with nobody typing anything.
 
 ---
 
@@ -193,25 +196,20 @@ Policy, adapters and the verifier are **not** agents; they are the code that con
 
 ## <img src="docs/assets/marks/architecture.svg" height="22" align="center" alt="" /> &nbsp;Architecture
 
+Two ways in, one governed core. The left lane is the product; the right lane is a person looking at it.
+
 ```text
-                        Type it.      Say it.      Show it.
-                                         │
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  REFLOW WEB APP                             browser  │
-              │  one console · typed, spoken and shown requests      │
-              └──────────────────────────┬───────────────────────────┘
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  FIREBASE                          hosting + auth    │
-              │  static build · SPA rewrite · product sign-in        │
-              └──────────────────────────┬───────────────────────────┘
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  AUTHENTICATED BFF                Cloud Run, public  │
-              │  the only public surface · session cookie only       │
-              └──────────────────────────┬───────────────────────────┘
-                                         │ audience-bound service identity
+                THE WORLD CHANGES                   A PERSON ASKS
+            Gmail watch · CI answers         Type it · Say it · Show it
+                 nobody is asked               inspect, explain, steer
+                        │                                 │
+                        ▼                                 ▼
+           ┌────────────────────────┐        ┌────────────────────────┐
+           │  CLOUD PUB/SUB         │        │  FIREBASE + BFF        │
+           │  authenticated push    │        │  the only public entry │
+           └────────────────────────┘        └────────────────────────┘
+                        │                                 │
+                        └────────────────┬────────────────┘
                                          ▼
               ┌──────────────────────────────────────────────────────┐
               │  RECOVERY BACKEND                Cloud Run, private  │
@@ -219,32 +217,34 @@ Policy, adapters and the verifier are **not** agents; they are the code that con
               └──────────────────────────┬───────────────────────────┘
                                          ▼
               ┌──────────────────────────────────────────────────────┐
-              │  EIGHT REASONING AGENTS       Google ADK · Gemini    │
+              │  EIGHT REASONING AGENTS         Google ADK · Gemini  │
               │  propose only — no tools, no credentials             │
               └──────────────────────────┬───────────────────────────┘
                                          ▼
               ┌──────────────────────────────────────────────────────┐
-              │  DETERMINISTIC CONTROL                 Reflow core   │
-              │  policy decides · adapters act · verifier proves     │
+              │  DETERMINISTIC CONTROL                  Reflow core  │
+              │  policy decides · adapters act                       │
               └──────────────────────────┬───────────────────────────┘
                                          ▼
               ┌──────────────────────────────────────────────────────┐
-              │  SYSTEMS OF RECORD                        external   │
+              │  SYSTEMS OF RECORD                         external  │
               │  Calendar · Jira · Slack · GitHub · Gmail read-only  │
               └──────────────────────────┬───────────────────────────┘
                                          ▼
               ┌──────────────────────────────────────────────────────┐
-              │  INDEPENDENT READ-BACK                               │
-              │  a second request · expected compared with observed  │
+              │  READ-BACK, THEN THE VERIFIER                        │
+              │  a second request · then the objective's invariants  │
               └──────────────────────────┬───────────────────────────┘
                                          ▼
               ┌──────────────────────────────────────────────────────┐
               │  FIRESTORE                        durable authority  │
               │  incidents · workflow events · receipts · evidence   │
               └──────────────────────────────────────────────────────┘
+
+              invariants fail ─▶ the incident reopens, replans, acts again
 ```
 
-Disruption events also enter the private backend directly through authenticated **Cloud Pub/Sub** push, which is how the Gmail watch delivers. Adapter credentials live in **Secret Manager** and are read backend-side only.
+The distinction matters. **A disruption enters through Pub/Sub and no browser is involved** — that is the path the canonical recovery took. The web app is how a person inspects what the engine already did and, within policy, asks it for a bounded change. Adapter credentials live in **Secret Manager** and are read backend-side only.
 
 A deeper component-level view is in [`docs/architecture.md`](docs/architecture.md).
 
@@ -252,67 +252,58 @@ A deeper component-level view is in [`docs/architecture.md`](docs/architecture.m
 
 ## <img src="docs/assets/marks/pipeline.svg" height="22" align="center" alt="" /> &nbsp;How it works
 
-One request, end to end, and the file that owns each stage.
+The engine is four durable stages. Each one finishes its work, writes durable state, and publishes a handoff that the next stage consumes on its own. Nothing in this chain waits for a person.
 
 ```text
-        a disruption event  ·  or a typed, spoken or shown Operator request
-                                        │
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  1 · INGEST                            gmail_ingestion.py    │
-        │  authenticated Pub/Sub push · cursor · durable event claim   │
-        └───────────────────────────────┬──────────────────────────────┘
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  2 · INTERPRET                            agent_runtime.py   │
-        │  agent 1 classifies · unknown graph nodes are rejected       │
-        └───────────────────────────────┬──────────────────────────────┘
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  3 · MAP THE BLAST RADIUS                domain/graph.py     │
-        │  agent 2 proposes · deterministic traversal decides          │
-        └───────────────────────────────┬──────────────────────────────┘
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  4 · PLAN AND CRITIQUE                        planning.py    │
-        │  agents 3 to 5 · three perspectives, then an opposing view   │
-        └───────────────────────────────┬──────────────────────────────┘
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  5 · AUTHORIZE                          domain/policy.py     │
-        │  hard policy · a fingerprinted failed effect cannot return   │
-        └───────────────────────────────┬──────────────────────────────┘
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  6 · SELECT                     application/selection.py     │
-        │  one stable choice · same evidence gives the same plan       │
-        └───────────────────────────────┬──────────────────────────────┘
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  7 · EXECUTE                     *_operator_adapter.py       │
-        │  typed intent · idempotency key claimed before the write     │
-        └───────────────────────────────┬──────────────────────────────┘
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  8 · READ BACK                   *_operator_adapter.py       │
-        │  a separate request · expected compared with observed        │
-        └───────────────────────────────┬──────────────────────────────┘
-                                        ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │  9 · VERIFY THE OBJECTIVE          domain/verification.py    │
-        │  invariants over recorded state · resolve, or reopen at 4    │
-        └──────────────────────────────────────────────────────────────┘
+                           a Gmail watch notification
+                                      │
+                                      ▼
+      ┌──────────────────────────────────────────────────────────────┐
+      │  1 · INTERPRET                         trigger/gmail/pubsub  │
+      │  agents 1 and 2 read the mail, ground every claim            │
+      └───────────────────────────────┬──────────────────────────────┘
+                                      ▼  Pub/Sub
+      ┌──────────────────────────────────────────────────────────────┐
+      │  2 · PLAN AND ACT                            trigger/pubsub  │
+      │  agents 3 and 4, then policy, selection and the write        │
+      └───────────────────────────────┬──────────────────────────────┘
+                                      ▼  Pub/Sub
+      ┌──────────────────────────────────────────────────────────────┐
+      │  3 · VALIDATE                            trigger/p1c/pubsub  │
+      │  GitHub release, then wait for the real CI result            │
+      └───────────────────────────────┬──────────────────────────────┘
+                                      ▼  Pub/Sub
+      ┌──────────────────────────────────────────────────────────────┐
+      │  4 · VERIFY OR REOPEN                    trigger/p1d/pubsub  │
+      │  agent 5 analyses, replans, acts again, then resolves        │
+      └──────────────────────────────────────────────────────────────┘
+
+                         RESOLVED · objective_restored
 ```
 
-**Where authority changes hands.** Stages 2, 3 and 4 are the only ones a model touches, and each returns typed output that the next stage validates. Stage 5 is where a proposal becomes permitted or refused. Stages 7 and 8 are the same adapter doing two different jobs — writing, then re-reading through a separate request, so the write can never be its own proof. Stage 9 is the only place an incident can become resolved.
+`p1d.py` describes itself in one line: *autonomous reopen, replan, second recovery, shipping, and closure.* Stage 4 is where an objective that failed verification gets a second attempt, and it is reached by a Pub/Sub message, not by a click.
 
-**What replay does.** A redelivered Pub/Sub message re-enters at stage 1 and stops there: the event claim is transactional, so the work is not repeated. A retried action re-enters at stage 7 and returns the existing durable action, because the idempotency key was claimed before the write.
+**What replay does.** A redelivered message re-enters its stage and stops: event claims are transactional, so work is never repeated. A retried action returns the existing durable action, because the idempotency key is claimed before the write.
+
+**Where each step lives.**
+
+| Step | Owner in source |
+|---|---|
+| Watch, cursor and durable event claim | [`gmail_ingestion.py`](objective_recovery_agent/gmail_ingestion.py) |
+| Ground the disruption, map candidate nodes | [`gmail_interpretation.py`](objective_recovery_agent/gmail_interpretation.py) |
+| Blast-radius traversal | [`domain/graph.py`](src/objective_recovery/domain/graph.py) |
+| Candidate recoveries and the critique | [`planning.py`](objective_recovery_agent/planning.py) |
+| Hard policy, failed-effect exclusion | [`domain/policy.py`](src/objective_recovery/domain/policy.py) |
+| Stable plan selection | [`application/selection.py`](src/objective_recovery/application/selection.py) |
+| Write, idempotency, receipt, read-back | [`operator_actions.py`](objective_recovery_agent/operator_actions.py) and the adapters |
+| Objective invariants, the only route to resolved | [`domain/verification.py`](src/objective_recovery/domain/verification.py) |
+| Reopen, replan, second recovery, closure | [`p1d.py`](objective_recovery_agent/p1d.py) |
 
 ---
 
 ## <img src="docs/assets/marks/multimodal.svg" height="22" align="center" alt="" /> &nbsp;Type it. Say it. Show it.
 
-Three ways into one console, and all three land in the same governed Operator path.
+The engine does not need any of this to work. Operator is how a person looks into a loop that has already run, and how they ask it for something within policy — three ways in, all landing in the same governed path.
 
 **Type.** The Operator composer takes a question or a request. Agent 6 classifies it into a typed intent; deterministic policy decides whether anything may execute.
 
