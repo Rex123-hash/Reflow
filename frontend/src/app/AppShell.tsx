@@ -4,6 +4,9 @@ import reflowMarkUrl from "../assets/reflow/reflow-mark.svg";
 import { LoadingState } from "./components/Feedback";
 import { ScenarioSwitch } from "./components/ScenarioSwitch";
 import { useAuthSession } from "./auth/AuthSessionContext";
+import { VoiceDock } from "./voice/VoiceDock";
+import { VoiceLaunchProvider } from "./voice/VoiceLaunch";
+import "./voice/voice.css";
 import "./styles/tokens.css";
 import "./styles/app.css";
 
@@ -62,60 +65,65 @@ export function AppShell() {
   );
 
   return (
-    <div className="app-root">
-      <header className="app-nav">
-        <div className="app-nav-inner workspace-inset">
-          <div className="app-brand-block">
-            <a className="app-brand" href="/">
-              <img src={reflowMarkUrl} alt="" aria-hidden="true" />
-              <span>Reflow</span>
-            </a>
-            {workspace}
+    <VoiceLaunchProvider>
+      <div className="app-root">
+        <header className="app-nav">
+          <div className="app-nav-inner workspace-inset">
+            <div className="app-brand-block">
+              <a className="app-brand" href="/">
+                <img src={reflowMarkUrl} alt="" aria-hidden="true" />
+                <span>Reflow</span>
+              </a>
+              {workspace}
+            </div>
+
+            <nav className="app-nav-links" aria-label="Primary">
+              <PrimaryNav />
+            </nav>
+
+            <div className="app-nav-tail">
+              <ScenarioSwitch />
+              {workspace}
+              <button
+                type="button"
+                className="app-signout"
+                onClick={() => void signOut()}
+              >
+                Sign out
+              </button>
+              <span
+                className="app-avatar"
+                title={session.email ?? session.workspace_label}
+              >
+                {initials || "R"}
+              </span>
+            </div>
           </div>
 
-          <nav className="app-nav-links" aria-label="Primary">
-            <PrimaryNav />
+          <nav
+            ref={mobileNavigation}
+            className="app-nav-rail"
+            aria-label="Primary"
+          >
+            <div className="app-nav-links">
+              <PrimaryNav />
+            </div>
           </nav>
+        </header>
 
-          <div className="app-nav-tail">
-            <ScenarioSwitch />
-            {workspace}
-            <button
-              type="button"
-              className="app-signout"
-              onClick={() => void signOut()}
-            >
-              Sign out
-            </button>
-            <span
-              className="app-avatar"
-              title={session.email ?? session.workspace_label}
-            >
-              {initials || "R"}
-            </span>
-          </div>
-        </div>
-
-        <nav
-          ref={mobileNavigation}
-          className="app-nav-rail"
-          aria-label="Primary"
+        <Suspense
+          fallback={
+            <div className="route-pad">
+              <LoadingState label="Loading Reflow" />
+            </div>
+          }
         >
-          <div className="app-nav-links">
-            <PrimaryNav />
-          </div>
-        </nav>
-      </header>
+          <Outlet />
+        </Suspense>
 
-      <Suspense
-        fallback={
-          <div className="route-pad">
-            <LoadingState label="Loading Reflow" />
-          </div>
-        }
-      >
-        <Outlet />
-      </Suspense>
-    </div>
+        {/* Reflow, reachable from every authenticated route. */}
+        <VoiceDock />
+      </div>
+    </VoiceLaunchProvider>
   );
 }

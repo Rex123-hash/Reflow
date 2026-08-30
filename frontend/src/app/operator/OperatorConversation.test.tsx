@@ -8,6 +8,7 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { OperatorConversation } from "./OperatorConversation";
+import { VoiceLaunchProvider } from "../voice/VoiceLaunch";
 
 afterEach(() => {
   cleanup();
@@ -117,11 +118,13 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -179,11 +182,13 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -238,11 +243,13 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -299,11 +306,13 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -361,11 +370,13 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -443,11 +454,13 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -468,11 +481,13 @@ describe("real Operator conversation", () => {
     vi.stubGlobal("fetch", fetcher);
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -515,11 +530,13 @@ describe("real Operator conversation", () => {
     vi.stubGlobal("fetch", fetcher);
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live={false}
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live={false}
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     expect(screen.getByText(/requires Google sign-in/)).toBeInTheDocument();
@@ -535,11 +552,13 @@ describe("real Operator conversation", () => {
     );
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -625,11 +644,13 @@ describe("real Operator conversation", () => {
     vi.stubGlobal("fetch", fetcher);
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
@@ -653,36 +674,40 @@ describe("the composer's auxiliary control", () => {
   const composer = () =>
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
 
-  it("offers dictation and a live call only while the request is empty", () => {
+  it("keeps dictation only while the request is empty, and the call always", () => {
     composer();
     expect(
       screen.getByRole("button", { name: "Dictate a request" }),
     ).toBeInTheDocument();
+    // The live call is a capability, not a composer control: it does not come and
+    // go with the field, because a reader has to be able to find it at any moment.
     expect(
-      screen.getByRole("button", { name: /Live call/ }),
+      screen.getByRole("button", { name: /Talk to Reflow/ }),
     ).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {
       target: { value: "Why did Recovery 1 fail?" },
     });
 
-    // Mid-request, a microphone and a call are noise: the slot becomes the clear.
+    // Mid-request the field's own slot becomes the clear control.
     expect(
       screen.queryByRole("button", { name: "Dictate a request" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Live call/ }),
-    ).not.toBeInTheDocument();
-    expect(
       screen.getByRole("button", { name: "Clear request" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Talk to Reflow/ }),
     ).toBeInTheDocument();
   });
 
@@ -694,9 +719,6 @@ describe("the composer's auxiliary control", () => {
     expect(field.value).toBe("");
     expect(
       screen.getByRole("button", { name: "Dictate a request" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Live call/ }),
     ).toBeInTheDocument();
   });
 });
@@ -723,11 +745,13 @@ describe("sending during dictation", () => {
 
     const view = render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     expect(screen.getByRole("button", { name: /Ask Reflow/ })).toBeDisabled();
@@ -743,11 +767,13 @@ describe("sending during dictation", () => {
     } as unknown as ReturnType<typeof dictation.useDictation>);
     render(
       <MemoryRouter>
-        <OperatorConversation
-          incidentId="incident-abc"
-          objectiveTitle="Ship Release V2"
-          live
-        />
+        <VoiceLaunchProvider>
+          <OperatorConversation
+            incidentId="incident-abc"
+            objectiveTitle="Ship Release V2"
+            live
+          />
+        </VoiceLaunchProvider>
       </MemoryRouter>,
     );
     fireEvent.change(screen.getByLabelText("Ask Reflow"), {

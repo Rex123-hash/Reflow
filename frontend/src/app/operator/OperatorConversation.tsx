@@ -9,8 +9,8 @@ import {
 import { approveOperator, operatorRequestKey, queryOperator } from "./client";
 import type { OperatorActionView, OperatorResponse } from "./operatorContract";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
-import { LiveCallExperience } from "../voice/LiveCallExperience";
-import { CallGlyph, VoiceComposer } from "../voice/VoiceComposer";
+import { VoiceComposer } from "../voice/VoiceComposer";
+import { VoiceLaunchBar } from "../voice/VoiceLaunchBar";
 import "../voice/voice.css";
 
 const EXAMPLES = [
@@ -130,7 +130,6 @@ export function OperatorConversation({
   const field = useRef<HTMLInputElement>(null);
   const activation = useRef<number | null>(null);
   const reducedMotion = usePrefersReducedMotion();
-  const [callOpen, setCallOpen] = useState(false);
   /** A take just landed in the field and has not been edited or sent yet. */
   const [transcriptReady, setTranscriptReady] = useState(false);
   useEffect(() => () => pending.current?.abort(), []);
@@ -340,18 +339,15 @@ export function OperatorConversation({
         </p>
       ) : null}
 
+      {/* The live call is a capability, not a suggestion: it leads the row of
+          things a reader can do next, at its own weight. */}
+      <VoiceLaunchBar
+        incidentId={incidentId}
+        objectiveTitle={objectiveTitle}
+        disabled={!live || busy}
+      />
+
       <div className="operator-examples">
-        {message.trim().length === 0 ? (
-          <button
-            type="button"
-            className="voice-call-open"
-            disabled={!live || busy}
-            onClick={() => setCallOpen(true)}
-          >
-            <CallGlyph />
-            Live call
-          </button>
-        ) : null}
         <span className="operator-examples-label">Try</span>
         {EXAMPLES.map((example) => (
           <button
@@ -702,14 +698,6 @@ export function OperatorConversation({
           </section>
         )}
       </div>
-
-      {callOpen ? (
-        <LiveCallExperience
-          incidentId={incidentId}
-          objectiveTitle={objectiveTitle}
-          onClose={() => setCallOpen(false)}
-        />
-      ) : null}
     </>
   );
 }

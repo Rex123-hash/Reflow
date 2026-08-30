@@ -236,42 +236,371 @@
 
 /* ----------------------------------------------------------- live entry --- */
 
-.voice-call-open {
+/**
+ * The dial mark.
+ *
+ * The instrument at button scale, shared by the Operator hero and the dock so the
+ * affordance and the experience are one object. Colour comes from the surface it sits
+ * on, so a single mark serves both a cream plate and a tinted handle.
+ */
+.dial-mark .dial-plate {
+  stroke: currentColor;
+  stroke-width: 1.4;
+  opacity: 0.55;
+}
+
+.dial-mark .dial-corona {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.dial-mark .dial-core {
+  stroke: currentColor;
+  stroke-width: 0.9;
+  stroke-opacity: 0.35;
+}
+
+.dial-mark .dial-origin {
+  stroke: var(--brass);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+/**
+ * The Operator hero.
+ *
+ * Full width beneath the composer, so a first-time reader meets the capability at the
+ * moment they are deciding what to do. The perimeter borrows the composer's own
+ * illuminated edge - the masked gradient rim and the short bloom - which is why it
+ * reads as Reflow rather than as a promoted button: the same light the field uses when
+ * it is engaged, at rest on the thing that opens a conversation.
+ */
+.voice-launch {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  margin-bottom: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(
+      120% 180% at 6% 50%,
+      var(--verified-fill) 0%,
+      rgba(231, 238, 231, 0) 46%
+    ),
+    var(--surface);
+  box-shadow: var(--elev-card);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.voice-launch::before,
+.voice-launch::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+/* The gradient rim, masked to the perimeter only. */
+.voice-launch::before {
+  z-index: 1;
+  padding: 1px;
+  background: linear-gradient(
+    100deg,
+    var(--brass) 0%,
+    var(--forest) 34%,
+    var(--sage) 62%,
+    var(--brass) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Bloom: bounded, warm and short-range, never a halo around the page. */
+.voice-launch::after {
+  z-index: -1;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--forest) 8%, transparent),
+    0 2px 18px color-mix(in srgb, var(--brass) 24%, transparent),
+    0 10px 34px color-mix(in srgb, var(--forest) 12%, transparent);
+}
+
+.voice-launch:hover:not(:disabled),
+.voice-launch:focus-visible {
+  border-color: transparent;
+  box-shadow:
+    var(--elev-raised),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.voice-launch:hover:not(:disabled)::before,
+.voice-launch:hover:not(:disabled)::after,
+.voice-launch:focus-visible::before,
+.voice-launch:focus-visible::after {
+  opacity: 1;
+}
+
+.voice-launch:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 3px;
+}
+
+.voice-launch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voice-launch-dial {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--forest);
+}
+
+.voice-launch-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.voice-launch-title {
+  color: var(--text-primary);
+  font-family: var(--serif);
+  font-size: var(--type-section);
+  line-height: 1.15;
+}
+
+.voice-launch-lede {
+  color: var(--text-secondary);
+  font-size: var(--type-secondary);
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+.voice-launch-tail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 0 0 auto;
+}
+
+.voice-launch-badge {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--verified-line);
+  border-radius: 999px;
+  background: var(--verified-fill);
+  color: var(--verified-ink);
+  font-size: var(--type-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.voice-launch-badge > i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--forest);
+}
+
+.voice-launch-go {
+  display: inline-flex;
+  align-items: center;
   padding: var(--space-2) var(--space-4);
+  border-radius: 999px;
+  background: var(--forest);
+  color: var(--surface);
+  font-size: var(--type-label);
+  font-weight: 600;
+}
+
+/**
+ * The dock.
+ *
+ * Pinned to the corner and outside the reading column entirely, so it costs no
+ * workspace width. Collapsed it is one handle; opened it is a short list with the live
+ * call at the top and the ordinary ways to reach Reflow beneath it.
+ */
+.voice-dock {
+  position: fixed;
+  right: clamp(16px, 2.4vw, 30px);
+  bottom: clamp(16px, 2.4vw, 30px);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.voice-dock-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   background: var(--surface);
   color: var(--forest);
   cursor: pointer;
+  box-shadow: var(--elev-raised);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.voice-dock-handle:hover {
+  border-color: var(--forest);
+  background: var(--verified-fill);
+  transform: translateY(-1px);
+}
+
+.voice-dock-handle:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 3px;
+}
+
+.voice-dock-handle-label {
+  color: var(--text-primary);
   font-size: var(--type-label);
   font-weight: 600;
   letter-spacing: 0.02em;
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease;
+  white-space: nowrap;
 }
 
-.voice-call-open:hover:not(:disabled) {
-  border-color: var(--forest);
+.voice-dock-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: min(310px, calc(100vw - 32px));
+  padding: var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--elev-raised);
+}
+
+.voice-dock-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--verified-line);
+  border-radius: var(--radius-md);
   background: var(--verified-fill);
+  color: var(--forest);
+  cursor: pointer;
+  text-align: left;
 }
 
-.voice-call-open:focus-visible {
+.voice-dock-hero:hover {
+  border-color: var(--forest);
+}
+
+.voice-dock-hero span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.voice-dock-hero b {
+  color: var(--text-primary);
+  font-size: var(--type-secondary);
+}
+
+.voice-dock-hero small {
+  color: var(--text-secondary);
+  font-size: var(--type-label);
+  line-height: 1.45;
+}
+
+.voice-dock-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: var(--type-secondary);
+  text-align: left;
+  text-decoration: none;
+}
+
+.voice-dock-row:hover {
+  background: var(--surface-elevated);
+}
+
+.voice-dock-row svg {
+  flex: 0 0 auto;
+  color: var(--text-metadata);
+}
+
+.voice-dock-hero:focus-visible,
+.voice-dock-row:focus-visible {
   outline: 2px solid var(--forest);
   outline-offset: 2px;
 }
 
-.voice-call-open:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+@media (max-width: 640px) {
+  /* The handle keeps its mark and drops its label; the panel spans the gutter. */
+  .voice-dock-handle-label {
+    display: none;
+  }
+
+  .voice-dock-handle {
+    padding: var(--space-2);
+  }
+
+  .voice-launch {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  .voice-launch-tail {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
-/* The three orbit dots: the instrument, miniaturised into the entry affordance. */
-.voice-call-open svg circle {
-  fill: currentColor;
+@media (prefers-reduced-motion: reduce) {
+  .voice-launch,
+  .voice-launch::before,
+  .voice-launch::after,
+  .voice-dock-handle {
+    transition: none;
+  }
+
+  .voice-dock-handle:hover {
+    transform: none;
+  }
 }
 
 /**
