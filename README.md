@@ -196,55 +196,70 @@ Policy, adapters and the verifier are **not** agents; they are the code that con
 
 ## <img src="docs/assets/marks/architecture.svg" height="22" align="center" alt="" /> &nbsp;Architecture
 
-Two ways in, one governed core. The left lane is the product; the right lane is a person looking at it.
+Two ways in, one governed core. The left lane is the engine doing its job. The right lane is a person looking at what it did.
 
 ```text
-                THE WORLD CHANGES                   A PERSON ASKS
-            Gmail watch · CI answers         Type it · Say it · Show it
-                 nobody is asked               inspect, explain, steer
-                        │                                 │
-                        ▼                                 ▼
-           ┌────────────────────────┐        ┌────────────────────────┐
-           │  CLOUD PUB/SUB         │        │  FIREBASE + BFF        │
-           │  authenticated push    │        │  the only public entry │
-           └────────────────────────┘        └────────────────────────┘
-                        │                                 │
-                        └────────────────┬────────────────┘
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  RECOVERY BACKEND                Cloud Run, private  │
-              │  IAM-only · no public ingress                        │
-              └──────────────────────────┬───────────────────────────┘
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  EIGHT REASONING AGENTS         Google ADK · Gemini  │
-              │  propose only — no tools, no credentials             │
-              └──────────────────────────┬───────────────────────────┘
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  DETERMINISTIC CONTROL                  Reflow core  │
-              │  policy decides · adapters act                       │
-              └──────────────────────────┬───────────────────────────┘
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  SYSTEMS OF RECORD                         external  │
-              │  Calendar · Jira · Slack · GitHub · Gmail read-only  │
-              └──────────────────────────┬───────────────────────────┘
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  READ-BACK, THEN THE VERIFIER                        │
-              │  a second request · then the objective's invariants  │
-              └──────────────────────────┬───────────────────────────┘
-                                         ▼
-              ┌──────────────────────────────────────────────────────┐
-              │  FIRESTORE                        durable authority  │
-              │  incidents · workflow events · receipts · evidence   │
-              └──────────────────────────────────────────────────────┘
+            THE WORLD CHANGES                       A PERSON ASKS
+       a watch fires · CI answers            type it · say it · show it
+             nobody is asked                   inspect, explain, steer
+                    │                                     │
+                    ▼                                     ▼
+     ┌────────────────────────────┐        ┌────────────────────────────┐
+     │  CLOUD PUB/SUB             │        │  FIREBASE + BFF            │
+     │  authenticated push, at-   │        │  hosting, auth, and the    │
+     │  least-once, deduplicated  │        │  only public entry point   │
+     └────────────────────────────┘        └────────────────────────────┘
+                    │                                     │
+                    └───────────────────┬─────────────────┘
+                                        ▼
+      ┌──────────────────────────────────────────────────────────────────┐
+      │  RECOVERY BACKEND                            Cloud Run, private  │
+      │  no public ingress · reachable only by IAM                       │
+      │  four durable stages, each independently restartable             │
+      └─────────────────────────────────┬────────────────────────────────┘
+                                        ▼
+      ┌──────────────────────────────────────────────────────────────────┐
+      │  EIGHT REASONING AGENTS           Google ADK · Gemini 3.7 Flash  │
+      │  interpret · plan · critique · analyse · explain                 │
+      │  typed output only — no tools, no credentials, no writes         │
+      └─────────────────────────────────┬────────────────────────────────┘
+                                        ▼
+      ┌──────────────────────────────────────────────────────────────────┐
+      │  DETERMINISTIC CONTROL                              Reflow core  │
+      │  graph traversal, policy, selection, idempotency keys            │
+      │  decides what may run; the model cannot overrule it              │
+      └─────────────────────────────────┬────────────────────────────────┘
+                                        ▼
+      ┌──────────────────────────────────────────────────────────────────┐
+      │  ADAPTERS                                        one per system  │
+      │  the only code that touches an external system                   │
+      │  bounded to configured resources and operation enums             │
+      └─────────────────────────────────┬────────────────────────────────┘
+                                        ▼
+      ┌──────────────────────────────────────────────────────────────────┐
+      │  SYSTEMS OF RECORD                               external truth  │
+      │  Calendar · Jira · Slack · GitHub — bounded writes               │
+      │  Gmail read-only, enforced by exact scope comparison             │
+      └─────────────────────────────────┬────────────────────────────────┘
+                                        ▼
+      ┌──────────────────────────────────────────────────────────────────┐
+      │  READ-BACK, THEN THE VERIFIER                        two layers  │
+      │  a second request compares expected with observed                │
+      │  then the objective's own invariants are evaluated               │
+      └─────────────────────────────────┬────────────────────────────────┘
+                                        ▼
+      ┌──────────────────────────────────────────────────────────────────┐
+      │  FIRESTORE                                    durable authority  │
+      │  incidents, revisions, workflow events, receipts, evidence       │
+      │  every transition replayable; claims are transactional           │
+      └──────────────────────────────────────────────────────────────────┘
 
-              invariants fail ─▶ the incident reopens, replans, acts again
+        invariants fail ─▶ the incident reopens, replans, and acts again
 ```
 
-The distinction matters. **A disruption enters through Pub/Sub and no browser is involved** — that is the path the canonical recovery took. The web app is how a person inspects what the engine already did and, within policy, asks it for a bounded change. Adapter credentials live in **Secret Manager** and are read backend-side only.
+The lanes are not equivalent, and that is the point. **A disruption enters through Pub/Sub with no browser involved** — that is the path the canonical recovery took, end to end. The web app is how a person inspects what already happened and, within policy, asks for a bounded change.
+
+Read the middle of the stack as a chain of custody. The agents may only *say* things. Deterministic control decides which of those things is allowed to become an action. Adapters are the sole code that touches an external system, and they are bounded to configured resources. Nothing that happens after an adapter write is trusted until a separate read confirms it, and nothing is called recovered until the objective's own invariants agree. Firestore records each of those steps so the whole chain can be replayed and audited.
 
 A deeper component-level view is in [`docs/architecture.md`](docs/architecture.md).
 
@@ -252,52 +267,95 @@ A deeper component-level view is in [`docs/architecture.md`](docs/architecture.m
 
 ## <img src="docs/assets/marks/pipeline.svg" height="22" align="center" alt="" /> &nbsp;How it works
 
-The engine is four durable stages. Each one finishes its work, writes durable state, and publishes a handoff that the next stage consumes on its own. Nothing in this chain waits for a person.
+This is the canonical recovery, with the real values it actually produced and the file that owns each stage. Everything below happened without a person.
 
 ```text
-                           a Gmail watch notification
-                                      │
-                                      ▼
-      ┌──────────────────────────────────────────────────────────────┐
-      │  1 · INTERPRET                         trigger/gmail/pubsub  │
-      │  agents 1 and 2 read the mail, ground every claim            │
-      └───────────────────────────────┬──────────────────────────────┘
-                                      ▼  Pub/Sub
-      ┌──────────────────────────────────────────────────────────────┐
-      │  2 · PLAN AND ACT                            trigger/pubsub  │
-      │  agents 3 and 4, then policy, selection and the write        │
-      └───────────────────────────────┬──────────────────────────────┘
-                                      ▼  Pub/Sub
-      ┌──────────────────────────────────────────────────────────────┐
-      │  3 · VALIDATE                            trigger/p1c/pubsub  │
-      │  GitHub release, then wait for the real CI result            │
-      └───────────────────────────────┬──────────────────────────────┘
-                                      ▼  Pub/Sub
-      ┌──────────────────────────────────────────────────────────────┐
-      │  4 · VERIFY OR REOPEN                    trigger/p1d/pubsub  │
-      │  agent 5 analyses, replans, acts again, then resolves        │
-      └──────────────────────────────────────────────────────────────┘
-
-                         RESOLVED · objective_restored
+                    "Backend lead is unavailable this week."
+                   a real email, arriving at a watched mailbox
+                                        │
+                                        ▼
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │  1 · INGEST                                      gmail_ingestion.py  │
+    │  Gmail watch → Pub/Sub push → the private backend                    │
+    │  history cursor advances · the event is claimed transactionally,     │
+    │  so a redelivery of the same message can never run twice             │
+    └───────────────────────────────────┬──────────────────────────────────┘
+                                        ▼
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │  2 · INTERPRET                              gmail_interpretation.py  │
+    │  agent 1 → REAL_DISRUPTION, type personnel_unavailability,           │
+    │  grounded in verbatim excerpts from the mail body                    │
+    │  agent 2 → candidate nodes: person-backend-lead,                     │
+    │  work-api-migration, release-v2 — from a known-node catalogue        │
+    └───────────────────────────────────┬──────────────────────────────────┘
+                                        ▼
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │  3 · MAP THE BLAST RADIUS                           domain/graph.py  │
+    │  reverse traversal over the operational graph — deterministic,       │
+    │  and final; the model may propose nodes but never traverse           │
+    │  threatened objective: SHIP RELEASE V2, deadline Fri 17:00 UTC       │
+    └───────────────────────────────────┬──────────────────────────────────┘
+                                        ▼
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │  4 · PLAN, THEN ATTACK THE PLANS                        planning.py  │
+    │  agent 3 → three materially different recoveries, one each for       │
+    │  deadline-first, risk-minimisation-first, resource-balance-first     │
+    │  agent 4 → one critique per plan: contradictions, overload,          │
+    │  single points of failure, missing evidence. It cannot approve.      │
+    └───────────────────────────────────┬──────────────────────────────────┘
+                                        ▼
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │  5 · AUTHORISE, THEN SELECT         domain/policy.py · selection.py  │
+    │  hard policy: workload ceiling, skills, protected commitments,       │
+    │  blocking unknowns · invalid plans are rejected with reasons         │
+    │  one stable pick — the same evidence always selects the same plan    │
+    └───────────────────────────────────┬──────────────────────────────────┘
+                                        │
+                    ┌───────────────────┴─────────────────┐
+                    ▼                                     ▼
+   ┌────────────────────────────────┐    ┌────────────────────────────────┐
+   │  CALENDAR ADAPTER              │    │  GITHUB GATEWAY                │
+   │  reschedule the release        │    │  create the Candidate A        │
+   │  coordination block            │    │  validation release            │
+   │  idempotency key first         │    │  then wait for real CI         │
+   └────────────────────────────────┘    └────────────────────────────────┘
+                    │                                     │
+                    └───────────────────┬─────────────────┘
+                                        ▼
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │  6 · READ EACH EFFECT BACK                        the same adapters  │
+    │  a second, separate request to each provider                         │
+    │  expected compared with observed · a write that returns 200 is       │
+    │  a receipt, never proof. Disagreement ⇒ VERIFICATION_FAILED          │
+    └───────────────────────────────────┬──────────────────────────────────┘
+                                        ▼
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │  7 · VERIFY THE OBJECTIVE                    domain/verification.py  │
+    │  six invariants over recorded state — the only route to resolved     │
+    │  Recovery 01: Calendar VERIFIED, but release-validation-green        │
+    │  was false because Candidate A failed CI                             │
+    └───────────────────────────────────┬──────────────────────────────────┘
+                                        │
+                    ┌───────────────────┴─────────────────┐
+              invariants fail                            hold
+                    ▼                                     ▼
+   ┌────────────────────────────────┐    ┌────────────────────────────────┐
+   │  8 · REOPEN AND REPLAN         │    │  RESOLVED                      │
+   │  p1d.py · agent 5              │    │  objective_restored            │
+   │  the failed effect is          │    │  revision 16, six of six       │
+   │  fingerprinted so the          │    │  invariants, 21h 51m           │
+   │  next plan cannot              │    │  before the protected          │
+   │  repeat it                     │    │  deadline                      │
+   └────────────────────────────────┘    └────────────────────────────────┘
+                    │
+                    └─ Candidate B ─▶ back to stage 4, and it holds
 ```
 
-`p1d.py` describes itself in one line: *autonomous reopen, replan, second recovery, shipping, and closure.* Stage 4 is where an objective that failed verification gets a second attempt, and it is reached by a Pub/Sub message, not by a click.
+**Four durable stages, not one long request.** Stages 1, 2–5, the GitHub validation, and the verify-or-reopen step are separate Pub/Sub-delivered units of work. Each finishes, writes durable state, and publishes a handoff the next one consumes on its own. A worker can die anywhere in that chain and the work resumes rather than restarting.
 
-**What replay does.** A redelivered message re-enters its stage and stops: event claims are transactional, so work is never repeated. A retried action returns the existing durable action, because the idempotency key is claimed before the write.
+**Replay is safe by construction.** A redelivered message re-enters its stage and stops, because event claims are transactional. A retried action returns the existing durable action, because the idempotency key is claimed before the write — verified live during the Slack qualification, where a repeated request returned the same action and the same timestamps without reaching the provider.
 
-**Where each step lives.**
-
-| Step | Owner in source |
-|---|---|
-| Watch, cursor and durable event claim | [`gmail_ingestion.py`](objective_recovery_agent/gmail_ingestion.py) |
-| Ground the disruption, map candidate nodes | [`gmail_interpretation.py`](objective_recovery_agent/gmail_interpretation.py) |
-| Blast-radius traversal | [`domain/graph.py`](src/objective_recovery/domain/graph.py) |
-| Candidate recoveries and the critique | [`planning.py`](objective_recovery_agent/planning.py) |
-| Hard policy, failed-effect exclusion | [`domain/policy.py`](src/objective_recovery/domain/policy.py) |
-| Stable plan selection | [`application/selection.py`](src/objective_recovery/application/selection.py) |
-| Write, idempotency, receipt, read-back | [`operator_actions.py`](objective_recovery_agent/operator_actions.py) and the adapters |
-| Objective invariants, the only route to resolved | [`domain/verification.py`](src/objective_recovery/domain/verification.py) |
-| Reopen, replan, second recovery, closure | [`p1d.py`](objective_recovery_agent/p1d.py) |
+**The interesting stage is 8.** `p1d.py` describes itself as *autonomous reopen, replan, second recovery, shipping, and closure*. When invariants fail, the failed effect is recorded as a fingerprint and hard-rejected from the next plan, so the engine cannot replan into the dead end it just came out of. Candidate B was produced that way.
 
 ---
 
