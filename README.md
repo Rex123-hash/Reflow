@@ -21,7 +21,7 @@ Reflow is a closed loop, not an assistant. It watches the systems an objective d
 
 <br />
 
-<img src="docs/assets/hero-recovery.png" alt="Reflow Recovery Room: Recovery 01 is action-verified and still marked failed, Recovery 02 branches from it and restores the objective" width="100%" />
+<img src="docs/assets/hero-landing.png" alt="Reflow: when operations break, your objective should not. The live product landing page, with the recovery instrument and the stage rail running from objective protected through disruption, replanning and verification to restored" width="100%" />
 
 </div>
 
@@ -131,6 +131,10 @@ Only then did all six invariants pass and the objective resolve.
 | Recovery attempts | 2 — the first action-verified and rejected |
 | Invariants passed | 6 of 6 |
 | Email to resolution | about 111.5 seconds |
+
+<img src="docs/assets/hero-recovery.png" alt="Recovery Room in the live workspace: Recovery 01 is marked FAILED at the verify step because the external action was verified while CI remained unhealthy, and Recovery 02 branches from it and reaches restored" width="100%" />
+
+Recovery 01 is marked **FAILED** at the verify step — *the external action was verified but CI remained unhealthy* — and Recovery 02 branches from it. That screen is the thesis of this project in one image.
 
 ---
 
