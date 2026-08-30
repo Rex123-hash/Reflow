@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Icon, ICON_SIZE } from "../components/Icon";
 import { useIncidentChoices } from "../data/useIncidentChoices";
+import { ShowGlyph } from "../vision/PlateMark";
 import { DialMark } from "./DialMark";
 import { MicGlyph } from "./VoiceComposer";
 import { useVoiceLaunch } from "./VoiceLaunch";
+import "../vision/vision.css";
 
 /**
  * The handle: Reflow, reachable from anywhere.
@@ -86,44 +88,63 @@ export function VoiceDock() {
   return (
     <div className={`voice-dock${open ? " is-open" : ""}`} ref={dock}>
       {open ? (
-        <div className="voice-dock-panel" ref={panel} role="menu">
-          <button
-            type="button"
-            className="voice-dock-hero"
-            role="menuitem"
-            onClick={talk}
-          >
-            <DialMark size={34} />
-            <span>
-              <b>Talk to Reflow</b>
-              <small>
-                Live voice. Interrupt, ask, and request bounded changes.
-              </small>
-            </span>
-          </button>
+        <div className="voice-dock-panel" ref={panel}>
+          <div role="menu">
+            <button
+              type="button"
+              className="voice-dock-hero"
+              role="menuitem"
+              onClick={talk}
+            >
+              <DialMark size={34} />
+              <span>
+                <b>Talk to Reflow</b>
+                <small>
+                  Live voice. Interrupt, ask, and request bounded changes.
+                </small>
+              </span>
+            </button>
 
-          <button
-            type="button"
-            className="voice-dock-row"
-            role="menuitem"
-            onClick={() => go("/app/operator")}
-          >
-            <Icon name="search" size={ICON_SIZE.row} />
-            Ask Reflow
-          </button>
-          <button
-            type="button"
-            className="voice-dock-row"
-            role="menuitem"
-            onClick={() => go("/app/operator")}
-          >
-            <MicGlyph />
-            Dictate a request
-          </button>
-          <a className="voice-dock-row" role="menuitem" href="/faq">
-            <Icon name="info" size={ICON_SIZE.row} />
-            How Reflow works
-          </a>
+            {/* Type, talk, show. Three ways to reach the same Reflow, grouped and
+                named as one family so the newest of them does not read as a
+                support tool bolted onto the side of the other two. */}
+            <div role="group" aria-labelledby="voice-dock-modes">
+              <p className="voice-dock-modes" id="voice-dock-modes">
+                Type it. Say it. Show it.
+              </p>
+              <button
+                type="button"
+                className="voice-dock-row"
+                role="menuitem"
+                onClick={() => go("/app/operator")}
+              >
+                <Icon name="search" size={ICON_SIZE.row} />
+                Ask Reflow
+              </button>
+              <button
+                type="button"
+                className="voice-dock-row"
+                role="menuitem"
+                onClick={() => go("/app/operator?show=image")}
+              >
+                <ShowGlyph size={ICON_SIZE.row} />
+                Show Reflow
+              </button>
+              <button
+                type="button"
+                className="voice-dock-row"
+                role="menuitem"
+                onClick={() => go("/app/operator")}
+              >
+                <MicGlyph />
+                Dictate a request
+              </button>
+            </div>
+            <a className="voice-dock-row" role="menuitem" href="/faq">
+              <Icon name="info" size={ICON_SIZE.row} />
+              How Reflow works
+            </a>
+          </div>
         </div>
       ) : null}
 

@@ -1158,8 +1158,17 @@
     padding-block: var(--space-2);
   }
 
-  .operator-form .btn-primary {
+  /* Dictation and Show Reflow are controls on the field, not things that precede
+     it. Without an order they default to 0 and stack ahead of the input, which put
+     two round buttons before the question a reader is trying to type. */
+  .operator-form .voice-mic,
+  .operator-form .voice-clear,
+  .operator-form .show-attach-slot {
     order: 3;
+  }
+
+  .operator-form .btn-primary {
+    order: 4;
     flex: 1 1 100%;
     width: 100%;
   }

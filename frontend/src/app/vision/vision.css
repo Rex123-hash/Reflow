@@ -1,0 +1,638 @@
+/**
+ * Show Reflow.
+ *
+ * The third way to reach Reflow, and deliberately built out of the same parts as the
+ * other two: the composer's own plate and luminous perimeter, the instrument's brass
+ * fiducial, the verification family's forest and sage, and nothing else. There is no
+ * upload-widget vocabulary anywhere in here — no dashed rectangle, no cloud arrow, no
+ * progress bar — because an image handed to Reflow is a sample placed under an
+ * instrument, not a file attached to a message.
+ *
+ * Every colour is a token from the frozen palette. Every size is a --type-* step.
+ */
+
+/* ------------------------------------------------------------- the control --- */
+
+.show-attach-slot {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.show-attach {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-md);
+  height: var(--control-md);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.show-attach:hover {
+  border-color: var(--forest);
+  color: var(--forest);
+  background: var(--verified-fill);
+}
+
+/**
+ * The hidden input defends its own geometry.
+ *
+ * The composer sizes its field with `.operator-form input`, which matches this one
+ * too — and a `min-width` beats the 1px width `.visually-hidden` gives it, so at 390
+ * the invisible control was quietly 100px wide and pushed the page sideways. Two
+ * classes outrank that selector, and nothing about the visible layout depends on it.
+ */
+.show-attach-slot .show-attach-input {
+  min-width: 0;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+/* The input keeps the focus; the label wears the ring, so the keyboard path is as
+   visible as the pointer one. */
+.show-attach-input:focus-visible + .show-attach {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+  color: var(--forest);
+}
+
+.show-attach-input:disabled + .show-attach {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/**
+ * Arriving from the dock with something to show.
+ *
+ * One pass of the same brass ring the composer uses when a chip hands over its text,
+ * so the control that was asked for identifies itself and then goes quiet.
+ */
+.show-attach-slot.is-primed .show-attach {
+  border-color: var(--brass);
+  background: var(--motion-fill);
+  color: var(--motion-ink);
+}
+
+.show-attach-slot.is-primed::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px solid var(--brass);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: show-prime 1.4s ease-out 2;
+}
+
+@keyframes show-prime {
+  from {
+    opacity: 0.85;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+/* ---------------------------------------------------------------- the drop --- */
+
+.show-console {
+  position: relative;
+}
+
+.show-console.is-holding .operator-form {
+  border-color: var(--brass);
+}
+
+.show-drop {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  border: 1px solid var(--brass);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  color: var(--motion-ink);
+  font-size: var(--type-secondary);
+  font-weight: 650;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- the plate --- */
+
+/**
+ * The mounted sample.
+ *
+ * A machined plate: hairline rule, warm ivory ground, and the sample seated in a
+ * recessed aperture with registration brackets over it. It sits directly beneath the
+ * composer and is the width of it, so the console reads as one instrument holding one
+ * thing rather than a field with a chip stuck under it.
+ */
+.show-plate {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--elev-card);
+}
+
+.show-plate-aperture {
+  position: relative;
+  width: 108px;
+  height: 76px;
+  overflow: hidden;
+  border-radius: var(--radius-xs);
+  background: var(--surface-elevated);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+}
+
+.show-plate-aperture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.show-plate-brackets {
+  position: absolute;
+  inset: 4px;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 2.4;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* The read rule: one traverse across the sample, and only while bytes are moving. */
+.show-plate-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brass), transparent);
+  animation: show-traverse 1.5s ease-in-out infinite;
+}
+
+@keyframes show-traverse {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(74px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.show-plate-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.show-plate-state {
+  font-size: var(--type-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-metadata);
+}
+
+.show-plate.is-sending .show-plate-state,
+.show-plate.is-analyzing .show-plate-state {
+  color: var(--motion-ink);
+}
+
+.show-plate.is-answered .show-plate-state {
+  color: var(--verified-ink);
+}
+
+.show-plate.is-failed .show-plate-state {
+  color: var(--failed-ink);
+}
+
+.show-plate-name {
+  font-size: var(--type-body);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.show-plate-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-meta);
+  color: var(--text-metadata);
+  font-family: var(--mono);
+}
+
+.show-plate-meta > i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  flex: 0 0 auto;
+}
+
+.show-plate-truth {
+  font-size: var(--type-label);
+  color: var(--text-secondary);
+}
+
+.show-plate-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.show-plate-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-sm);
+  height: var(--control-sm);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  color: var(--text-metadata);
+  cursor: pointer;
+}
+
+.show-plate-remove:hover {
+  border-color: var(--failed-line);
+  color: var(--failed-ink);
+  background: var(--failed-wash);
+}
+
+.show-plate-remove:focus-visible,
+.show-plate-controls .btn:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- the mark --- */
+
+.plate-mark .plate-frame {
+  stroke: var(--forest);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.plate-mark .plate-fiducial {
+  stroke: var(--sage);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.plate-mark .plate-rule {
+  stroke: var(--forest);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.plate-mark .plate-origin {
+  stroke: var(--brass);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/* -------------------------------------------------------------- the answer --- */
+
+.show-result .show-source {
+  margin: calc(var(--space-3) * -1) 0 var(--space-4);
+  font-family: var(--mono);
+  font-size: var(--type-mono);
+  color: var(--text-metadata);
+  overflow-wrap: anywhere;
+}
+
+.show-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--forest);
+}
+
+/**
+ * Observed, Inferred, Not visible.
+ *
+ * Three columns because they are three different claims, and a reader who skims one
+ * of them must not come away thinking they read another. Each carries a heading word,
+ * a sentence saying what the column means, and a bullet whose geometry differs —
+ * filled square for what is on the image, hollow diamond for the reading of it, open
+ * dashed ring for what is simply absent. Colour is the fourth signal, never the first.
+ */
+.show-findings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  border-block: 1px solid var(--line);
+  background: var(--line-soft);
+}
+
+.show-column {
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.show-column h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--type-label);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.show-column-mark {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+}
+
+.show-column.is-observed .show-column-mark {
+  background: var(--forest);
+}
+
+.show-column.is-inferred .show-column-mark {
+  border: 1.5px solid var(--forest);
+  transform: rotate(45deg);
+}
+
+.show-column.is-ambiguous .show-column-mark {
+  border: 1.5px dashed var(--text-metadata);
+  border-radius: 50%;
+}
+
+.show-column-note {
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--type-label);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.show-column ul {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.show-column li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.show-column-bullet {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  flex: 0 0 auto;
+}
+
+.show-column.is-observed .show-column-bullet {
+  background: var(--forest);
+}
+
+.show-column.is-inferred .show-column-bullet {
+  border: 1.5px solid var(--forest);
+  transform: rotate(45deg);
+}
+
+.show-column.is-ambiguous .show-column-bullet {
+  border: 1.5px dashed var(--text-metadata);
+  border-radius: 50%;
+}
+
+.show-column-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  font-size: var(--type-secondary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.show-column-aside {
+  font-size: var(--type-label);
+  color: var(--text-metadata);
+}
+
+/* ------------------------------------------------------------- the handoff --- */
+
+.show-handoff {
+  padding: var(--space-4) var(--space-5);
+  border-left: 3px solid var(--sage);
+  background: var(--surface-elevated);
+}
+
+.show-handoff h3 {
+  margin: var(--space-2) 0;
+  font-family: var(--sans);
+  font-size: var(--type-body);
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.show-handoff p {
+  margin: 0;
+  max-width: 72ch;
+  font-size: var(--type-secondary);
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.show-handoff.is-mutation_requires_typed_operator {
+  border-left-color: var(--brass);
+  background: var(--caution-fill);
+}
+
+.show-handoff.is-routed_read_only {
+  border-left-color: var(--forest);
+}
+
+.show-handoff .show-handoff-request {
+  margin-top: var(--space-3);
+  font-family: var(--mono);
+  font-size: var(--type-mono);
+  color: var(--text-primary);
+}
+
+.show-handoff-request b {
+  display: block;
+  margin-bottom: 3px;
+  font-family: var(--sans);
+  font-size: var(--type-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-metadata);
+}
+
+.show-handoff .show-handoff-answer {
+  margin-top: var(--space-3);
+  color: var(--text-primary);
+}
+
+.show-handoff .show-handoff-effects {
+  margin-top: var(--space-3);
+  font-size: var(--type-label);
+  color: var(--text-metadata);
+}
+
+/* ---------------------------------------------------------- the boundaries --- */
+
+/**
+ * Stated every time, in the answer, in sentences.
+ *
+ * Not behind a disclosure and not softened once an answer reads confidently: these
+ * three are the whole reason a picture is safe to hand to an operational agent.
+ */
+.show-boundaries {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--line);
+  list-style: none;
+  background: var(--surface);
+}
+
+.show-boundaries li {
+  position: relative;
+  padding-left: var(--space-4);
+  font-size: var(--type-label);
+  font-weight: 650;
+  color: var(--text-metadata);
+  line-height: 1.5;
+}
+
+.show-boundaries li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 8px;
+  height: 1px;
+  background: var(--brass);
+}
+
+.show-provenance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border-top: 1px solid var(--line);
+  background: var(--surface-elevated);
+}
+
+.show-provenance dt {
+  font-size: var(--type-label);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-metadata);
+}
+
+.show-provenance dd {
+  margin: 4px 0 0;
+  font-size: var(--type-secondary);
+  color: var(--text-primary);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* ----------------------------------------------------------------- the dock --- */
+
+.voice-dock-modes {
+  margin: var(--space-2) var(--space-3) var(--space-3);
+  font-size: var(--type-label);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-metadata);
+}
+
+/* ------------------------------------------------------------------ mobile --- */
+
+@media (max-width: 640px) {
+  .show-plate {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .show-plate-aperture {
+    width: 76px;
+    height: 58px;
+  }
+
+  .show-plate-controls {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .show-column,
+  .show-handoff,
+  .show-boundaries,
+  .show-provenance {
+    padding-inline: var(--space-4);
+  }
+
+  .show-findings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .show-drop {
+    font-size: var(--type-label);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .show-plate-rule {
+    animation: none;
+    top: 50%;
+  }
+
+  .show-attach-slot.is-primed::after {
+    animation: none;
+    opacity: 0.9;
+  }
+
+  .show-attach {
+    transition: none;
+  }
+}

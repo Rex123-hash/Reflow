@@ -492,15 +492,24 @@
 }
 
 .voice-dock-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
   width: min(310px, calc(100vw - 32px));
+  /* With Show Reflow added the panel is one row taller. On a short phone in
+     landscape that is the difference between a menu and a menu that covers the
+     page, so it scrolls rather than growing past the viewport. */
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
   padding: var(--space-2);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--elev-raised);
+}
+
+.voice-dock-panel [role="menu"],
+.voice-dock-panel [role="group"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
 .voice-dock-hero {

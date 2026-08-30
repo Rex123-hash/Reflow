@@ -1,5 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent,
+  type FormEvent,
+} from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Icon, ICON_SIZE, type IconName } from "../components/Icon";
 import {
   formatDeadline,
@@ -11,7 +17,13 @@ import type { OperatorActionView, OperatorResponse } from "./operatorContract";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import { VoiceComposer } from "../voice/VoiceComposer";
 import { VoiceLaunchBar } from "../voice/VoiceLaunchBar";
+import { ImagePlate } from "../vision/ImagePlate";
+import { dragCarriesFile } from "../vision/imageAttachment";
+import { DropHint, ImageAttachControl } from "../vision/ShowReflowControls";
+import { useShowReflow } from "../vision/useShowReflow";
+import { VisualAnswer } from "../vision/VisualAnswer";
 import "../voice/voice.css";
+import "../vision/vision.css";
 
 const EXAMPLES = [
   "Why did Recovery 1 fail?",
@@ -119,7 +131,7 @@ export function OperatorConversation({
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState<OperatorResponse | null>(null);
   const [submitted, setSubmitted] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [reasoning, setReasoning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pending = useRef<AbortController | null>(null);
   const result = useRef<HTMLElement>(null);
@@ -132,6 +144,26 @@ export function OperatorConversation({
   const reducedMotion = usePrefersReducedMotion();
   /** A take just landed in the field and has not been edited or sent yet. */
   const [transcriptReady, setTranscriptReady] = useState(false);
+
+  /**
+   * Show Reflow.
+   *
+   * The third way in, on the same console. An image is mounted here exactly the way
+   * a dictated take is: it lands, it waits, and the reader still presses the button.
+   * Nothing about attaching an image executes anything.
+   */
+  const show = useShowReflow(incidentId, live);
+  const imageInput = useRef<HTMLInputElement>(null);
+  const visual = useRef<HTMLElement>(null);
+  const [holding, setHolding] = useState(false);
+  /** Nested dragenter/dragleave pairs, so the hint does not flicker over children. */
+  const dragDepth = useRef(0);
+  const [params] = useSearchParams();
+  const [primed, setPrimed] = useState(false);
+  const priming = useRef(false);
+  /** Every way of being busy, so one disabled state covers text, voice and image. */
+  const busy = reasoning || show.busy;
+
   useEffect(() => () => pending.current?.abort(), []);
   useEffect(
     () => () => {
@@ -147,6 +179,34 @@ export function OperatorConversation({
       block: "start",
     });
   }, [response?.request_id, reducedMotion]);
+
+  // A visual reading lands the same way a typed one does: the answer is brought to
+  // the top of the view rather than left below the fold on a long console.
+  useEffect(() => {
+    const node = visual.current;
+    if (!show.response || !node || typeof node.scrollIntoView !== "function")
+      return;
+    node.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [show.response?.request_id, reducedMotion]);
+
+  /**
+   * Arriving from the dock's Show Reflow entry.
+   *
+   * The picker is not opened for the reader: a file dialog that appears after a
+   * navigation is both blocked by browsers and startling. The control takes focus
+   * instead and identifies itself once, so Enter opens the picker from there.
+   */
+  useEffect(() => {
+    if (params.get("show") !== "image" || priming.current || !live) return;
+    priming.current = true;
+    imageInput.current?.focus();
+    setPrimed(true);
+    const settle = window.setTimeout(() => setPrimed(false), 2800);
+    return () => window.clearTimeout(settle);
+  }, [live, params]);
 
   /**
    * A chip hands its text to the console.
@@ -174,11 +234,51 @@ export function OperatorConversation({
     }, 620);
   };
 
+  /**
+   * The console's one drop target.
+   *
+   * The whole console takes the file, not a separate zone beside it, and the hint
+   * only exists while something is genuinely being dragged over it. A drop mounts
+   * the image and stops — it never submits.
+   */
+  const onDragEnter = (event: DragEvent) => {
+    if (!live || busy || !dragCarriesFile(event.dataTransfer)) return;
+    dragDepth.current += 1;
+    setHolding(true);
+  };
+  const onDragOver = (event: DragEvent) => {
+    if (!live || busy || !dragCarriesFile(event.dataTransfer)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  };
+  const onDragLeave = () => {
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setHolding(false);
+  };
+  const onDrop = (event: DragEvent) => {
+    if (!live || busy) return;
+    event.preventDefault();
+    dragDepth.current = 0;
+    setHolding(false);
+    show.attachFrom(event.dataTransfer);
+  };
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!live || busy || message.trim().length < 3) return;
+    if (!live || busy) return;
+    // A mounted image is what the console is about, so the button reads it. The
+    // typed question rides along when there is one, and is omitted when there is
+    // not — the backend supplies its own bounded prompt rather than the browser
+    // inventing an intent the reader never expressed.
+    if (show.attachment) {
+      setResponse(null);
+      setError(null);
+      await show.submit(message);
+      return;
+    }
+    if (message.trim().length < 3) return;
     pending.current = new AbortController();
-    setBusy(true);
+    setReasoning(true);
     setError(null);
     setResponse(null);
     const requested = message.trim();
@@ -213,14 +313,14 @@ export function OperatorConversation({
           cause instanceof Error ? cause.message : "Operator unavailable.",
         );
     } finally {
-      setBusy(false);
+      setReasoning(false);
     }
   };
 
   const approve = async () => {
     if (!response?.action || busy) return;
     pending.current = new AbortController();
-    setBusy(true);
+    setReasoning(true);
     setError(null);
     try {
       const action = await approveOperator(
@@ -244,7 +344,7 @@ export function OperatorConversation({
           cause instanceof Error ? cause.message : "Approval unavailable.",
         );
     } finally {
-      setBusy(false);
+      setReasoning(false);
     }
   };
 
@@ -265,77 +365,135 @@ export function OperatorConversation({
         </p>
       )}
 
-      {/* Dictation composes; it never submits. The finalized transcript is dropped
-          into this same field, and the user still presses Ask Reflow. */}
-      <VoiceComposer
-        incidentId={incidentId}
-        disabled={!live || busy}
-        onTranscript={(text) => {
-          setMessage(text);
-          setTranscriptReady(true);
-          field.current?.focus();
-        }}
+      {/* One console. Type into it, dictate into it, or show it something — and in
+          all three cases the reader is the one who presses the button. */}
+      <div
+        className={`show-console${holding ? " is-holding" : ""}`}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
       >
-        {(mic, strip) => (
-          <form
-            className={`operator-form${activating ? " is-activating" : ""}${
-              busy ? " is-reasoning" : ""
-            }`}
-            onSubmit={submit}
-          >
-            <label className="visually-hidden" htmlFor="operator-query">
-              Ask Reflow
-            </label>
-            <Icon name="search" size={ICON_SIZE.header} />
-            {strip ?? (
-              <input
-                id="operator-query"
-                ref={field}
-                value={message}
-                maxLength={1200}
-                disabled={!live || busy}
-                placeholder="Why did Recovery 1 fail?"
-                autoComplete="off"
-                onChange={(event) => {
-                  setMessage(event.target.value);
-                  setTranscriptReady(false);
-                }}
-              />
-            )}
-            {message.trim().length > 0 ? (
-              <button
-                type="button"
-                className="voice-clear"
-                onClick={() => {
-                  setMessage("");
-                  setTranscriptReady(false);
-                  field.current?.focus();
-                }}
-                aria-label="Clear request"
-                title="Clear request"
-              >
-                <Icon name="cross" size={ICON_SIZE.row} />
-              </button>
-            ) : (
-              mic
-            )}
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={
-                !live || busy || strip !== null || message.trim().length < 3
-              }
+        {holding ? <DropHint /> : null}
+
+        {show.attachment ? (
+          <ImagePlate
+            attachment={show.attachment}
+            phase={show.phase}
+            disabled={show.busy}
+            onReplace={() => imageInput.current?.click()}
+            onRemove={() => {
+              show.clear();
+              field.current?.focus();
+            }}
+          />
+        ) : null}
+
+        {/* Dictation composes; it never submits. The finalized transcript is dropped
+            into this same field, and the user still presses Ask Reflow. */}
+        <VoiceComposer
+          incidentId={incidentId}
+          disabled={!live || busy}
+          onTranscript={(text) => {
+            setMessage(text);
+            setTranscriptReady(true);
+            field.current?.focus();
+          }}
+        >
+          {(mic, strip) => (
+            <form
+              className={`operator-form${activating ? " is-activating" : ""}${
+                busy ? " is-reasoning" : ""
+              }`}
+              onSubmit={submit}
             >
-              {busy ? "Reasoning…" : "Ask Reflow"}
-              <Icon name="arrow-right" size={ICON_SIZE.row} />
-            </button>
-          </form>
-        )}
-      </VoiceComposer>
+              <label className="visually-hidden" htmlFor="operator-query">
+                Ask Reflow
+              </label>
+              <Icon name="search" size={ICON_SIZE.header} />
+              {strip ?? (
+                <input
+                  id="operator-query"
+                  ref={field}
+                  value={message}
+                  maxLength={1200}
+                  disabled={!live || busy}
+                  placeholder={
+                    show.attachment
+                      ? "What failed here? (optional)"
+                      : "Why did Recovery 1 fail?"
+                  }
+                  autoComplete="off"
+                  onChange={(event) => {
+                    setMessage(event.target.value);
+                    setTranscriptReady(false);
+                  }}
+                />
+              )}
+              {message.trim().length > 0 ? (
+                <button
+                  type="button"
+                  className="voice-clear"
+                  onClick={() => {
+                    setMessage("");
+                    setTranscriptReady(false);
+                    field.current?.focus();
+                  }}
+                  aria-label="Clear request"
+                  title="Clear request"
+                >
+                  <Icon name="cross" size={ICON_SIZE.row} />
+                </button>
+              ) : (
+                mic
+              )}
+              <ImageAttachControl
+                id="operator-image"
+                inputRef={imageInput}
+                disabled={!live || busy}
+                primed={primed}
+                onFile={(file) => show.attach(file)}
+              />
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={
+                  !live ||
+                  busy ||
+                  strip !== null ||
+                  (!show.attachment && message.trim().length < 3)
+                }
+              >
+                {busy
+                  ? show.busy
+                    ? "Reading…"
+                    : "Reasoning…"
+                  : show.attachment
+                    ? "Show Reflow"
+                    : "Ask Reflow"}
+                <Icon name="arrow-right" size={ICON_SIZE.row} />
+              </button>
+            </form>
+          )}
+        </VoiceComposer>
+      </div>
 
       {transcriptReady ? (
         <p className="voice-transcript-ready" role="status">
           Transcript ready — review and send.
+        </p>
+      ) : null}
+
+      {show.rejection ? (
+        <p className="operator-note is-error" role="alert">
+          {show.rejection.message}
+          <button
+            type="button"
+            className="voice-dismiss"
+            onClick={show.dismiss}
+          >
+            Dismiss
+          </button>
         </p>
       ) : null}
 
@@ -366,7 +524,19 @@ export function OperatorConversation({
         {busy && (
           <p className="operator-note is-busy" role="status">
             <span className="operator-pulse" aria-hidden="true" />
-            Interpreting the request and applying deterministic controls.
+            {/* Two states, and the boundary between them is a real event: the
+                caption changes when the bytes have actually left the browser. */}
+            {show.phase === "SENDING"
+              ? "Sending the image to Reflow."
+              : show.phase === "ANALYZING"
+                ? "Reading the image. Nothing is being executed."
+                : "Interpreting the request and applying deterministic controls."}
+          </p>
+        )}
+
+        {show.error && (
+          <p className="operator-note is-error" role="alert">
+            {show.error}
           </p>
         )}
 
@@ -374,6 +544,15 @@ export function OperatorConversation({
           <p className="operator-note is-error" role="alert">
             {error}
           </p>
+        )}
+
+        {show.response && show.askedFor && (
+          <VisualAnswer
+            ref={visual}
+            response={show.response}
+            question={show.askedFor.question}
+            filename={show.askedFor.filename}
+          />
         )}
 
         {response && (

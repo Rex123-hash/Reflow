@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { VoiceDock } from "./VoiceDock";
 import { VoiceLaunchProvider } from "./VoiceLaunch";
@@ -33,6 +33,12 @@ function ready(incidentId: string | null = "incident-0fc3af5b0bd1ad847aea") {
       : null,
     choices: [],
   });
+}
+
+/** Stands in for Operator, so the dock's destination can be asserted exactly. */
+function Landed() {
+  const location = useLocation();
+  return <p data-testid="landed">{location.pathname + location.search}</p>;
 }
 
 function at(path: string) {
@@ -119,9 +125,50 @@ describe("the dock", () => {
     expect(items.map((item) => item.textContent)).toEqual([
       expect.stringContaining("Talk to Reflow"),
       "Ask Reflow",
+      "Show Reflow",
       "Dictate a request",
       "How Reflow works",
     ]);
+  });
+
+  it("offers Show Reflow beside Ask, as one named family rather than a tool", async () => {
+    ready();
+    at("/app/overview");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Talk to Reflow" }),
+    );
+    const menu = screen.getByRole("menu");
+    // Type, talk and show are grouped and labelled together, so the newest of the
+    // three reads as a capability and not as an attachment affordance.
+    const group = within(menu).getByRole("group", {
+      name: "Type it. Say it. Show it.",
+    });
+    expect(
+      within(group)
+        .getAllByRole("menuitem")
+        .map((item) => item.textContent),
+    ).toEqual(["Ask Reflow", "Show Reflow", "Dictate a request"]);
+  });
+
+  it("takes Show Reflow to the Operator console with the image control asked for", async () => {
+    ready();
+    render(
+      <MemoryRouter initialEntries={["/app/overview"]}>
+        <VoiceLaunchProvider>
+          <Routes>
+            <Route path="/app/overview" element={<VoiceDock />} />
+            <Route path="/app/operator" element={<Landed />} />
+          </Routes>
+        </VoiceLaunchProvider>
+      </MemoryRouter>,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Talk to Reflow" }),
+    );
+    await userEvent.click(
+      screen.getByRole("menuitem", { name: "Show Reflow" }),
+    );
+    expect(screen.getByTestId("landed")).toHaveTextContent("?show=image");
   });
 
   it("does not appear on Operator, which carries its own launch control", () => {
