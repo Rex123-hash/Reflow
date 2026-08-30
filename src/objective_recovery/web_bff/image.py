@@ -39,9 +39,7 @@ class ImageBackendGateway(Protocol):
 
 
 def _error(error: ImageRequestError) -> Response:
-    value = ImageErrorResponse(
-        error=ImageErrorDetail(code=error.code, message=error.message)
-    )
+    value = ImageErrorResponse(error=ImageErrorDetail(code=error.code, message=error.message))
     return Response(
         value.model_dump_json(),
         status_code=error.status_code,
@@ -110,9 +108,7 @@ def register_image_route(
         }
         if upstream.status_code != 200:
             status_code = (
-                upstream.status_code
-                if upstream.status_code in {400, 413, 415, 429, 503}
-                else 502
+                upstream.status_code if upstream.status_code in {400, 413, 415, 429, 503} else 502
             )
             return _error(
                 ImageRequestError(
@@ -131,13 +127,9 @@ def register_image_route(
                 raise ValueError("Mismatched image response")
         except ValueError:
             return _error(
-                ImageRequestError(
-                    "response_invalid", "The image response failed validation.", 502
-                )
+                ImageRequestError("response_invalid", "The image response failed validation.", 502)
             )
-        return Response(
-            response.model_dump_json(), media_type="application/json", headers=headers
-        )
+        return Response(response.model_dump_json(), media_type="application/json", headers=headers)
 
 
 __all__ = ["register_image_route"]

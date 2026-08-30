@@ -147,9 +147,7 @@ def upload(message: str | None = None, format_name: str = "PNG") -> ValidatedIma
     ("format_name", "mime_type"),
     [("PNG", "image/png"), ("JPEG", "image/jpeg"), ("WEBP", "image/webp")],
 )
-def test_png_jpeg_and_webp_are_detected_from_bytes(
-    format_name: str, mime_type: str
-) -> None:
+def test_png_jpeg_and_webp_are_detected_from_bytes(format_name: str, mime_type: str) -> None:
     value = upload(format_name=format_name)
     assert value.provenance.detected_mime_type == mime_type
     assert value.provenance.raw_image_retained is False
@@ -468,9 +466,7 @@ def test_private_gateway_uses_fixed_path_audience_token_and_no_caller_filename(
 
     gateway = GoogleIdentityBackendGateway("https://private.test")
     monkeypatch.setattr(gateway, "_session", Http())
-    gateway.query_image(
-        image_bytes("PNG"), "image/png", INCIDENT, None, "a" * 64, REQUEST
-    )
+    gateway.query_image(image_bytes("PNG"), "image/png", INCIDENT, None, "a" * 64, REQUEST)
     url, options = calls[0]
     assert url == "https://private.test/api/v1/operator/image"
     assert options["files"]["image"][0] == "upload"

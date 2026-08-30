@@ -92,9 +92,7 @@ class ImageUnderstandingService:
                 raise OperatorReasoningError("Read-only image handoff reached an action result")
             mutation = classification.requested_capability in MUTATING_IMAGE_CAPABILITIES
             handoff = ImageOperatorHandoffResult(
-                status=(
-                    "MUTATION_REQUIRES_TYPED_OPERATOR" if mutation else "ROUTED_READ_ONLY"
-                ),
+                status=("MUTATION_REQUIRES_TYPED_OPERATOR" if mutation else "ROUTED_READ_ONLY"),
                 normalized_request=classification.normalized_request,
                 response=operator_response,
             )

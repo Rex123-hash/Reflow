@@ -30,9 +30,7 @@ _MAGIC: tuple[tuple[ImageMimeType, Callable[[bytes], bool]], ...] = (
     ("image/jpeg", lambda value: value.startswith(b"\xff\xd8\xff")),
     (
         "image/webp",
-        lambda value: len(value) >= 12
-        and value.startswith(b"RIFF")
-        and value[8:12] == b"WEBP",
+        lambda value: len(value) >= 12 and value.startswith(b"RIFF") and value[8:12] == b"WEBP",
     ),
 )
 _PIL_FORMATS: dict[str, ImageMimeType] = {

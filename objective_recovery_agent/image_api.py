@@ -33,9 +33,7 @@ _slots = asyncio.Semaphore(1)
 
 
 def _error(error: ImageRequestError) -> JSONResponse:
-    value = ImageErrorResponse(
-        error=ImageErrorDetail(code=error.code, message=error.message)
-    )
+    value = ImageErrorResponse(error=ImageErrorDetail(code=error.code, message=error.message))
     return JSONResponse(
         value.model_dump(mode="json"),
         status_code=error.status_code,
@@ -111,9 +109,7 @@ async def understand_image(
                 subject,
                 authorized_role(subject, role),
             )
-        return JSONResponse(
-            result.model_dump(mode="json"), headers={"Cache-Control": "no-store"}
-        )
+        return JSONResponse(result.model_dump(mode="json"), headers={"Cache-Control": "no-store"})
     except OperatorRateLimited:
         return _error(
             ImageRequestError(

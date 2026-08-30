@@ -82,8 +82,7 @@ class ImageAgentResult(OperatorModel):
             raise ValueError("Only TASK image understanding may request an Operator handoff")
         if is_task:
             if (
-                self.operator_handoff.normalized_request
-                != self.classification.normalized_request
+                self.operator_handoff.normalized_request != self.classification.normalized_request
                 or not self.operator_handoff.visual_context
             ):
                 raise ValueError("TASK image understanding requires one bounded handoff")

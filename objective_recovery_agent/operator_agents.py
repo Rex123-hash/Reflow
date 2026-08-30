@@ -506,9 +506,7 @@ class AdkOperatorAgents:
             return value, trace
         except (ValueError, TimeoutError, NodeTimeoutError) as error:
             category = (
-                "timeout"
-                if isinstance(error, TimeoutError | NodeTimeoutError)
-                else "validation"
+                "timeout" if isinstance(error, TimeoutError | NodeTimeoutError) else "validation"
             )
             emit_operational_event(
                 "OPERATOR_AGENT_FAILED",
