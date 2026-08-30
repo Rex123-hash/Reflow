@@ -14,7 +14,7 @@ Research snapshot: 2026-08-25. Official rules override every summary in this rep
 |---|---|---|
 | Submission period | August 3–31, 2026; deadline August 31 at 5:00 PM PT | Build and document the submitted work during this period. |
 | Track | One category must be selected. Taskmaster asks for an event-driven, start-to-finish workflow rather than a chatbot. | Optimize only for Taskmaster. |
-| New work | Projects must be newly created during the submission period; incorporated pre-existing work must be disclosed. | Independent code, prompts, tests, docs, and Git history; nothing pre-existing is incorporated. |
+| New work | Projects must be newly created during the submission period; incorporated pre-existing work must be disclosed. | Independent code, prompts, tests, docs, and Git history; no pre-existing Reflow implementation is carried over. |
 | Required technology | Gemini 3.5 or newer via Gemini API or Vertex AI; one allowed Google agent framework; one GCP infrastructure service. | P1 will use Vertex AI, Google ADK, Cloud Run, Pub/Sub, and Firestore. |
 | Judging | Innovation & Operational Utility 40%; Architectural Discipline & Tech Stack 30%; Demo & Production Readiness 30%. | Treat autonomous value, failure tolerance, documentation, and proof as product requirements. |
 | Submission | Repo, spin-up README, architecture diagram, and public YouTube/Vimeo demo of no more than four minutes. | Keep setup reproducible and reserve demo time for proof. |
