@@ -73,46 +73,40 @@ Both treat *task completion* as the unit of truth. Reflow treats *objective rest
                 │  DISRUPTION                                │
                 │  reality invalidates the plan              │
                 └──────────────────────┬─────────────────────┘
-                                       │
                                        ▼
                 ┌────────────────────────────────────────────┐
                 │  UNDERSTAND IMPACT                         │
                 │  what the objective actually needs         │
                 └──────────────────────┬─────────────────────┘
-                                       │
                                        ▼
                 ┌────────────────────────────────────────────┐
                 │  PLAN RECOVERY                             │
                 │  alternatives, then a risk critique        │
                 └──────────────────────┬─────────────────────┘
-                                       │
                                        ▼
                 ┌────────────────────────────────────────────┐
-   └───────────▶│  ACT                                       │
-   │            │  only what policy authorized               │
-   │            └──────────────────────┬─────────────────────┘
-   │                                   │
-   │                                   ▼
-   │            ┌────────────────────────────────────────────┐
-   │            │  VERIFY THE ACTION                         │
-   │            │  independent read-back                     │
-   │            └──────────────────────┬─────────────────────┘
-   │                                   │
-   │                                   ▼
-   │            ┌────────────────────────────────────────────┐
-   │            │  CHECK THE OBJECTIVE                       │
-   │            │  six invariants over recorded state        │
-   │            └────────────────────────────────────────────┘
-   │                  ┌────────────────┴────────────────┐
-   │             fail                                 hold
-   │                  ▼                                 ▼
-   │    ┌──────────────────────────┐      ╔══════════════════════════╗
-   │    │  REOPEN AND REPLAN       │      ║  OBJECTIVE RESTORED      ║
-   │    │  failed effect excluded  │      ║  resolved, with evidence ║
-   │    └─────────────┬────────────┘      ╚══════════════════════════╝
-   │                  │
-   ┌──────────────────┘
-       recovery 2 — the second attempt acts again
+                │  ACT                                       │
+                │  only what policy authorized               │
+                └──────────────────────┬─────────────────────┘
+                                       ▼
+                ┌────────────────────────────────────────────┐
+                │  VERIFY THE ACTION                         │
+                │  independent read-back                     │
+                └──────────────────────┬─────────────────────┘
+                                       ▼
+                ┌────────────────────────────────────────────┐
+                │  CHECK THE OBJECTIVE                       │
+                │  six invariants over recorded state        │
+                └────────────────────────────────────────────┘
+                      ┌────────────────┴────────────────┐
+                fail                                  hold
+                      ▼                                 ▼
+        ┌──────────────────────────┐      ╔══════════════════════════╗
+        │  REOPEN AND REPLAN       │      ║  OBJECTIVE RESTORED      ║
+        │  failed effect excluded  │      ║  resolved, with evidence ║
+        └─────────────┬────────────┘      ╚══════════════════════════╝
+                      │
+                      └─▶  recovery 2 re-enters at ACT
 ```
 
 The branch on the left is the part that matters. Most agent demonstrations show the happy path. Reflow's strongest demonstrated workflow is the one where the **first recovery fails**.
