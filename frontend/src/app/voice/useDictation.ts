@@ -45,6 +45,8 @@ export function useDictation(
   const text = useRef("");
   const meter = useRef<number | null>(null);
   const ticker = useRef<number | null>(null);
+  const deadline = useRef<number | null>(null);
+  const finalizer = useRef<number | null>(null);
 
   const release = useCallback(() => {
     aborter.current?.abort();
@@ -55,8 +57,12 @@ export function useDictation(
     capture.current = null;
     if (meter.current !== null) window.clearInterval(meter.current);
     if (ticker.current !== null) window.clearInterval(ticker.current);
+    if (deadline.current !== null) window.clearTimeout(deadline.current);
+    if (finalizer.current !== null) window.clearTimeout(finalizer.current);
     meter.current = null;
     ticker.current = null;
+    deadline.current = null;
+    finalizer.current = null;
     setLevel(0);
   }, []);
 
@@ -67,7 +73,8 @@ export function useDictation(
     release();
     setStatus("FINALIZING");
     // One frame so the interface can show the take closing rather than snapping.
-    window.setTimeout(() => {
+    finalizer.current = window.setTimeout(() => {
+      finalizer.current = null;
       setStatus("IDLE");
       setInterim("");
       if (heard) onTranscript(heard);
@@ -129,7 +136,8 @@ export function useDictation(
         1000,
       );
       // The documented session bound; stopping cleanly beats being cut off.
-      window.setTimeout(() => {
+      deadline.current = window.setTimeout(() => {
+        deadline.current = null;
         if (socket.current) stop();
       }, session.max_session_seconds * 1000);
     } catch (cause) {

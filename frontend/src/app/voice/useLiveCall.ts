@@ -129,6 +129,10 @@ export function useLiveCall(incidentId: string, reducedMotion: boolean) {
       clearTimers();
       setLastResult(null);
       setBase("WORKING");
+      // The synchronous tool call owns this user row. Drop the same accumulated
+      // transcription so the later turn-complete frame cannot record it twice.
+      spoken.current.you = "";
+      setInterim("");
       setTranscript((rows) => [
         ...rows,
         { id: nextId(), speaker: "you", text: request, at: Date.now() },
