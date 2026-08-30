@@ -8,9 +8,11 @@ One source of truth for submission copy, so the same numbers and the same claims
 
 ## Short description
 
-Reflow is an autonomous objective recovery engine. Most project tools help teams manage a plan; Reflow takes over when reality breaks the plan. It reads a disruption, works out what the objective actually needs, proposes recoveries, executes only what deterministic policy authorizes, and proves the outcome by reading the external system back. If the objective is still unhealthy, it reopens itself and replans.
+Reflow is an autonomous objective recovery engine — a closed loop, not an assistant. Most project tools help teams manage a plan; Reflow takes over when reality breaks the plan. The trigger is the world rather than a prompt: a Gmail watch fires or CI answers, and the engine interprets what happened, works out what the objective still needs, executes only what deterministic policy authorizes, and proves the outcome by reading the external system back. If the objective is still unhealthy it reopens itself, replans and acts again. Eight Gemini agents sit inside that loop and propose; they hold no tools, credentials or execution authority.
 
 **One line:** Gemini reasons. Code enforces. Adapters act. Verifier proves.
+
+**Say this, not that.** Reflow is an engine that contains AI, not an AI that answers questions. The canonical recovery involved zero human steps. Operator (type, talk, show) is a window onto the loop and a bounded control surface — never describe it as the product. The specification lists *generic chatbot* as an explicit non-goal.
 
 ---
 
@@ -51,7 +53,11 @@ Reflow treats objective restoration as the unit of truth, which requires two thi
 
 ## Architecture summary
 
-A browser console takes typed, spoken and shown input. Firebase Hosting serves the build and Firebase Auth issues the product identity, exchanged once for a short-lived `HttpOnly` session cookie. An authenticated BFF on Cloud Run is the only public surface; it enforces origin, path and workspace allowlists and reaches the private recovery backend with an audience-bound service identity. The backend has no public ingress and is reachable only by IAM.
+Two ways in, one governed core.
+
+**The engine path, which needs no person.** A Gmail watch fires and Cloud Pub/Sub delivers an authenticated push straight to the private recovery backend. Four durable stages then hand off to each other over Pub/Sub — interpret, plan and act, validate against CI, then verify or reopen — each writing durable state before publishing the next handoff.
+
+**The human path.** Firebase Hosting serves the build and Firebase Auth issues the product identity, exchanged once for a short-lived `HttpOnly` session cookie. An authenticated BFF on Cloud Run is the only public surface; it enforces origin, path and workspace allowlists and reaches the same private backend with an audience-bound service identity. The backend has no public ingress and is reachable only by IAM.
 
 Inside it, eight ADK-orchestrated Gemini agents propose. Deterministic control decides, adapters act on Calendar, Jira, Slack and GitHub, and Gmail is read-only. Every effect is independently read back, then objective invariants are evaluated. Firestore holds durable state and evidence. Failing invariants reopen the incident and replan.
 
@@ -59,7 +65,7 @@ Inside it, eight ADK-orchestrated Gemini agents propose. Deterministic control d
 
 ## Strongest workflow — the canonical recovery
 
-Recorded in [`p1e-proof.md`](p1e-proof.md). No human touched anything after the triggering email.
+Recorded in [`p1e-proof.md`](p1e-proof.md). From the moment the email arrived, no human invoked a notification, an endpoint, a planner, an action, a continuation, a state change, a plan selection or a resolution.
 
 An email reported the backend lead unavailable. Gemini classified it as a real disruption affecting the API migration and the Release V2 objective. Reflow mapped the blast radius, planned, and executed a Calendar coordination change plus GitHub release validation for Candidate A.
 
@@ -146,6 +152,7 @@ The stale guard pins thirteen paths against commit `6b9b6f1`. Twelve are byte-id
 
 ## Demo talking points
 
+0. **Say what it is first.** Reflow is an engine that protects an outcome, with AI inside it. Nothing in the demo was asked for.
 1. **Open on the failure.** Recovery 01 is action-verified and still marked FAILED. Say the line: an action can be verified and the objective still not be recovered.
 2. **Show the branch.** Recovery 02 branched from the failed attempt, with the failed effect excluded so it could not repeat it.
 3. **Show the receipt.** Evidence carries the external reference and the independent read-back, not just a log line.
