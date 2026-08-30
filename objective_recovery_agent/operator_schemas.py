@@ -265,6 +265,7 @@ class IntentInput(OperatorModel):
     snapshot: OperatorSnapshot
     capabilities: tuple[OperatorCapability, ...] = Field(default=(), max_length=8)
     conversation: ConversationEnvelope | None = None
+    visual_context: tuple[ShortText, ...] = Field(default=(), max_length=8)
 
 
 class OperatorInspection(OperatorModel):

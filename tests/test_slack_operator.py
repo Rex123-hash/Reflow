@@ -490,12 +490,14 @@ async def test_service_uses_existing_plane_and_replay_bypasses_agent6(kind: str)
     service = OperatorService(read, calendar, agents, coordinator(session))
     query = OperatorQuery(incident_id=INCIDENT, message=TEXT, idempotency_key="slack-service-key")
     response = await service.query(query, REQUEST, "a" * 64, "OPERATOR")
+    assert response.intent is not None
     assert response.intent.subject == "SLACK" and response.simulation is None
     assert TOKEN not in response.model_dump_json() + str(agents.inputs)
     if kind == "ACT":
         assert response.action is not None and response.action.lifecycle == "VERIFIED"
         replay = await service.query(query, REQUEST, "a" * 64, "OPERATOR")
         assert replay.action == response.action and replay.agents == ()
+        assert replay.intent is not None
         assert replay.intent.subject == "SLACK" and len(agents.inputs) == 1
         assert [m for m, _ in session.calls].count("chat.postMessage") == 1
     else:

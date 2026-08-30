@@ -38,6 +38,7 @@ from objective_recovery_agent.gmail_ingestion import (
 )
 from objective_recovery_agent.gmail_interpretation import AdkGmailInterpreter
 from objective_recovery_agent.gmail_store import FirestoreGmailStore
+from objective_recovery_agent.image_api import router as image_router
 from objective_recovery_agent.ledger import FirestoreWorkflowLedger
 from objective_recovery_agent.objective_store import FirestoreObjectiveStore
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
@@ -89,6 +90,7 @@ app = FastAPI(
 )
 app.include_router(operator_router)
 app.include_router(voice_router)
+app.include_router(image_router)
 
 
 @lru_cache(maxsize=1)

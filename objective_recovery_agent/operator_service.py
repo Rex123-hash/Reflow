@@ -29,6 +29,7 @@ from objective_recovery_agent.operator_schemas import (
     IntentInput,
     OperatorActionView,
     OperatorAgentTrace,
+    OperatorCapability,
     OperatorFact,
     OperatorInspection,
     OperatorIntent,
@@ -161,6 +162,9 @@ class OperatorService:
         self._actions = action_coordinator
         self._registry = action_coordinator.registry if action_coordinator else CapabilityRegistry()
 
+    def capabilities(self) -> tuple[OperatorCapability, ...]:
+        return self._registry.capabilities()
+
     async def approve_action(
         self, action_id: str, subject_hash: str, role: str
     ) -> OperatorActionView:
@@ -174,7 +178,14 @@ class OperatorService:
         request_id: str,
         subject_hash: str = "0" * 64,
         role: str = "VIEWER",
+        *,
+        initial_conversation: ConversationEnvelope | None = None,
+        initial_trace: OperatorAgentTrace | None = None,
+        visual_context: tuple[str, ...] = (),
+        allow_actions: bool = True,
     ) -> OperatorResponse:
+        if (initial_conversation is None) != (initial_trace is None):
+            raise ValueError("Pre-understood conversation and trace must travel together")
         async with asyncio.timeout(70):
             snapshot = await self._snapshot_reader(query.incident_id)
             fingerprint = hashlib.sha256(
@@ -221,15 +232,19 @@ class OperatorService:
                 )
                 traces = []  # A durable replay is not another model invocation.
             else:
-                conversation, conversation_trace = await self._agents.understand(
-                    ConversationInput(
-                        message=bounded_query.message,
-                        incident_id=bounded_query.incident_id,
-                        capabilities=self._registry.capabilities(),
-                        previous=bounded_query.conversation_context,
-                    ),
-                    request_id,
-                )
+                if initial_conversation is None or initial_trace is None:
+                    conversation, conversation_trace = await self._agents.understand(
+                        ConversationInput(
+                            message=bounded_query.message,
+                            incident_id=bounded_query.incident_id,
+                            capabilities=self._registry.capabilities(),
+                            previous=bounded_query.conversation_context,
+                        ),
+                        request_id,
+                    )
+                else:
+                    conversation = initial_conversation
+                    conversation_trace = initial_trace
                 conversation = ConversationEnvelope.model_validate(conversation)
                 traces = [conversation_trace]
                 if conversation.mode != "TASK":
@@ -261,6 +276,7 @@ class OperatorService:
                         snapshot=snapshot,
                         capabilities=self._registry.capabilities(),
                         conversation=conversation,
+                        visual_context=visual_context,
                     ),
                     request_id,
                 )
@@ -268,6 +284,23 @@ class OperatorService:
             # Validate even injected implementations; no unvalidated model output is used.
             intent = OperatorIntent.model_validate(intent)
             deadline = None if replay else validate_intent(intent, snapshot, self._registry)
+            if intent.intent_type == "ACT" and not allow_actions:
+                # Image requests must still traverse Agent 6, but this endpoint-specific
+                # boundary cannot enter the action coordinator or create a receipt.
+                intent = OperatorIntent(
+                    disposition="UNSUPPORTED",
+                    subject=intent.subject,
+                    incident_id=intent.incident_id,
+                    recovery_attempt=intent.recovery_attempt,
+                    question=intent.question,
+                    hypothetical_changes=(),
+                    constraints=intent.constraints,
+                    fact_ids=(),
+                    clarification=(
+                        "Image uploads cannot authorize an action. Submit the explicit "
+                        "request separately through the typed Operator path."
+                    ),
+                )
             if (
                 intent.disposition == "SUPPORTED"
                 and intent.intent_type in {"INSPECT", "EXPLAIN"}

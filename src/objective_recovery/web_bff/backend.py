@@ -90,6 +90,38 @@ class GoogleIdentityBackendGateway:
         )
         return BackendResponse(response.status_code, response.content, response.headers)
 
+    def query_image(
+        self,
+        image: bytes,
+        mime_type: str,
+        incident_id: str,
+        message: str | None,
+        subject: str,
+        request_id: str,
+        role: str = "VIEWER",
+    ) -> BackendResponse:
+        """One fixed private image path; filenames and caller-controlled URLs are discarded."""
+        audience_token = id_token.fetch_id_token(  # type: ignore[no-untyped-call]
+            self._auth_request, self._audience
+        )
+        fields = {"incident_id": incident_id}
+        if message is not None:
+            fields["message"] = message
+        response = self._session.post(
+            f"{self._base_url}/api/v1/operator/image",
+            data=fields,
+            files={"image": ("upload", image, mime_type)},
+            headers={
+                "Authorization": f"Bearer {audience_token}",
+                "X-Reflow-Operator-Subject": subject,
+                "X-Reflow-Request-Id": request_id,
+                "X-Reflow-Operator-Role": role,
+            },
+            timeout=(3.05, 85),
+            allow_redirects=False,
+        )
+        return BackendResponse(response.status_code, response.content, response.headers)
+
     def create_voice_session(
         self, capability: str, payload: bytes, subject: str, request_id: str
     ) -> BackendResponse:
