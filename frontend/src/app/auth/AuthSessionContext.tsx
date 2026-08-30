@@ -47,6 +47,9 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [busy, setBusy] = useState<"google" | "guest" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const demoRequested =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("demo") === "1";
 
   const refresh = useCallback(async () => {
     setStatus("loading");
@@ -98,6 +101,16 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
       setBusy(null);
     }
   };
+
+  useEffect(() => {
+    if (status !== "entry" || !demoRequested || busy !== null) return;
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${window.location.pathname}${window.location.hash}`,
+    );
+    void enter("guest");
+  }, [demoRequested, status]);
 
   const endSession = useCallback(async () => {
     await clearProductSession();
@@ -155,7 +168,7 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
               disabled={busy !== null}
               onClick={() => void enter("guest")}
             >
-              {busy === "guest" ? "Opening demo…" : "Continue as guest"}
+              {busy === "guest" ? "Opening demo…" : "Explore Demo Workspace"}
             </button>
           </div>
           {message ? (
@@ -164,7 +177,8 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
             </p>
           ) : null}
           <p className="auth-note">
-            Guest mode uses a sanitized, read-only demo workspace.
+            No Google account required. Uses Reflow’s dedicated, read-only demo
+            workspace.
           </p>
         </section>
       </main>

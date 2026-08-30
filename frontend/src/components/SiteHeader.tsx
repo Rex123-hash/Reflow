@@ -29,9 +29,14 @@ export function SiteHeader({ current }: { current?: "story" | "faq" } = {}) {
           FAQ
         </Link>
       </nav>
-      <Link className="button button-small button-primary" to="/app">
-        Live demo <span aria-hidden="true">→</span>
-      </Link>
+      <div className="header-actions">
+        <Link className="button button-small button-primary" to="/app?demo=1">
+          Live demo <span aria-hidden="true">→</span>
+        </Link>
+        <Link className="button button-small button-secondary" to="/app/overview">
+          Open workspace
+        </Link>
+      </div>
     </header>
   );
 }

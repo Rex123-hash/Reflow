@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { RecoveryStory } from "./components/RecoveryStory";
 import { SiteHeader } from "./components/SiteHeader";
+import { WorkspaceActions } from "./components/WorkspaceActions";
 
 function lazyNamed<T extends Record<string, ComponentType>>(loader: () => Promise<T>, name: keyof T) {
   return lazy(async () => ({ default: (await loader())[name] }));
@@ -60,9 +60,7 @@ function App() {
         <section className="final-cta" id="demo-end">
           <p className="eyebrow">Recorded proof. Deterministic boundaries.</p>
           <h2>See Reflow in action.</h2>
-          <Link className="button button-primary" to="/app">
-            Open live workspace <span aria-hidden="true">↗</span>
-          </Link>
+          <WorkspaceActions className="final-cta-actions" />
         </section>
       </main>
     </div>

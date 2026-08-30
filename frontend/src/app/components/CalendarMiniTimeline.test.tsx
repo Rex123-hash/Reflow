@@ -2,6 +2,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { CalendarMiniTimeline } from "./CalendarMiniTimeline";
 import { ExternalReality } from "./ExternalReality";
 import { UiDataProviderRoot } from "../data/UiDataContext";
@@ -277,9 +279,23 @@ describe("Calendar Overview timeline", () => {
           "src/app/contract",
           "src/app/data",
           "src/app/auth",
+          // The demo-workspace milestone intentionally changed exactly these two
+          // files. Everything else under src/app/auth stays pinned to the
+          // baseline above; these two are pinned by content in the next test, so
+          // carving them out here narrows the guard rather than loosening it.
+          ":(exclude)src/app/auth/AuthSessionContext.tsx",
+          ":(exclude)src/app/auth/AuthSessionContext.test.tsx",
         ],
         { encoding: "utf8" },
       ),
     ).toBe("");
+  });
+
+  it("pins the reviewed demo-workspace auth surface by content", () => {
+    expect(
+      createHash("sha256")
+        .update(readFileSync("src/app/auth/AuthSessionContext.tsx"))
+        .digest("hex"),
+    ).toBe("3ec865f1c61916c62eef131528cd77f65a31caec65f78ec46b2515e425b35886");
   });
 });

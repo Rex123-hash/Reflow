@@ -487,6 +487,15 @@ a {
   justify-self: end;
 }
 
+/* Two quiet top-level ways in. The pair sits in the slot the single button used
+   to occupy, so the header composition is unchanged. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: end;
+}
+
 .button {
   display: inline-flex;
   min-height: 48px;
@@ -1933,6 +1942,13 @@ a {
   margin-bottom: 28px;
 }
 
+.final-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
 .capture-mode .story-track {
   height: 100svh;
 }
@@ -2038,6 +2054,12 @@ a {
   }
 
   .site-header nav {
+    display: none;
+  }
+
+  /* The secondary action would crowd the mark at this width; Open workspace
+     remains reachable from the closing call to action. */
+  .header-actions .button-secondary {
     display: none;
   }
 
