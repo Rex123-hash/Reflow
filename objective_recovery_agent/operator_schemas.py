@@ -6,6 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from objective_recovery_agent.calendar_operator_contract import CalendarEventCreation
 from objective_recovery_agent.slack_operator_policy import SLACK_CREDENTIAL
 
 ShortText = Annotated[str, Field(min_length=1, max_length=800)]
@@ -42,6 +43,7 @@ OperationType = Literal[
     "CALENDAR_RESCHEDULE",
     "CALENDAR_UPDATE_TITLE",
     "CALENDAR_UPDATE_DESCRIPTION",
+    "CREATE_CALENDAR_EVENT",
     "MOVE_PROTECTED_DEADLINE",
     "SLACK_INSPECT_CHANNEL",
     "SLACK_POST_MESSAGE",
@@ -95,6 +97,7 @@ class RequestedOperation(OperatorModel):
     operation: OperationType
     value: str | None = Field(default=None, min_length=1, max_length=800)
     comment: str | None = Field(default=None, min_length=1, max_length=1000)
+    calendar_event: CalendarEventCreation | None = None
 
     @model_validator(mode="after")
     def operation_payload(self) -> RequestedOperation:
@@ -103,7 +106,12 @@ class RequestedOperation(OperatorModel):
             not text.strip() or any(ord(c) < 32 and c not in "\n\t" for c in text)
         ):
             raise ValueError("Action text must be nonempty and contain no control characters")
-        if self.operation == "SLACK_INSPECT_CHANNEL":
+        if self.operation == "CREATE_CALENDAR_EVENT":
+            if self.calendar_event is None or self.comment is not None or self.value is not None:
+                raise ValueError("Calendar creation requires only a typed event payload")
+        elif self.calendar_event is not None:
+            raise ValueError("Only Calendar creation may carry an event payload")
+        elif self.operation == "SLACK_INSPECT_CHANNEL":
             if self.comment is not None or self.value is not None:
                 raise ValueError("Slack inspection has no mutation payload")
         elif self.operation == "JIRA_ADD_COMMENT":
@@ -121,6 +129,7 @@ class OperatorCapability(OperatorModel):
     resource_type: ResourceType
     operations: tuple[OperationType, ...] = Field(min_length=1, max_length=10)
     resource_identifiers: tuple[str, ...] = Field(default=(), max_length=5)
+    timezone: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class ConversationEnvelope(OperatorModel):
@@ -250,6 +259,12 @@ class OperatorIntent(OperatorModel):
                 and (self.target is None or self.target.authority != "SLACK")
             ):
                 raise ValueError("Slack ACT requires its external target")
+            if (
+                self.subject == "CALENDAR"
+                and self.intent_type == "ACT"
+                and (self.target is None or self.target.authority != "GOOGLE_CALENDAR")
+            ):
+                raise ValueError("Calendar ACT requires its external target")
         elif (
             self.intent_type is not None
             or not self.clarification
@@ -266,6 +281,7 @@ class IntentInput(OperatorModel):
     capabilities: tuple[OperatorCapability, ...] = Field(default=(), max_length=8)
     conversation: ConversationEnvelope | None = None
     visual_context: tuple[ShortText, ...] = Field(default=(), max_length=8)
+    interpretation_time: str | None = None
 
 
 class OperatorInspection(OperatorModel):

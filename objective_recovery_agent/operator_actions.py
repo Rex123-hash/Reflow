@@ -11,6 +11,10 @@ from typing import Any, ClassVar, Literal, Protocol, cast
 
 from google.cloud import firestore
 
+from objective_recovery_agent.calendar_operator_contract import (
+    CALENDAR_CREATE_OPERATION,
+    CALENDAR_CREATE_RESOURCE,
+)
 from objective_recovery_agent.observability import emit_operational_event
 from objective_recovery_agent.operator_schemas import (
     Authority,
@@ -93,6 +97,7 @@ class CapabilityRegistry:
                 resource_type=cast(Any, adapter.resource_type),
                 operations=cast(Any, tuple(sorted(adapter.operations))),
                 resource_identifiers=adapter.resource_identifiers,
+                timezone=cast(str | None, getattr(adapter, "timezone", None)),
             )
             for adapter in self._adapters.values()
         ]
@@ -170,6 +175,21 @@ class ActionAuthorizationPolicy:
                 return "DENIED", "unsupported_jira_operation"
             return "AUTO_EXECUTABLE", "bounded_demo_issue_change"
         if target.authority == "GOOGLE_CALENDAR":
+            creates = [item for item in operations if item.operation == CALENDAR_CREATE_OPERATION]
+            if creates:
+                if (
+                    len(operations) != 1
+                    or len(creates) != 1
+                    or target.resource_identifier != CALENDAR_CREATE_RESOURCE
+                    or creates[0].calendar_event is None
+                ):
+                    return "DENIED", "calendar_create_contract_not_permitted"
+                configured_timezone = getattr(adapter, "timezone", None)
+                if creates[0].calendar_event.timezone != configured_timezone:
+                    return "DENIED", "calendar_create_timezone_not_permitted"
+                return "AUTO_EXECUTABLE", "bounded_calendar_event_creation"
+            if target.resource_identifier == CALENDAR_CREATE_RESOURCE:
+                return "DENIED", "calendar_create_operation_required"
             shifts = [item for item in operations if item.operation == "CALENDAR_RESCHEDULE"]
             for item in shifts:
                 value = item.value or ""

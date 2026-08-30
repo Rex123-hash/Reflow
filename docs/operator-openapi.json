@@ -1,6 +1,143 @@
 {
   "components": {
     "schemas": {
+      "CalendarEventCreation": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "maximum": 1440,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Duration Minutes"
+          },
+          "end": {
+            "maxLength": 40,
+            "minLength": 20,
+            "title": "End",
+            "type": "string"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Location"
+          },
+          "reminders": {
+            "$ref": "#/components/schemas/CalendarReminderConfiguration"
+          },
+          "start": {
+            "maxLength": 40,
+            "minLength": 20,
+            "title": "Start",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          },
+          "time_basis": {
+            "enum": [
+              "ABSOLUTE",
+              "RELATIVE"
+            ],
+            "title": "Time Basis",
+            "type": "string"
+          },
+          "timezone": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary",
+          "start",
+          "end",
+          "timezone",
+          "time_basis"
+        ],
+        "title": "CalendarEventCreation",
+        "type": "object"
+      },
+      "CalendarReminder": {
+        "additionalProperties": false,
+        "properties": {
+          "method": {
+            "enum": [
+              "popup",
+              "email"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "minutes": {
+            "maximum": 40320,
+            "minimum": 0,
+            "title": "Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "method",
+          "minutes"
+        ],
+        "title": "CalendarReminder",
+        "type": "object"
+      },
+      "CalendarReminderConfiguration": {
+        "additionalProperties": false,
+        "properties": {
+          "overrides": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CalendarReminder"
+            },
+            "maxItems": 5,
+            "title": "Overrides",
+            "type": "array"
+          },
+          "use_default": {
+            "title": "Use Default",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "use_default"
+        ],
+        "title": "CalendarReminderConfiguration",
+        "type": "object"
+      },
       "ConversationContext": {
         "additionalProperties": false,
         "properties": {
@@ -1081,6 +1218,17 @@
       "RequestedOperation": {
         "additionalProperties": false,
         "properties": {
+          "calendar_event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalendarEventCreation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "comment": {
             "anyOf": [
               {
@@ -1105,6 +1253,7 @@
               "CALENDAR_RESCHEDULE",
               "CALENDAR_UPDATE_TITLE",
               "CALENDAR_UPDATE_DESCRIPTION",
+              "CREATE_CALENDAR_EVENT",
               "MOVE_PROTECTED_DEADLINE",
               "SLACK_INSPECT_CHANNEL",
               "SLACK_POST_MESSAGE"

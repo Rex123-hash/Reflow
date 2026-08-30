@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from difflib import SequenceMatcher
 
 from objective_recovery_agent.operator_schemas import (
@@ -62,7 +63,9 @@ def _help_summary(capabilities: tuple[OperatorCapability, ...]) -> str:
     examples: list[str] = []
     if "SLACK_INSPECT_CHANNEL" in operations:
         examples.append("inspect the configured release channel")
-    if any(item.startswith("CALENDAR_") for item in operations):
+    if "CREATE_CALENDAR_EVENT" in operations:
+        examples.append("create an event on the configured Calendar")
+    elif any(item.startswith("CALENDAR_") for item in operations):
         examples.append("update the configured Calendar event")
     if any(item.startswith("JIRA_") for item in operations):
         examples.append("inspect or update configured Jira work")
@@ -171,6 +174,44 @@ def _clarification(intent: OperatorIntent) -> HumanResponse:
 
 def _action_response(action: OperatorActionView) -> HumanResponse:
     if action.lifecycle == "VERIFIED":
+        create = next(
+            (
+                item.calendar_event
+                for item in action.operations
+                if item.operation == "CREATE_CALENDAR_EVENT"
+            ),
+            None,
+        )
+        if create is not None:
+            start = datetime.fromisoformat(create.start.replace("Z", "+00:00"))
+            end = datetime.fromisoformat(create.end.replace("Z", "+00:00"))
+            date = start.strftime("%A, %d %B %Y").replace(" 0", " ")
+            start_time = start.strftime("%I:%M %p").lstrip("0")
+            end_time = end.strftime("%I:%M %p").lstrip("0")
+            if create.reminders.use_default:
+                reminder = "using the calendar's default reminders"
+            elif not create.reminders.overrides:
+                reminder = "with reminders disabled"
+            else:
+                values = ", ".join(
+                    f"a {item.minutes}-minute {item.method} reminder"
+                    for item in create.reminders.overrides
+                )
+                reminder = f"with {values}"
+            return HumanResponse(
+                human_summary=(
+                    f"Created {create.summary} for {date}, {start_time} to {end_time} "
+                    f"{create.timezone}, {reminder}."
+                ),
+                situation_type="SUCCESS",
+                current_state="The new Calendar event was independently read back and verified.",
+                next_step="You can open the technical details to inspect the event receipt.",
+                truth_boundary=(
+                    "The Calendar action is verified; this does not by itself prove the "
+                    "objective recovered."
+                ),
+                suggestions=("Show verification details",),
+            )
         return HumanResponse(
             human_summary="Done — the action was independently read back and verified.",
             situation_type="SUCCESS",

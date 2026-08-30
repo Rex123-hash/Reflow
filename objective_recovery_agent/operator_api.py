@@ -81,12 +81,14 @@ def get_operator_service() -> OperatorService:
     adapters: list[OperatorActionAdapter] = []
     calendar_id = os.environ.get("GOOGLE_CALENDAR_ID", "").strip()
     demo_event_id = os.environ.get("OPERATOR_DEMO_CALENDAR_EVENT_ID", "").strip()
-    if account and calendar_id and demo_event_id:
+    if account and calendar_id:
         adapters.append(
             CalendarOperatorAdapter(
                 calendar_id=calendar_id,
-                demo_event_id=demo_event_id,
+                demo_event_id=demo_event_id or None,
                 gateway=OperatorCalendarGateway(service_account_email=account, request_timeout=15),
+                timezone=os.environ.get("OPERATOR_CALENDAR_TIMEZONE", "Etc/UTC").strip()
+                or "Etc/UTC",
             )
         )
     jira_base_url = os.environ.get("JIRA_BASE_URL", "").strip()

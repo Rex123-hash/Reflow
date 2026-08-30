@@ -64,6 +64,8 @@ def _replay_conversation(query: OperatorQuery, action: OperatorActionView) -> Co
     capability: ConversationCapability = (
         "SLACK_POST"
         if operation == "SLACK_POST_MESSAGE"
+        else "CALENDAR_CREATE"
+        if operation == "CREATE_CALENDAR_EVENT"
         else "CALENDAR_UPDATE"
         if operation.startswith("CALENDAR_")
         else "JIRA_UPDATE"
@@ -277,6 +279,7 @@ class OperatorService:
                         capabilities=self._registry.capabilities(),
                         conversation=conversation,
                         visual_context=visual_context,
+                        interpretation_time=datetime.now(UTC).isoformat(),
                     ),
                     request_id,
                 )
