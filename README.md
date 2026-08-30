@@ -69,44 +69,50 @@ Both treat *task completion* as the unit of truth. Reflow treats *objective rest
 ## <img src="docs/assets/marks/recovery.svg" height="22" align="center" alt="" /> &nbsp;How Reflow recovers an objective
 
 ```text
-                  ┌──────────────────────────────────────┐
-                  │  DISRUPTION                          │
-                  │  reality invalidates the plan        │
-                  └──────────────────┬───────────────────┘
-                                     ▼
-                  ┌──────────────────────────────────────┐
-                  │  UNDERSTAND IMPACT                   │
-                  │  what the objective actually needs   │
-                  └──────────────────┬───────────────────┘
-                                     ▼
-                  ┌──────────────────────────────────────┐
-                  │  PLAN RECOVERY                       │
-                  │  alternatives, then a risk critique  │
-                  └──────────────────┬───────────────────┘
-                                     ▼
-       ┌─────────▶┌──────────────────────────────────────┐
-       │          │  ACT                                 │
-       │          │  only what policy authorized         │
-       │          └──────────────────┬───────────────────┘
-       │                             ▼
-       │          ┌──────────────────────────────────────┐
-       │          │  VERIFY THE ACTION                   │
-       │          │  independent read-back               │
-       │          └──────────────────┬───────────────────┘
-       │                             ▼
-       │          ┌──────────────────────────────────────┐
-       │          │  CHECK THE OBJECTIVE                 │
-       │          │  six invariants over recorded state  │
-       │          └──┬────────────────────────────────┬──┘
-       │        fail │                                │ hold
-       │             ▼                                ▼
-       │   ┌─────────────────────┐      ┌─────────────────────┐
-       │   │ REOPEN AND REPLAN   │      │ OBJECTIVE RESTORED  │
-       │   │ the failed effect   │      │ resolved, with      │
-       │   │ is excluded         │      │ durable evidence    │
-       │   └─────────┬───────────┘      └─────────────────────┘
-       │             │
-       └─────────────┘  recovery 2
+                ┌────────────────────────────────────────────┐
+                │  DISRUPTION                                │
+                │  reality invalidates the plan              │
+                └──────────────────────┬─────────────────────┘
+                                       │
+                                       ▼
+                ┌────────────────────────────────────────────┐
+                │  UNDERSTAND IMPACT                         │
+                │  what the objective actually needs         │
+                └──────────────────────┬─────────────────────┘
+                                       │
+                                       ▼
+                ┌────────────────────────────────────────────┐
+                │  PLAN RECOVERY                             │
+                │  alternatives, then a risk critique        │
+                └──────────────────────┬─────────────────────┘
+                                       │
+                                       ▼
+                ┌────────────────────────────────────────────┐
+   └───────────▶│  ACT                                       │
+   │            │  only what policy authorized               │
+   │            └──────────────────────┬─────────────────────┘
+   │                                   │
+   │                                   ▼
+   │            ┌────────────────────────────────────────────┐
+   │            │  VERIFY THE ACTION                         │
+   │            │  independent read-back                     │
+   │            └──────────────────────┬─────────────────────┘
+   │                                   │
+   │                                   ▼
+   │            ┌────────────────────────────────────────────┐
+   │            │  CHECK THE OBJECTIVE                       │
+   │            │  six invariants over recorded state        │
+   │            └────────────────────────────────────────────┘
+   │                  ┌────────────────┴────────────────┐
+   │             fail                                 hold
+   │                  ▼                                 ▼
+   │    ┌──────────────────────────┐      ╔══════════════════════════╗
+   │    │  REOPEN AND REPLAN       │      ║  OBJECTIVE RESTORED      ║
+   │    │  failed effect excluded  │      ║  resolved, with evidence ║
+   │    └─────────────┬────────────┘      ╚══════════════════════════╝
+   │                  │
+   ┌──────────────────┘
+       recovery 2 — the second attempt acts again
 ```
 
 The branch on the left is the part that matters. Most agent demonstrations show the happy path. Reflow's strongest demonstrated workflow is the one where the **first recovery fails**.
@@ -142,12 +148,24 @@ Recovery 01 is marked **FAILED** at the verify step — *the external action was
 
 Four surfaces onto a loop that already ran. Each answers a different question.
 
-| | |
-|---|---|
-| <img src="docs/assets/surface-overview.png" alt="Overview: the current priority objective, its protected deadline, restoration margin, and an independently read-back Calendar commitment" width="100%" /> | <img src="docs/assets/surface-recovery.png" alt="Recovery Room: the receipt ladder for a recovery attempt" width="100%" /> |
-| **Overview** — what is at risk right now, how much margin is left against the protected deadline, and what Reflow did while you were away. | **Recovery Room** — the attempt, step by step, with the receipt ladder underneath each action. |
-| <img src="docs/assets/surface-operator.png" alt="Operator: the plain-language answer to why Recovery 1 failed, with the objective marked restored and the technical provenance collapsed beneath it" width="100%" /> | <img src="docs/assets/surface-evidence.png" alt="Evidence: an external read-back record with evidence id, external reference, observed timestamp and confirmed status" width="100%" /> |
-| **Operator** — ask in plain language. *Why did Recovery 1 fail?* returns the human answer first, states that nothing was changed, and keeps the provenance one disclosure away. | **Evidence** — every action, receipt, verification and decision, with the external reference you can check yourself. |
+<table>
+<tr>
+<td width="50%"><img src="docs/assets/surface-overview.png" alt="Overview: the current priority objective, its protected deadline, restoration margin, and an independently read-back Calendar commitment" /></td>
+<td width="50%"><img src="docs/assets/surface-recovery.png" alt="Recovery Room: the receipt ladder beneath a recovery attempt" /></td>
+</tr>
+<tr>
+<td><b>Overview</b><br/><sub>What is at risk right now, how much margin is left against the protected deadline, and what Reflow did while you were away.</sub></td>
+<td><b>Recovery Room</b><br/><sub>The attempt, step by step, with the receipt ladder underneath each action.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/assets/surface-operator.png" alt="Operator: the plain-language answer to why Recovery 1 failed, with the objective marked restored and the technical provenance collapsed beneath it" /></td>
+<td width="50%"><img src="docs/assets/surface-evidence.png" alt="Evidence: an external read-back record with evidence id, external reference, observed timestamp and confirmed status" /></td>
+</tr>
+<tr>
+<td><b>Operator</b><br/><sub>Ask in plain language. <i>Why did Recovery 1 fail?</i> returns the human answer first, states that nothing was changed, and keeps the provenance one disclosure away.</sub></td>
+<td><b>Evidence</b><br/><sub>Every action, receipt, verification and decision, with the external reference you can check yourself.</sub></td>
+</tr>
+</table>
 
 Three of these are the live workspace; the Operator tile is from the qualification workspace against the same canonical incident.
 
