@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 800" width="900" height="800"
+     role="img" aria-labelledby="a-t a-d">
+  <title id="a-t">Reflow deployment architecture</title>
+  <desc id="a-d">Eight components in one downward flow. The Reflow web app in the browser takes typed, spoken and shown input. Firebase hosts the build and issues the product identity. An authenticated BFF on Cloud Run is the only public surface. It forwards to a private, IAM-only Cloud Run backend. Inside it, eight Gemini reasoning agents orchestrated by Google ADK propose but hold no tools or credentials, and deterministic control decides and acts through adapters. Adapters reach Google Calendar, Jira, Slack, GitHub and Gmail. Reflow then reads those systems back independently and stores durable state and evidence in Firestore. When objective invariants fail, the incident reopens and replans.</desc>
+
+  <style>
+    .box  { fill: #FFFDF8; stroke: #91A995; stroke-width: 1.3; }
+    .boxp { fill: #FFFDF8; stroke: #1D4C39; stroke-width: 1.5; }
+    .boxa { fill: #E7EEE7; stroke: #1D4C39; stroke-width: 1.5; }
+    .ti   { font: 600 17px system-ui, "Segoe UI", Arial, sans-serif; fill: #17211C; }
+    .qu   { font: 400 13.5px system-ui, "Segoe UI", Arial, sans-serif; fill: #59645D; }
+    .tag  { font: 600 11px system-ui, "Segoe UI", Arial, sans-serif; fill: #7A5526;
+            letter-spacing: 1.3px; text-anchor: end; }
+    .cap  { font: 400 15px Georgia, "Times New Roman", serif; fill: #1D4C39; }
+    .lg   { font: 400 12px system-ui, "Segoe UI", Arial, sans-serif; fill: #646D67; }
+    .loop { font: 600 12px system-ui, "Segoe UI", Arial, sans-serif; fill: #7A5526; letter-spacing: .5px; }
+    .flow { stroke: #1D4C39; stroke-width: 1.6; fill: none; }
+    .back { stroke: #B89A64; stroke-width: 1.5; fill: none; stroke-dasharray: 6 5; }
+  </style>
+
+  <defs>
+    <marker id="f" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="7.5" markerHeight="7.5"
+            orient="auto-start-reverse">
+      <path d="M0 1.3 L9 5 L0 8.7 Z" fill="#1D4C39"/>
+    </marker>
+    <marker id="b" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="7.5" markerHeight="7.5"
+            orient="auto-start-reverse">
+      <path d="M0 1.3 L9 5 L0 8.7 Z" fill="#B89A64"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="800" fill="#F6F3EA"/>
+
+  <!-- caption -->
+  <text class="cap" x="64" y="40">How the deployed system connects</text>
+  <line x1="64" y1="54" x2="836" y2="54" stroke="#B89A64" stroke-width="1" stroke-opacity=".5"/>
+
+  <!-- 1 -->
+  <rect class="box" x="64" y="76" width="748" height="64" rx="12"/>
+  <text class="ti"  x="88" y="106">Reflow web app</text>
+  <text class="qu"  x="88" y="126">Type · Talk · Show</text>
+  <text class="tag" x="788" y="106">BROWSER</text>
+  <path class="flow" d="M438 140 V158" marker-end="url(#f)"/>
+
+  <!-- 2 -->
+  <rect class="box" x="64" y="162" width="748" height="64" rx="12"/>
+  <text class="ti"  x="88" y="192">Hosting and identity</text>
+  <text class="qu"  x="88" y="212">Static build, SPA rewrite, product sign-in</text>
+  <text class="tag" x="788" y="192">FIREBASE</text>
+  <path class="flow" d="M438 226 V244" marker-end="url(#f)"/>
+
+  <!-- 3 -->
+  <rect class="box" x="64" y="248" width="748" height="64" rx="12"/>
+  <text class="ti"  x="88" y="278">Authenticated BFF</text>
+  <text class="qu"  x="88" y="298">The only public surface</text>
+  <text class="tag" x="788" y="278">CLOUD RUN</text>
+  <path class="flow" d="M438 312 V330" marker-end="url(#f)"/>
+
+  <!-- 4 -->
+  <rect class="boxp" x="64" y="334" width="748" height="64" rx="12"/>
+  <text class="ti"  x="88" y="364">Recovery backend</text>
+  <text class="qu"  x="88" y="384">IAM-only, no public ingress</text>
+  <text class="tag" x="788" y="364">CLOUD RUN · PRIVATE</text>
+  <path class="flow" d="M438 398 V416" marker-end="url(#f)"/>
+
+  <!-- 5 : proposes -->
+  <rect class="boxp" x="64" y="420" width="748" height="64" rx="12"/>
+  <rect x="64" y="420" width="5" height="64" rx="2.5" fill="#B89A64"/>
+  <text class="ti"  x="88" y="450">Eight reasoning agents</text>
+  <text class="qu"  x="88" y="470">Propose only — no tools, no credentials</text>
+  <text class="tag" x="788" y="450">GOOGLE ADK · GEMINI</text>
+  <path class="flow" d="M438 484 V502" marker-end="url(#f)"/>
+
+  <!-- 6 : decides -->
+  <rect class="boxp" x="64" y="506" width="748" height="64" rx="12"/>
+  <rect x="64" y="506" width="5" height="64" rx="2.5" fill="#1D4C39"/>
+  <text class="ti"  x="88" y="536">Deterministic control</text>
+  <text class="qu"  x="88" y="556">Policy decides · adapters act · verifier proves</text>
+  <text class="tag" x="788" y="536">REFLOW CORE</text>
+  <path class="flow" d="M438 570 V588" marker-end="url(#f)"/>
+
+  <!-- 7 -->
+  <rect class="box" x="64" y="592" width="748" height="64" rx="12"/>
+  <text class="ti"  x="88" y="622">Systems of record</text>
+  <text class="qu"  x="88" y="642">Calendar · Jira · Slack · GitHub · Gmail</text>
+  <text class="tag" x="788" y="622">EXTERNAL</text>
+  <path class="flow" d="M438 656 V674" marker-end="url(#f)"/>
+
+  <!-- 8 -->
+  <rect class="boxa" x="64" y="678" width="748" height="64" rx="12"/>
+  <text class="ti"  x="88" y="708">Read-back and durable state</text>
+  <text class="qu"  x="88" y="728">Verify what actually changed · incidents, receipts, evidence</text>
+  <text class="tag" x="788" y="708">FIRESTORE</text>
+
+  <!-- reopen loop -->
+  <path class="back" d="M812 710 H856 V538 H818" marker-end="url(#b)"/>
+  <text class="loop" x="874" y="624" transform="rotate(-90 874 624)" text-anchor="middle">REOPEN &amp; REPLAN</text>
+
+  <!-- legend -->
+  <g transform="translate(64,772)">
+    <rect x="0" y="-9" width="5" height="13" rx="2.5" fill="#B89A64"/>
+    <text class="lg" x="14" y="1">Gemini proposes</text>
+    <rect x="150" y="-9" width="5" height="13" rx="2.5" fill="#1D4C39"/>
+    <text class="lg" x="164" y="1">code decides</text>
+    <text class="lg" x="300" y="1">Gemini Live powers spoken turns; it is not a ninth agent.</text>
+  </g>
+</svg>

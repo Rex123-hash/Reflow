@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 706" width="900" height="706"
+     role="img" aria-labelledby="r-t r-d">
+  <title id="r-t">How Reflow recovers an objective</title>
+  <desc id="r-d">A disruption is understood, its impact is mapped, a recovery is planned, acted on, and the action is independently read back. Reflow then checks the objective's own invariants. If they hold, the objective is restored. If they do not, the incident reopens and replans, and a second recovery attempt acts again. An action can be verified and the objective still not be recovered.</desc>
+
+  <style>
+    .box  { fill: #FFFDF8; stroke: #1D4C39; stroke-width: 1.4; }
+    .ti   { font: 600 16.5px system-ui, "Segoe UI", Arial, sans-serif; fill: #17211C; text-anchor: middle; }
+    .qu   { font: 400 13px system-ui, "Segoe UI", Arial, sans-serif; fill: #59645D; text-anchor: middle; }
+    .tiw  { font: 600 16.5px system-ui, "Segoe UI", Arial, sans-serif; fill: #FFFDF8; text-anchor: middle; }
+    .quw  { font: 400 13px system-ui, "Segoe UI", Arial, sans-serif; fill: #E7EEE7; text-anchor: middle; }
+    .tif  { font: 600 16.5px system-ui, "Segoe UI", Arial, sans-serif; fill: #8A4A3C; text-anchor: middle; }
+    .quf  { font: 400 13px system-ui, "Segoe UI", Arial, sans-serif; fill: #8A4A3C; text-anchor: middle; }
+    .cap  { font: 400 15px Georgia, "Times New Roman", serif; fill: #1D4C39; }
+    .note { font: 400 14.5px Georgia, "Times New Roman", serif; fill: #59645D; text-anchor: middle; }
+    .edge { font: 600 12px system-ui, "Segoe UI", Arial, sans-serif; letter-spacing: .6px; }
+    .flow { stroke: #1D4C39; stroke-width: 1.6; fill: none; }
+    .fail { stroke: #B89A64; stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+  </style>
+
+  <defs>
+    <marker id="rf" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="7.5" markerHeight="7.5"
+            orient="auto-start-reverse">
+      <path d="M0 1.3 L9 5 L0 8.7 Z" fill="#1D4C39"/>
+    </marker>
+    <marker id="rb" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="7.5" markerHeight="7.5"
+            orient="auto-start-reverse">
+      <path d="M0 1.3 L9 5 L0 8.7 Z" fill="#B89A64"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="706" fill="#F6F3EA"/>
+
+  <text class="cap" x="64" y="40">How Reflow recovers an objective</text>
+  <line x1="64" y1="54" x2="836" y2="54" stroke="#B89A64" stroke-width="1" stroke-opacity=".5"/>
+
+  <!-- spine -->
+  <g>
+    <rect class="box" x="290" y="76" width="320" height="56" rx="12"/>
+    <text class="ti" x="450" y="100">Disruption</text>
+    <text class="qu" x="450" y="119">reality invalidates the plan</text>
+    <path class="flow" d="M450 132 V150" marker-end="url(#rf)"/>
+
+    <rect class="box" x="290" y="154" width="320" height="56" rx="12"/>
+    <text class="ti" x="450" y="178">Understand impact</text>
+    <text class="qu" x="450" y="197">what the objective actually needs</text>
+    <path class="flow" d="M450 210 V228" marker-end="url(#rf)"/>
+
+    <rect class="box" x="290" y="232" width="320" height="56" rx="12"/>
+    <text class="ti" x="450" y="256">Plan recovery</text>
+    <text class="qu" x="450" y="275">alternatives, then a risk critique</text>
+    <path class="flow" d="M450 288 V306" marker-end="url(#rf)"/>
+
+    <rect class="box" x="290" y="310" width="320" height="56" rx="12"/>
+    <text class="ti" x="450" y="334">Act</text>
+    <text class="qu" x="450" y="353">only what policy authorized</text>
+    <path class="flow" d="M450 366 V384" marker-end="url(#rf)"/>
+
+    <rect class="box" x="290" y="388" width="320" height="56" rx="12"/>
+    <text class="ti" x="450" y="412">Verify the action</text>
+    <text class="qu" x="450" y="431">independent read-back</text>
+    <path class="flow" d="M450 444 V462" marker-end="url(#rf)"/>
+
+    <rect class="box" x="290" y="466" width="320" height="56" rx="12"/>
+    <text class="ti" x="450" y="490">Check the objective</text>
+    <text class="qu" x="450" y="509">six invariants, over recorded state</text>
+  </g>
+
+  <!-- branch -->
+  <path class="flow" d="M610 494 H700 V566" marker-end="url(#rf)"/>
+  <text class="edge" x="640" y="486" fill="#1D4C39">HOLD</text>
+
+  <path class="fail" d="M290 494 H200 V566" marker-end="url(#rb)"/>
+  <text class="edge" x="212" y="486" fill="#8A4A3C">FAIL</text>
+
+  <rect x="580" y="570" width="240" height="56" rx="12" fill="#1D4C39"/>
+  <text class="tiw" x="700" y="594">Objective restored</text>
+  <text class="quw" x="700" y="613">resolved, with evidence</text>
+
+  <rect x="80" y="570" width="240" height="56" rx="12" fill="#FFFDF8"
+        stroke="#A76658" stroke-width="1.4"/>
+  <text class="tif" x="200" y="594">Reopen and replan</text>
+  <text class="quf" x="200" y="613">the failed effect is excluded</text>
+
+  <!-- replan returns to Act -->
+  <path class="fail" d="M80 598 H44 V338 H284" marker-end="url(#rb)"/>
+  <text class="edge" x="32" y="462" fill="#7A5526" text-anchor="middle"
+        transform="rotate(-90 32 462)">RECOVERY 2</text>
+
+  <text class="note" x="450" y="676">An action can be verified and the objective still not be recovered.</text>
+</svg>
