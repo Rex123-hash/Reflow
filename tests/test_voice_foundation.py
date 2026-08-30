@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
@@ -155,6 +155,53 @@ def action(
     )
 
 
+def verified_calendar_create_action(
+    request_id: str = "12345678-1234-1234-1234-123456789abc",
+) -> OperatorActionView:
+    now = datetime.now(UTC).isoformat()
+    event = {
+        "summary": "Hackathon",
+        "start": "2026-08-31T17:00:00+05:30",
+        "end": "2026-08-31T18:00:00+05:30",
+        "timezone": "Asia/Kolkata",
+        "duration_minutes": 60,
+        "time_basis": "ABSOLUTE",
+        "reminders": {"use_default": True, "overrides": ()},
+    }
+    state = {
+        "title": "Hackathon",
+        "start": event["start"],
+        "end": event["end"],
+        "start_timezone": event["timezone"],
+        "end_timezone": event["timezone"],
+        "status": "confirmed",
+        "event_id": "ref" + "a" * 61,
+    }
+    return OperatorActionView.model_validate(
+        {
+            "operator_action_id": "b" * 64,
+            "request_id": request_id,
+            "authenticated_subject_hash": GOOGLE_SUBJECT,
+            "authority": "GOOGLE_CALENDAR",
+            "resource_type": "EVENT",
+            "resource_identifier": "configured-operator-calendar",
+            "operations": ({"operation": "CREATE_CALENDAR_EVENT", "calendar_event": event},),
+            "expected_state": state,
+            "authorization_result": "AUTO_EXECUTABLE",
+            "lifecycle": "VERIFIED",
+            "execution_acknowledgement": {
+                "operation": "created",
+                "event_id": state["event_id"],
+            },
+            "observed_state": state,
+            "verification_result": "PASSED",
+            "created_at": now,
+            "updated_at": now,
+            "external_effects_possible": True,
+        }
+    )
+
+
 def operator_response(
     *,
     disposition: str = "SUPPORTED",
@@ -209,6 +256,7 @@ class VoiceBackend(FakeBackend):
         self.operator_calls: list[tuple[bytes, str, str, str]] = []
         self.voice_response: BackendResponse | Exception | None = None
         self.operator_response: BackendResponse | Exception | None = None
+        self.operator_response_factory: Callable[[str], OperatorResponse] | None = None
 
     def create_voice_session(
         self, capability: str, payload: bytes, subject: str, request_id: str
@@ -234,7 +282,12 @@ class VoiceBackend(FakeBackend):
             raise self.operator_response
         if self.operator_response is not None:
             return self.operator_response
-        body = operator_response(request_id=request_id).model_dump_json().encode()
+        response = (
+            self.operator_response_factory(request_id)
+            if self.operator_response_factory is not None
+            else operator_response(request_id=request_id)
+        )
+        body = response.model_dump_json().encode()
         return BackendResponse(200, body, {})
 
     def __getattr__(self, name: str) -> Any:
@@ -818,6 +871,25 @@ def test_a_mismatched_operator_response_never_becomes_a_voice_result() -> None:
     assert result["outcome"] == "HANDOFF_FAILED"
     assert result["failure"] == "OPERATOR_HANDOFF_FAILED"
     assert result["action_verified"] is False
+
+
+def test_a_verified_calendar_creation_survives_the_bff_voice_contract() -> None:
+    client, backend = make_client()
+    sign_in(client, "google-id-token")
+    backend.operator_response_factory = lambda request_id: operator_response(
+        situation="SUCCESS",
+        action_view=verified_calendar_create_action(request_id),
+        external_effects=True,
+        request_id=request_id,
+    )
+
+    result = handoff(client).json()
+
+    assert result["outcome"] == "ACTION_VERIFIED"
+    assert result["action_verified"] is True
+    assert result["external_effects_executed"] is True
+    assert result["operator_action_lifecycle"] == "VERIFIED"
+    assert result["failure"] is None
 
 
 # --------------------------------------------------------------------------------------
