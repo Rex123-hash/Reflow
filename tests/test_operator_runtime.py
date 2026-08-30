@@ -14,6 +14,7 @@ from objective_recovery_agent import operator_agents
 from objective_recovery_agent.operator_agents import AdkOperatorAgents, OperatorReasoningError
 from objective_recovery_agent.operator_context import build_snapshot, safe_text
 from objective_recovery_agent.operator_schemas import (
+    ConversationContext,
     ConversationEnvelope,
     ConversationInput,
     IntentInput,
@@ -27,6 +28,7 @@ from objective_recovery_agent.operator_schemas import (
 from objective_recovery_agent.operator_service import (
     OperatorService,
     _finish_sentence,
+    query_fingerprint,
     validate_intent,
 )
 from objective_recovery_agent.planning import MODEL_ID, WorkflowResult
@@ -42,6 +44,27 @@ def test_slack_human_summary_does_not_duplicate_terminal_punctuation() -> None:
     message = "Backend engineer unavailable. SCRUM-6 is blocked."
     assert _finish_sentence(message) == message
     assert _finish_sentence("No message observed") == "No message observed."
+
+
+def test_idempotency_fingerprint_includes_bounded_conversation_context() -> None:
+    base = OperatorQuery(incident_id=INCIDENT, message="Ends at 6 PM.")
+    first = ConversationContext(
+        mode="CLARIFY",
+        user_goal="Create a hackathon event tomorrow at 5 PM",
+        normalized_request="Create a hackathon event tomorrow at 5 PM.",
+        human_summary="Please specify the duration or end time.",
+    )
+    second = first.model_copy(
+        update={"normalized_request": "Create a release review tomorrow at 5 PM."}
+    )
+
+    assert query_fingerprint(base) == query_fingerprint(base)
+    assert query_fingerprint(base) != query_fingerprint(
+        base.model_copy(update={"conversation_context": first})
+    )
+    assert query_fingerprint(
+        base.model_copy(update={"conversation_context": first})
+    ) != query_fingerprint(base.model_copy(update={"conversation_context": second}))
 
 
 def snapshot() -> OperatorSnapshot:

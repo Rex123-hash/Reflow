@@ -12,6 +12,7 @@ import type {
   VoiceOperatorHandoffResult,
   VoiceTranscriptionSession,
 } from "./voiceContract";
+import type { ConversationContext } from "../operator/operatorContract";
 
 export class VoiceSessionError extends Error {
   readonly code: VoiceFailure;
@@ -125,6 +126,7 @@ export async function handOffToOperator(
     voice_session_id: string;
     incident_id: string;
     spoken_request: string;
+    conversation_context?: ConversationContext;
     idempotency_key?: string;
   },
   signal?: AbortSignal,
@@ -158,10 +160,21 @@ export async function handOffToOperator(
 export async function spokenRequestKey(
   sessionId: string,
   spoken: string,
+  context?: ConversationContext,
 ): Promise<string> {
+  const contextIdentity = context
+    ? [
+        context.mode,
+        context.user_goal,
+        context.normalized_request ?? null,
+        context.human_summary,
+      ]
+    : null;
   const digest = await crypto.subtle.digest(
     "SHA-256",
-    new TextEncoder().encode(JSON.stringify([sessionId, spoken])),
+    new TextEncoder().encode(
+      JSON.stringify([sessionId, spoken, contextIdentity]),
+    ),
   );
   const hex = Array.from(new Uint8Array(digest), (b) =>
     b.toString(16).padStart(2, "0"),

@@ -21,6 +21,7 @@ from google.genai import types
 from objective_recovery_agent.agent_runtime import AgentId
 from objective_recovery_agent.operator_agents import OPERATOR_AGENT_NAMES
 from objective_recovery_agent.operator_schemas import (
+    ConversationContext,
     ConversationEnvelope,
     HumanResponse,
     OperatorActionView,
@@ -41,6 +42,7 @@ from objective_recovery_agent.voice_schemas import (
     VOICE_RESULT_LEAD,
     VOICE_TRUTH_STATES,
     LiveVoiceSession,
+    VoiceOperatorHandoff,
     VoiceOperatorHandoffResult,
     VoiceSessionRequest,
     VoiceTranscriptionSession,
@@ -57,6 +59,7 @@ from objective_recovery_agent.voice_sessions import (
     developer_api_client,
     live_call_constraints,
     live_configuration_names,
+    operator_handoff_tool,
     transcription_constraints,
 )
 from pydantic import ValidationError
@@ -784,6 +787,15 @@ def test_the_live_instruction_forbids_a_completion_claim_before_the_result() -> 
         assert system in lowered
 
 
+def test_live_pre_tool_speech_cannot_echo_the_operational_request() -> None:
+    lowered = " ".join(LIVE_SYSTEM_INSTRUCTION.casefold().split())
+    assert 'either call silently or say exactly "i\'ll check that with reflow."' in lowered
+    assert "do not repeat, quote, summarize, paraphrase" in lowered
+    tool = operator_handoff_tool()
+    assert "do not repeat, quote, summarize, or paraphrase" in tool.description.casefold()
+    assert "do not speak this parameter value back" in tool.parameters[0].description.casefold()
+
+
 def test_transcription_constraints_carry_no_tool_at_all() -> None:
     config = cast(Any, transcription_constraints(settings()).config)
     assert config.tools is None
@@ -841,6 +853,30 @@ def test_the_handoff_preserves_existing_idempotency_semantics() -> None:
     assert len(backend.operator_calls) == 1
 
 
+def test_the_handoff_forwards_one_bounded_clarification_context() -> None:
+    client, backend = make_client()
+    sign_in(client, "google-id-token")
+    context = ConversationContext(
+        mode="CLARIFY",
+        user_goal="Create a hackathon Calendar event tomorrow at 5 PM",
+        normalized_request=("Create a calendar event tomorrow at 5 PM for hackathon submission."),
+        human_summary="Please specify the duration or end time.",
+    )
+
+    assert (
+        handoff(
+            client,
+            spoken_request="Ends at 6 PM.",
+            conversation_context=context.model_dump(mode="json"),
+        ).status_code
+        == 200
+    )
+
+    forwarded = OperatorQuery.model_validate_json(backend.operator_calls[0][0])
+    assert forwarded.message == "Ends at 6 PM."
+    assert forwarded.conversation_context == context
+
+
 def test_the_handoff_rejects_a_request_outside_the_bounded_contract() -> None:
     client, backend = make_client()
     sign_in(client, "google-id-token")
@@ -860,6 +896,38 @@ def test_the_handoff_rejects_a_request_outside_the_bounded_contract() -> None:
     )
     assert not_json.status_code == 415
     assert backend.operator_calls == []
+
+
+def test_voice_context_is_one_pending_clarification_and_bounded_in_size() -> None:
+    base = {
+        "voice_session_id": SESSION_ID,
+        "incident_id": INCIDENT,
+        "spoken_request": "Ends at 6 PM.",
+    }
+    with pytest.raises(ValidationError, match="pending clarification"):
+        VoiceOperatorHandoff.model_validate(
+            base
+            | {
+                "conversation_context": {
+                    "mode": "TASK",
+                    "user_goal": "Create an event",
+                    "normalized_request": "Create an event tomorrow.",
+                    "human_summary": "Pending.",
+                }
+            }
+        )
+    with pytest.raises(ValidationError, match="pending clarification"):
+        VoiceOperatorHandoff.model_validate(
+            base
+            | {
+                "conversation_context": {
+                    "mode": "CLARIFY",
+                    "user_goal": "g" * 700,
+                    "normalized_request": "r" * 700,
+                    "human_summary": "s" * 700,
+                }
+            }
+        )
 
 
 def test_a_mismatched_operator_response_never_becomes_a_voice_result() -> None:
@@ -954,6 +1022,40 @@ def test_a_refused_operator_result_stays_refused_in_the_voice_contract(
     assert result.external_effects_executed is False
     assert result.objective_recovered is False
     assert result.spoken_result.startswith(VOICE_RESULT_LEAD[outcome])
+
+
+def test_only_a_pending_clarification_returns_bounded_context() -> None:
+    clarification = result_for(
+        operator_response(
+            disposition="CLARIFICATION_REQUIRED",
+            situation="NEEDS_CLARIFICATION",
+        )
+    )
+    assert clarification.conversation_context == ConversationContext(
+        mode="CLARIFY",
+        user_goal="Post the release status",
+        normalized_request=SPOKEN,
+        human_summary="Reflow reports the current state of that request.",
+    )
+
+    resolved = result_for(operator_response())
+    assert resolved.conversation_context is None
+    with pytest.raises(ValidationError, match="pending clarification"):
+        VoiceOperatorHandoffResult.model_validate(
+            resolved.model_dump() | {"conversation_context": clarification.conversation_context}
+        )
+    with pytest.raises(ValidationError, match="bounded pending clarification"):
+        VoiceOperatorHandoffResult.model_validate(
+            clarification.model_dump()
+            | {
+                "conversation_context": {
+                    "mode": "TASK",
+                    "user_goal": "Create an event",
+                    "normalized_request": "Create an event tomorrow.",
+                    "human_summary": "Pending.",
+                }
+            }
+        )
 
 
 @pytest.mark.parametrize(

@@ -1,3 +1,5 @@
+import type { ConversationContext } from "../operator/operatorContract";
+
 /**
  * The committed backend voice contracts, mirrored for the browser.
  *
@@ -96,6 +98,8 @@ export interface VoiceOperatorHandoffResult {
     "SUPPORTED" | "CLARIFICATION_REQUIRED" | "UNSUPPORTED" | null;
   operator_action_lifecycle: string | null;
   approval_required_action_id: string | null;
+  /** Present only while one bounded Operator clarification remains unresolved. */
+  conversation_context: ConversationContext | null;
   failure: VoiceFailure | null;
 }
 

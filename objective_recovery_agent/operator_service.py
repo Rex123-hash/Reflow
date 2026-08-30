@@ -83,6 +83,24 @@ def _replay_conversation(query: OperatorQuery, action: OperatorActionView) -> Co
     )
 
 
+def query_fingerprint(query: OperatorQuery) -> str:
+    """Bind a retry to both the utterance and its one bounded clarification context."""
+    return hashlib.sha256(
+        json.dumps(
+            {
+                "incident": query.incident_id,
+                "message": query.message,
+                "conversation_context": (
+                    query.conversation_context.model_dump(mode="json")
+                    if query.conversation_context is not None
+                    else None
+                ),
+            },
+            sort_keys=True,
+        ).encode()
+    ).hexdigest()
+
+
 def validate_intent(
     intent: OperatorIntent,
     snapshot: OperatorSnapshot,
@@ -190,11 +208,7 @@ class OperatorService:
             raise ValueError("Pre-understood conversation and trace must travel together")
         async with asyncio.timeout(70):
             snapshot = await self._snapshot_reader(query.incident_id)
-            fingerprint = hashlib.sha256(
-                json.dumps(
-                    {"incident": query.incident_id, "message": query.message}, sort_keys=True
-                ).encode()
-            ).hexdigest()
+            fingerprint = query_fingerprint(query)
             replay = None
             if query.idempotency_key and self._actions:
                 replay = await asyncio.to_thread(

@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
-from typing import Annotated, Literal
+from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from objective_recovery_agent.operator_schemas import ConversationContext
 
 # Google's current Live models for these two capabilities. Both are pinned in code so
 # that neither a client nor a deployment variable can select a different model.
@@ -27,7 +29,9 @@ LIVE_SESSION_SECONDS = 900
 NEW_SESSION_SECONDS = 60
 
 OPERATOR_HANDOFF_TOOL = "submit_operator_request"
-LIVE_API_HOST = "generativelanguage.googleapis.com"
+LIVE_API_HOST: Final[Literal["generativelanguage.googleapis.com"]] = (
+    "generativelanguage.googleapis.com"
+)
 
 VoiceCapability = Literal["TRANSCRIPTION", "LIVE_CALL"]
 
@@ -40,6 +44,22 @@ VoiceFailure = Literal[
     "OPERATOR_HANDOFF_UNSUPPORTED",
     "OPERATOR_HANDOFF_FAILED",
 ]
+
+
+def _bounded_pending_clarification(context: ConversationContext | None) -> bool:
+    return context is None or (
+        context.mode == "CLARIFY"
+        and sum(
+            len(value or "")
+            for value in (
+                context.user_goal,
+                context.normalized_request,
+                context.human_summary,
+            )
+        )
+        <= 1800
+    )
+
 
 VoiceHandoffOutcome = Literal[
     "CONVERSATIONAL",
@@ -191,9 +211,16 @@ class VoiceOperatorHandoff(VoiceModel):
     voice_session_id: OpaqueSessionId
     incident_id: IncidentId
     spoken_request: SpokenRequest
+    conversation_context: ConversationContext | None = None
     idempotency_key: str | None = Field(
         default=None, pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._:-]{7,127}$"
     )
+
+    @model_validator(mode="after")
+    def one_bounded_clarification(self) -> VoiceOperatorHandoff:
+        if not _bounded_pending_clarification(self.conversation_context):
+            raise ValueError("Voice context must be one bounded pending clarification")
+        return self
 
 
 class VoiceOperatorHandoffResult(VoiceModel):
@@ -214,6 +241,7 @@ class VoiceOperatorHandoffResult(VoiceModel):
     )
     operator_action_lifecycle: str | None = Field(default=None, max_length=40)
     approval_required_action_id: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    conversation_context: ConversationContext | None = None
     failure: VoiceFailure | None = None
 
     @model_validator(mode="after")
@@ -232,6 +260,10 @@ class VoiceOperatorHandoffResult(VoiceModel):
             raise ValueError("Objective recovery cannot be claimed from this outcome")
         if (self.approval_required_action_id is not None) != (self.outcome == "APPROVAL_REQUIRED"):
             raise ValueError("An approval identifier belongs only to an approval-required result")
+        if (self.conversation_context is not None) != (self.outcome == "CLARIFICATION_REQUIRED"):
+            raise ValueError("Conversation context belongs only to a pending clarification")
+        if not _bounded_pending_clarification(self.conversation_context):
+            raise ValueError("Voice context must be one bounded pending clarification")
         if not self.spoken_result.startswith(VOICE_RESULT_LEAD[self.outcome]):
             raise ValueError("The spoken result must open with the server-owned state sentence")
         return self

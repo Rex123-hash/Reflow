@@ -18,7 +18,7 @@ import secrets
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 from google.genai import types
 
@@ -59,13 +59,15 @@ HANDOFF_TOOL_DESCRIPTION = (
     "authoritative state or an actual change: inspecting a connected system, explaining "
     "recovery state, simulating against Reflow's context, requesting a change, verifying "
     "an action, or any question whose answer depends on current Reflow state. This is a "
-    "handoff, not an external system. It returns the Operator's own result, which is the "
+    "handoff, not an external system. Do not repeat, quote, summarize, or paraphrase the "
+    "request aloud before calling it. It returns the Operator's own result, which is the "
     "only thing you may report."
 )
 
 HANDOFF_PARAMETER_DESCRIPTION = (
     "The user's request in their own words. Preserve the original utterance, including "
-    "quoted text, names, identifiers, dates, and times. Do not summarize or reinterpret it."
+    "quoted text, names, identifiers, dates, and times. Do not summarize or reinterpret it, "
+    "and do not speak this parameter value back to the user."
 )
 
 LIVE_SYSTEM_INSTRUCTION = """
@@ -84,7 +86,10 @@ depends on current Reflow state. Pass the user's own words.
 
 Function calling here is synchronous. You will stop and wait for the result, and that can take
 several seconds. Before you call, you may say one short holding phrase such as "Let me check
-that with Reflow now." Never fill the wait with an outcome.
+that with Reflow now." For operational requests, either call silently or say exactly "I'll check
+that with Reflow." Do not repeat, quote, summarize, paraphrase, or confirm the user's request
+before the call, and never include the tool argument in speech. Never fill the wait with an
+outcome.
 
 Until the Operator result arrives you know nothing about what happened. Never say done,
 changed, verified, recovered, fixed, or any equivalent before it. When it arrives, speak only
@@ -249,7 +254,7 @@ def _default_token_factory(settings: VoiceSettings) -> TokenFactory:
     client = developer_api_client(settings)
 
     def create(config: types.CreateAuthTokenConfig) -> types.AuthToken:
-        return client.auth_tokens.create(config=config)
+        return cast(types.AuthToken, client.auth_tokens.create(config=config))
 
     return create
 

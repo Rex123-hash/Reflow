@@ -1,0 +1,55 @@
+{
+  "cases": [
+    {
+      "id": "duration_end_time",
+      "first_message": "Create a calendar event tomorrow at 5 PM for hackathon submission.",
+      "message": "Ends at 6 PM.",
+      "expected_capability": "CALENDAR_CREATE",
+      "expected_intent": "ACT",
+      "expected_disposition": "SUPPORTED",
+      "preserve": ["tomorrow", "5 PM", "hackathon submission", "6 PM"]
+    },
+    {
+      "id": "timezone_follow_up",
+      "previous": {
+        "mode": "CLARIFY",
+        "user_goal": "Create a hackathon submission event on August 31, 2026 from 5 PM to 6 PM.",
+        "normalized_request": "Create a calendar event called hackathon submission on August 31, 2026 from 5 PM to 6 PM.",
+        "human_summary": "Please specify the timezone."
+      },
+      "message": "Use India Standard Time, Asia/Kolkata.",
+      "expected_capability": "CALENDAR_CREATE",
+      "expected_intent": "ACT",
+      "expected_disposition": "SUPPORTED",
+      "preserve": ["hackathon submission", "August 31, 2026", "5 PM", "6 PM", "Asia/Kolkata"]
+    },
+    {
+      "id": "title_follow_up",
+      "previous": {
+        "mode": "CLARIFY",
+        "user_goal": "Create a calendar event tomorrow from 5 PM to 6 PM.",
+        "normalized_request": "Create a calendar event tomorrow from 5 PM to 6 PM in Asia/Kolkata.",
+        "human_summary": "Please specify the event title."
+      },
+      "message": "Call it hackathon submission.",
+      "expected_capability": "CALENDAR_CREATE",
+      "expected_intent": "ACT",
+      "expected_disposition": "SUPPORTED",
+      "preserve": ["tomorrow", "5 PM", "6 PM", "Asia/Kolkata", "hackathon submission"]
+    },
+    {
+      "id": "unrelated_request_resets_calendar_context",
+      "previous": {
+        "mode": "CLARIFY",
+        "user_goal": "Create a hackathon submission event tomorrow at 5 PM.",
+        "normalized_request": "Create a calendar event tomorrow at 5 PM for hackathon submission.",
+        "human_summary": "Please specify the duration or end time."
+      },
+      "message": "Why did Recovery 1 fail?",
+      "expected_capability": "RECOVERY_EXPLAIN",
+      "expected_intent": "EXPLAIN",
+      "expected_disposition": "SUPPORTED",
+      "preserve": ["Recovery 1"]
+    }
+  ]
+}

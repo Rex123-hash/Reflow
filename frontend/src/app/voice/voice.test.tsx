@@ -53,6 +53,7 @@ function result(
     operator_disposition: "SUPPORTED",
     operator_action_lifecycle: null,
     approval_required_action_id: null,
+    conversation_context: null,
     failure: null,
     ...overrides,
   };

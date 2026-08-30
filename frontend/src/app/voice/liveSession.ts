@@ -53,6 +53,7 @@ interface ServerFrame {
   setupComplete?: unknown;
   serverContent?: {
     inputTranscription?: { text?: string };
+    interimInputTranscription?: { text?: string };
     outputTranscription?: { text?: string };
     modelTurn?: {
       parts?: { inlineData?: { data?: string; mimeType?: string } }[];
@@ -74,7 +75,7 @@ interface ServerFrame {
 export interface LiveSocketHandlers {
   onOpen?(): void;
   /** A finalized or interim fragment of what the user said. */
-  onInputTranscript?(text: string): void;
+  onInputTranscript?(text: string, kind: "interim" | "final"): void;
   /** A fragment of what Reflow said. */
   onOutputTranscript?(text: string): void;
   onAudio?(pcm: ArrayBuffer): void;
@@ -115,8 +116,10 @@ function open(
     }
     const content = frame.serverContent;
     if (content) {
+      const interimInput = content.interimInputTranscription?.text;
+      if (interimInput) handlers.onInputTranscript?.(interimInput, "interim");
       const input = content.inputTranscription?.text;
-      if (input) handlers.onInputTranscript?.(input);
+      if (input) handlers.onInputTranscript?.(input, "final");
       const output = content.outputTranscription?.text;
       if (output) handlers.onOutputTranscript?.(output);
       for (const part of content.modelTurn?.parts ?? []) {

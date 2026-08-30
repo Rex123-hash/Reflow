@@ -18,6 +18,8 @@ import {
   OPERATOR_HANDOFF_TOOL,
   type VoiceOperatorHandoffResult,
 } from "./voiceContract";
+import type { ConversationContext } from "../operator/operatorContract";
+import { mergeTranscriptFragment } from "./transcriptFragments";
 
 const BANDS = 16;
 /** How long a settled outcome holds the instrument before listening resumes. */
@@ -67,6 +69,8 @@ export function useLiveCall(incidentId: string, reducedMotion: boolean) {
     reflow: "",
   });
   const ended = useRef(false);
+  const pendingContext = useRef<ConversationContext | null>(null);
+  const toolOwnsUserTurn = useRef(false);
 
   const clearTimers = () => {
     if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
@@ -132,22 +136,30 @@ export function useLiveCall(incidentId: string, reducedMotion: boolean) {
       // The synchronous tool call owns this user row. Drop the same accumulated
       // transcription so the later turn-complete frame cannot record it twice.
       spoken.current.you = "";
+      toolOwnsUserTurn.current = true;
       setInterim("");
       setTranscript((rows) => [
         ...rows,
         { id: nextId(), speaker: "you", text: request, at: Date.now() },
       ]);
       try {
+        const context = pendingContext.current;
         const result = await handOffToOperator(
           {
             voice_session_id: sessionId.current,
             incident_id: incidentId,
             spoken_request: request,
-            idempotency_key: await spokenRequestKey(sessionId.current, request),
+            ...(context ? { conversation_context: context } : {}),
+            idempotency_key: await spokenRequestKey(
+              sessionId.current,
+              request,
+              context ?? undefined,
+            ),
           },
           controller.signal,
         );
         if (disposed) return;
+        pendingContext.current = result.conversation_context;
         setLastResult(result);
         setTranscript((rows) => [
           ...rows,
@@ -218,11 +230,18 @@ export function useLiveCall(incidentId: string, reducedMotion: boolean) {
         socket.current = openLiveCallSocket(session, {
           onOpen: () => !disposed && setBase("LISTENING"),
           onInputTranscript: (text) => {
-            spoken.current.you += text;
+            if (toolOwnsUserTurn.current) return;
+            spoken.current.you = mergeTranscriptFragment(
+              spoken.current.you,
+              text,
+            );
             setInterim(spoken.current.you.trim());
           },
           onOutputTranscript: (text) => {
-            spoken.current.reflow += text;
+            spoken.current.reflow = mergeTranscriptFragment(
+              spoken.current.reflow,
+              text,
+            );
           },
           onAudio: (pcm) => playback.current?.enqueue(pcm),
           onInterrupted: () => {
@@ -230,7 +249,13 @@ export function useLiveCall(incidentId: string, reducedMotion: boolean) {
             commit("reflow");
           },
           onTurnComplete: () => {
-            commit("you");
+            if (toolOwnsUserTurn.current) {
+              toolOwnsUserTurn.current = false;
+              spoken.current.you = "";
+              setInterim("");
+            } else {
+              commit("you");
+            }
             commit("reflow");
           },
           onToolCall: (call) => {
@@ -337,6 +362,8 @@ export function useLiveCall(incidentId: string, reducedMotion: boolean) {
       end: teardown,
       reconnect: () => {
         teardown();
+        pendingContext.current = null;
+        toolOwnsUserTurn.current = false;
         setError(null);
         setLastResult(null);
         setBase("CONNECTING");

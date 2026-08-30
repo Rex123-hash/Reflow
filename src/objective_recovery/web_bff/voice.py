@@ -147,6 +147,7 @@ def register_voice_routes(
             incident_id=handoff.incident_id,
             message=handoff.spoken_request,
             idempotency_key=handoff.idempotency_key,
+            conversation_context=handoff.conversation_context,
         )
         headers = {**_HEADERS, "X-Reflow-Request-Id": request_id}
 

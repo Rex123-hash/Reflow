@@ -8,7 +8,7 @@ unsupported, approval-required, or unverified outcome cannot be spoken as a succ
 from __future__ import annotations
 
 from objective_recovery_agent.operator_context import safe_text
-from objective_recovery_agent.operator_schemas import OperatorResponse
+from objective_recovery_agent.operator_schemas import ConversationContext, OperatorResponse
 from objective_recovery_agent.voice_schemas import (
     ACTION_IS_NOT_OBJECTIVE,
     VOICE_RESULT_LEAD,
@@ -64,6 +64,18 @@ def handoff_result(
         "CONVERSATIONAL",
         "ACTION_VERIFIED",
     }
+    conversation_context = (
+        ConversationContext(
+            mode="CLARIFY",
+            user_goal=safe_text(response.conversation.user_goal, 400),
+            normalized_request=safe_text(
+                response.conversation.normalized_request or spoken_request, 800
+            ),
+            human_summary=safe_text(response.human_response.human_summary, 400),
+        )
+        if outcome == "CLARIFICATION_REQUIRED"
+        else None
+    )
     return VoiceOperatorHandoffResult(
         voice_session_id=voice_session_id,
         request_id=response.request_id,
@@ -83,6 +95,7 @@ def handoff_result(
             if action is not None and outcome == "APPROVAL_REQUIRED"
             else None
         ),
+        conversation_context=conversation_context,
         failure=(
             "OPERATOR_HANDOFF_DENIED"
             if outcome == "DENIED"
