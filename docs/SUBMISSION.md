@@ -12,7 +12,7 @@ Reflow is an autonomous objective recovery engine — a closed loop, not an assi
 
 **One line:** Gemini reasons. Code enforces. Adapters act. Verifier proves.
 
-**Say this, not that.** Reflow is an engine that contains AI, not an AI that answers questions. The canonical recovery involved zero human steps. Operator (type, talk, show) is a window onto the loop and a bounded control surface — never describe it as the product. The specification lists *generic chatbot* as an explicit non-goal.
+**Say this, not that.** Reflow is an engine that contains AI, not an AI that answers questions. The canonical recovery required zero human interventions *after the external trigger* — say it that way, because Operator workflows are deliberately human-initiated. Operator (type, talk, show) is a window onto the loop and a bounded control surface — never describe it as the product. The specification lists *generic chatbot* as an explicit non-goal.
 
 ---
 
@@ -86,7 +86,7 @@ The Calendar action was verified. The objective was not restored — Candidate A
 
 **Type.** The Operator console takes a question or a request. Agent 6 classifies it into a typed intent; policy decides whether anything may execute.
 
-**Talk.** A live bidirectional Gemini Live call with real barge-in. Credentials are short-lived, model-locked and audience-bound; the browser never receives a durable key. Dictation composes into the same field and never submits on its own. Gemini Live is a model capability, not a ninth agent.
+**Talk.** A live bidirectional Gemini Live conversation. The Live API's interruption signal is wired to the audio player, so speaking over Reflow stops playback and commits the turn — implemented and unit-covered, with no preserved recording of an interruption during a real authenticated call. Credentials are short-lived, model-locked and audience-bound; the browser never receives a durable key. Dictation composes into the same field and never submits on its own. Gemini Live is a model capability, not a ninth agent.
 
 **Show.** Upload, drag or paste a screenshot. The endpoint validates signature, declared type, decoder agreement, frame count and dimensions before Agent 8 sees anything. The answer separates observed from inferred from not visible.
 
@@ -125,7 +125,7 @@ Two boundaries hold: visual evidence is not authoritative live system state, and
 - Visual evidence is not live system state, and image text cannot authorize anything.
 - Capability is bounded to configured resources, not arbitrary issues, channels or calendars.
 - Gmail is read-only, enforced by exact scope-set comparison.
-- Calendar event creation is implemented and tested, with no live qualification record yet.
+- Calendar event creation is live qualified as a controlled Operator capability: one real create, independent read-back, expected equal to observed, and a same-key replay that produced no second insert. It is recorded through the Operator action ledger, not the autonomous loop's own action claims and receipts.
 - The Jira comment operation failed its live attempt and is not claimed as qualified.
 - Voice is deployed and unit-tested; its live-call evidence boundary is narrower than the Calendar, Slack, Jira, GitHub and Gmail proofs.
 - A verified action does not imply a recovered objective.
@@ -139,11 +139,11 @@ Two boundaries hold: visual evidence is not authoritative live system state, and
 
 | Gate | Result |
 |---|---|
-| Backend tests | 544 passing, 1 skipped, 1 known-stale frozen-baseline guard |
+| Backend tests | 549 passing, 1 skipped, 1 known-stale frozen-baseline guard |
 | Coverage | 95.35%, gate 95% |
 | `mypy` strict | Clean, 56 source files |
 | `ruff check` | Clean on `src`, `tests`, `objective_recovery_agent` |
-| Frontend tests | 161 passing across 19 files |
+| Frontend tests | 167 passing across 20 files |
 | Frontend typecheck, lint, format, build | Clean |
 
 The stale guard pins thirteen paths against commit `6b9b6f1`. Twelve are byte-identical; the only divergence is a two-line design-token substitution in a frontend presentation component. State it as a stale guard, never as "all tests green".

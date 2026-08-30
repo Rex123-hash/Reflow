@@ -13,8 +13,8 @@ Reflow is a closed loop, not an assistant. It watches the systems an objective d
 ![Cloud Run](https://img.shields.io/badge/Cloud_Run-1D4C39?style=flat-square&logo=googlecloud&logoColor=white)
 ![Firestore](https://img.shields.io/badge/Firestore-1D4C39?style=flat-square&logo=firebase&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase_Hosting_+_Auth-1D4C39?style=flat-square&logo=firebase&logoColor=white)
-![Backend tests](https://img.shields.io/badge/backend-544_passing-91A995?style=flat-square)
-![Frontend tests](https://img.shields.io/badge/frontend-161_passing-91A995?style=flat-square)
+![Backend tests](https://img.shields.io/badge/backend-549_passing-91A995?style=flat-square)
+![Frontend tests](https://img.shields.io/badge/frontend-167_passing-91A995?style=flat-square)
 ![Coverage](https://img.shields.io/badge/coverage-95.35%25-91A995?style=flat-square)
 
 **[Live product → reflow-objective-recovery.web.app](https://reflow-objective-recovery.web.app)**
@@ -25,7 +25,7 @@ Reflow is a closed loop, not an assistant. It watches the systems an objective d
 
 </div>
 
-| Deployment | Human steps in the canonical run | Email to restored objective | External proof |
+| Deployment | Human interventions after the trigger | Email to restored objective | External proof |
 |---|---:|---:|---:|
 | [Live on Firebase + Cloud Run](https://reflow-objective-recovery.web.app) | **zero** | **~111 seconds** | **independent read-back** |
 
@@ -136,16 +136,16 @@ Only then did all six invariants pass and the objective resolve.
 
 ## <img src="docs/assets/marks/product.svg" height="22" align="center" alt="" /> &nbsp;The product
 
-Four surfaces onto a loop that already ran. Each answers a different question, and all are captured from the live workspace.
+Four surfaces onto a loop that already ran. Each answers a different question.
 
 | | |
 |---|---|
 | <img src="docs/assets/surface-overview.png" alt="Overview: the current priority objective, its protected deadline, restoration margin, and an independently read-back Calendar commitment" width="100%" /> | <img src="docs/assets/surface-recovery.png" alt="Recovery Room: the receipt ladder for a recovery attempt" width="100%" /> |
 | **Overview** — what is at risk right now, how much margin is left against the protected deadline, and what Reflow did while you were away. | **Recovery Room** — the attempt, step by step, with the receipt ladder underneath each action. |
-| <img src="docs/assets/surface-operator.png" alt="Operator: Reflow answering that it cannot create new Calendar events, marked unsupported, with no action taken" width="100%" /> | <img src="docs/assets/surface-evidence.png" alt="Evidence: an external read-back record with evidence id, external reference, observed timestamp and confirmed status" width="100%" /> |
-| **Operator** — ask in plain language. This one is a **refusal**: Reflow says it cannot create Calendar events and that no action was taken. | **Evidence** — every action, receipt, verification and decision, with the external reference you can check yourself. |
+| <img src="docs/assets/surface-operator.png" alt="Operator: the plain-language answer to why Recovery 1 failed, with the objective marked restored and the technical provenance collapsed beneath it" width="100%" /> | <img src="docs/assets/surface-evidence.png" alt="Evidence: an external read-back record with evidence id, external reference, observed timestamp and confirmed status" width="100%" /> |
+| **Operator** — ask in plain language. *Why did Recovery 1 fail?* returns the human answer first, states that nothing was changed, and keeps the provenance one disclosure away. | **Evidence** — every action, receipt, verification and decision, with the external reference you can check yourself. |
 
-The Operator tile is deliberate. A system that only shows its successes has not shown you its authority model.
+Three of these are the live workspace; the Operator tile is from the qualification workspace against the same canonical incident.
 
 ---
 
@@ -265,97 +265,118 @@ A deeper component-level view is in [`docs/architecture.md`](docs/architecture.m
 
 ---
 
-## <img src="docs/assets/marks/pipeline.svg" height="22" align="center" alt="" /> &nbsp;How it works
+## <img src="docs/assets/marks/pipeline.svg" height="22" align="center" alt="" /> &nbsp;How the canonical recovery actually ran
 
-This is the canonical recovery, with the real values it actually produced and the file that owns each stage. Everything below happened without a person.
+Not an illustration — the real run, in order, with the values it produced. Every step below happened without a person.
 
 ```text
-                    "Backend lead is unavailable this week."
-                   a real email, arriving at a watched mailbox
-                                        │
-                                        ▼
-    ┌──────────────────────────────────────────────────────────────────────┐
-    │  1 · INGEST                                      gmail_ingestion.py  │
-    │  Gmail watch → Pub/Sub push → the private backend                    │
-    │  history cursor advances · the event is claimed transactionally,     │
-    │  so a redelivery of the same message can never run twice             │
-    └───────────────────────────────────┬──────────────────────────────────┘
-                                        ▼
-    ┌──────────────────────────────────────────────────────────────────────┐
-    │  2 · INTERPRET                              gmail_interpretation.py  │
-    │  agent 1 → REAL_DISRUPTION, type personnel_unavailability,           │
-    │  grounded in verbatim excerpts from the mail body                    │
-    │  agent 2 → candidate nodes: person-backend-lead,                     │
-    │  work-api-migration, release-v2 — from a known-node catalogue        │
-    └───────────────────────────────────┬──────────────────────────────────┘
-                                        ▼
-    ┌──────────────────────────────────────────────────────────────────────┐
-    │  3 · MAP THE BLAST RADIUS                           domain/graph.py  │
-    │  reverse traversal over the operational graph — deterministic,       │
-    │  and final; the model may propose nodes but never traverse           │
-    │  threatened objective: SHIP RELEASE V2, deadline Fri 17:00 UTC       │
-    └───────────────────────────────────┬──────────────────────────────────┘
-                                        ▼
-    ┌──────────────────────────────────────────────────────────────────────┐
-    │  4 · PLAN, THEN ATTACK THE PLANS                        planning.py  │
-    │  agent 3 → three materially different recoveries, one each for       │
-    │  deadline-first, risk-minimisation-first, resource-balance-first     │
-    │  agent 4 → one critique per plan: contradictions, overload,          │
-    │  single points of failure, missing evidence. It cannot approve.      │
-    └───────────────────────────────────┬──────────────────────────────────┘
-                                        ▼
-    ┌──────────────────────────────────────────────────────────────────────┐
-    │  5 · AUTHORISE, THEN SELECT         domain/policy.py · selection.py  │
-    │  hard policy: workload ceiling, skills, protected commitments,       │
-    │  blocking unknowns · invalid plans are rejected with reasons         │
-    │  one stable pick — the same evidence always selects the same plan    │
-    └───────────────────────────────────┬──────────────────────────────────┘
-                                        │
-                    ┌───────────────────┴─────────────────┐
-                    ▼                                     ▼
-   ┌────────────────────────────────┐    ┌────────────────────────────────┐
-   │  CALENDAR ADAPTER              │    │  GITHUB GATEWAY                │
-   │  reschedule the release        │    │  create the Candidate A        │
-   │  coordination block            │    │  validation release            │
-   │  idempotency key first         │    │  then wait for real CI         │
-   └────────────────────────────────┘    └────────────────────────────────┘
-                    │                                     │
-                    └───────────────────┬─────────────────┘
-                                        ▼
-    ┌──────────────────────────────────────────────────────────────────────┐
-    │  6 · READ EACH EFFECT BACK                        the same adapters  │
-    │  a second, separate request to each provider                         │
-    │  expected compared with observed · a write that returns 200 is       │
-    │  a receipt, never proof. Disagreement ⇒ VERIFICATION_FAILED          │
-    └───────────────────────────────────┬──────────────────────────────────┘
-                                        ▼
-    ┌──────────────────────────────────────────────────────────────────────┐
-    │  7 · VERIFY THE OBJECTIVE                    domain/verification.py  │
-    │  six invariants over recorded state — the only route to resolved     │
-    │  Recovery 01: Calendar VERIFIED, but release-validation-green        │
-    │  was false because Candidate A failed CI                             │
-    └───────────────────────────────────┬──────────────────────────────────┘
-                                        │
-                    ┌───────────────────┴─────────────────┐
-              invariants fail                            hold
-                    ▼                                     ▼
-   ┌────────────────────────────────┐    ┌────────────────────────────────┐
-   │  8 · REOPEN AND REPLAN         │    │  RESOLVED                      │
-   │  p1d.py · agent 5              │    │  objective_restored            │
-   │  the failed effect is          │    │  revision 16, six of six       │
-   │  fingerprinted so the          │    │  invariants, 21h 51m           │
-   │  next plan cannot              │    │  before the protected          │
-   │  repeat it                     │    │  deadline                      │
-   └────────────────────────────────┘    └────────────────────────────────┘
-                    │
-                    └─ Candidate B ─▶ back to stage 4, and it holds
+                   "Backend lead is unavailable this week."
+                  a real email, arriving at a watched mailbox
+                                       │
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  1 · INGEST                                                      │
+     │  Gmail watch → Pub/Sub push → the private backend                │
+     │  already-claimed redeliveries exit without repeating the stage   │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       │  Pub/Sub handoff
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  2 · INTERPRET                                                   │
+     │  agent 1 → REAL_DISRUPTION · personnel_unavailability            │
+     │  agent 2 → person-backend-lead, work-api-migration, release-v2   │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  3 · MAP THE BLAST RADIUS                                        │
+     │  deterministic reverse traversal over the operational graph      │
+     │  threatened objective: SHIP RELEASE V2, Friday 17:00 UTC         │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  4 · PLAN, THEN ATTACK THE PLANS                                 │
+     │  agent 3 → three materially different recovery candidates        │
+     │  agent 4 → one critique each; it cannot approve or reject        │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  5 · AUTHORISE AND SELECT                                        │
+     │  hard policy rejects invalid candidates, with reasons            │
+     │  stable selection — the same evidence picks the same plan        │
+     └──────────────────────────────────────────────────────────────────┘
+
+                      ──────────  RECOVERY 01  ──────────
+
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  6 · ACT ON GOOGLE CALENDAR                                      │
+     │  reschedule the release coordination block                       │
+     │  the idempotency key is claimed before the write                 │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  7 · READ THE CALENDAR BACK                                      │
+     │  a separate request · observed state matched expected            │
+     │  receipt VERIFIED — acknowledgement alone is not proof           │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       │  Pub/Sub handoff
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  8 · VALIDATE CANDIDATE A ON GITHUB                              │
+     │  the release is created, then the real CI result is awaited      │
+     │  the required check failed                                       │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  9 · VERIFY THE OBJECTIVE                                        │
+     │  six invariants evaluated over recorded state                    │
+     │  release-validation-green false — the objective did not recover  │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       │  invariants fail
+                                       ▼
+
+                      ──────────  RECOVERY 02  ──────────
+
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  10 · REOPEN AND REPLAN                                          │
+     │  the incident reopens itself · agent 5 says what must change     │
+     │  the failed effect is fingerprinted and excluded from replanning │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  11 · VALIDATE CANDIDATE B                                       │
+     │  a different candidate, CI green, the release promoted           │
+     │  an independent GitHub read confirms the latest release          │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  12 · VERIFY AGAIN                                               │
+     │  six of six invariants hold                                      │
+     └──────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+     ╔══════════════════════════════════════════════════════════════════╗
+     ║  OBJECTIVE RESTORED                                              ║
+     ║  objective_restored · revision 16 · 21h 51m before the deadline  ║
+     ╚══════════════════════════════════════════════════════════════════╝
 ```
 
-**Four durable stages, not one long request.** Stages 1, 2–5, the GitHub validation, and the verify-or-reopen step are separate Pub/Sub-delivered units of work. Each finishes, writes durable state, and publishes a handoff the next one consumes on its own. A worker can die anywhere in that chain and the work resumes rather than restarting.
+**Inspect the implementation:** [`gmail_ingestion.py`](objective_recovery_agent/gmail_ingestion.py) · [`gmail_interpretation.py`](objective_recovery_agent/gmail_interpretation.py) · [`domain/graph.py`](src/objective_recovery/domain/graph.py) · [`planning.py`](objective_recovery_agent/planning.py) · [`domain/policy.py`](src/objective_recovery/domain/policy.py) · [`application/selection.py`](src/objective_recovery/application/selection.py) · [`calendar_operator_adapter.py`](objective_recovery_agent/calendar_operator_adapter.py) · [`github_gateway.py`](objective_recovery_agent/github_gateway.py) · [`domain/verification.py`](src/objective_recovery/domain/verification.py) · [`p1d.py`](objective_recovery_agent/p1d.py)
 
-**Replay is safe by construction.** A redelivered message re-enters its stage and stops, because event claims are transactional. A retried action returns the existing durable action, because the idempotency key is claimed before the write — verified live during the Slack qualification, where a repeated request returned the same action and the same timestamps without reaching the provider.
+**Four durable stages, not one long request.** The Pub/Sub handoffs marked above are real boundaries: each stage finishes its work, writes durable state, and publishes for the next one to consume. A worker can die anywhere in that chain and the work resumes rather than restarting.
 
-**The interesting stage is 8.** `p1d.py` describes itself as *autonomous reopen, replan, second recovery, shipping, and closure*. When invariants fail, the failed effect is recorded as a fingerprint and hard-rejected from the next plan, so the engine cannot replan into the dead end it just came out of. Candidate B was produced that way.
+**Replay is safe by construction.** An already-claimed redelivery exits without repeating its stage, because event claims are transactional. A retried action returns the existing durable action, because the idempotency key is claimed before the write — verified live during the Slack qualification, where a repeated request returned the same action and the same timestamps without reaching the provider.
+
+**Stage 10 is the one to look at.** `p1d.py` describes itself as *autonomous reopen, replan, second recovery, shipping, and closure*. The failed effect is recorded as a fingerprint and hard-rejected from the next plan, so the engine cannot replan into the dead end it just came out of. Candidate B was produced that way.
 
 ---
 
@@ -365,7 +386,7 @@ The engine does not need any of this to work. Operator is how a person looks int
 
 **Type.** The Operator composer takes a question or a request. Agent 6 classifies it into a typed intent; deterministic policy decides whether anything may execute.
 
-**Say.** A live bidirectional voice call on Gemini Live, with real barge-in. Credentials are minted short-lived, model-locked and audience-bound in [`voice_sessions.py`](objective_recovery_agent/voice_sessions.py); the browser never receives a durable key. Dictation is separate and composes into the same field — it never submits on its own.
+**Say.** A live bidirectional voice conversation on Gemini Live. The Live API's interruption signal is wired to the audio player, so speaking over Reflow stops its playback and commits the turn. Credentials are minted short-lived, model-locked and audience-bound in [`voice_sessions.py`](objective_recovery_agent/voice_sessions.py); the browser never receives a durable key. Dictation is separate and composes into the same field — it never submits on its own.
 
 **Show.** Upload, drag, or paste a screenshot. `POST /api/v1/operator/image` validates signature, declared type, decoder agreement, frame count and dimensions before Agent 8 sees anything. The answer separates what was **observed** from what was **inferred** from what is **not visible**.
 
@@ -401,7 +422,7 @@ Derived from the adapters and policy in source, and from the recorded live proof
 | System | Capability | Status |
 |---|---|---|
 | **Google Calendar** | Reschedule, update title, update description on the configured event | **Live qualified** — real write, independent `GET`, verified |
-| **Google Calendar** | Create an event on the configured operator calendar | **Implemented and tested** — no live qualification record yet |
+| **Google Calendar** | Create an event on the configured operator calendar | **Live qualified** — one real create, independent read-back, `expected == observed`, replay produced no second insert |
 | **Jira** | Transition an issue | **Live qualified** — real transition, separate `GET` confirmed |
 | **Jira** | Set priority, assign, set due date, add comment | **Implemented and tested** — comment creation failed its live attempt and is not claimed |
 | **Slack** | Post a message to the configured channel | **Live qualified** — one authorized message, read back, replay-safe |
@@ -491,7 +512,7 @@ Reflow/
 │   ├── vision/                      Show Reflow: plate, client, visual answer
 │   ├── voice/                       live call, dictation, global dock
 │   └── recovery/                    Recovery Room, spine, receipt ladder
-├── tests/                           544 backend tests
+├── tests/                           549 backend tests
 ├── deployment/terraform/            single-project infrastructure
 └── docs/                            proofs, contracts and architecture
 ```
@@ -526,11 +547,11 @@ npm run build
 
 | Gate | Result |
 |---|---|
-| Backend tests | **544 passing**, 1 skipped, 1 known-stale guard described below |
+| Backend tests | **549 passing**, 1 skipped, 1 known-stale guard described below |
 | Coverage | **95.35%**, gate 95% |
 | `mypy` strict | **Clean**, 56 source files |
 | `ruff check` | **Clean** on `src`, `tests`, `objective_recovery_agent` |
-| Frontend tests | **161 passing** across 19 files |
+| Frontend tests | **167 passing** across 20 files |
 | Frontend typecheck, lint, format, build | **Clean** |
 
 **The one failure, stated plainly.**
@@ -549,9 +570,9 @@ This guard pins thirteen paths against commit `6b9b6f1`. Twelve are byte-identic
 - **Visual evidence is not live system state**, and text inside an image cannot authorize anything.
 - **Capability is bounded by configured adapters.** Reflow acts on specific configured resources, not on arbitrary issues, channels or calendars.
 - **Gmail is read-only.** The scope is enforced by exact set comparison, so a broader grant fails closed.
-- **Calendar event creation is implemented and tested but has no live qualification record** on this branch, and is listed that way above.
 - **The Jira comment operation failed its live attempt** and is not claimed as qualified.
-- **Voice is deployed and unit-tested**, but its live-call evidence boundary is narrower than the recorded Calendar, Slack, Jira, GitHub and Gmail proofs.
+- **Voice interruption is implemented and wired, not separately proven.** The handler is in source and covered at unit level; there is no preserved recording of an interruption during a real authenticated call, so it is described as implemented rather than qualified.
+- **Calendar event creation is recorded through the Operator action ledger**, not through the autonomous recovery loop's own action claims and receipts. It is a controlled Operator capability.
 - **A verified action does not imply a recovered objective.** That is the point, and it means Reflow will sometimes tell you it changed something and still failed.
 - Provider and model services carry their own availability and quota behavior.
 
@@ -566,6 +587,7 @@ This guard pins thirteen paths against commit `6b9b6f1`. Twelve are byte-identic
 | Objective verification is the only route to resolved | [`domain/verification.py`](src/objective_recovery/domain/verification.py), [`domain/state_machine.py`](src/objective_recovery/domain/state_machine.py) |
 | Action lifecycle, authorization and read-back | [`operator_actions.py`](objective_recovery_agent/operator_actions.py) |
 | Calendar adapter and its independent GET | [`calendar_operator_adapter.py`](objective_recovery_agent/calendar_operator_adapter.py) |
+| Calendar event creation, bounded to one calendar | [`calendar_operator_contract.py`](objective_recovery_agent/calendar_operator_contract.py), [`test_calendar_create_operator.py`](tests/test_calendar_create_operator.py) |
 | Slack bounded capability and live proof | [`slack_operator_adapter.py`](objective_recovery_agent/slack_operator_adapter.py), [`p2h-slack-operator-capability.md`](docs/p2h-slack-operator-capability.md) |
 | Jira and Calendar live action proof | [`p2g-controlled-operator-act-final.md`](docs/p2g-controlled-operator-act-final.md) |
 | Canonical recovery, end to end | [`p1e-proof.md`](docs/p1e-proof.md) |
