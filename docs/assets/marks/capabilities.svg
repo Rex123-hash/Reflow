@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="Operational capabilities">
+  <g fill="none" stroke="#1D4C39" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3.2"/>
+    <path d="M12 8.8V4.4M15.2 12h4.4M12 15.2v4.4M8.8 12H4.4"/>
+  </g>
+  <path d="M9.6 4.4h4.8M9.6 19.6h4.8M4.4 9.6v4.8" stroke="#91A995" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M19.6 9.6v4.8" stroke="#B89A64" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="Google technology">
+  <g fill="none" stroke="#1D4C39" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+  </g>
+  <g fill="none" stroke="#91A995" stroke-width="1.6">
+    <circle cx="12" cy="12" r="8.6" stroke-dasharray="30 8" transform="rotate(-90 12 12)"/>
+  </g>
+  <circle cx="12" cy="3.4" r="1.7" fill="#B89A64"/>
+  <circle cx="4.5" cy="16.4" r="1.4" fill="#1D4C39"/>
+  <circle cx="19.5" cy="16.4" r="1.4" fill="#1D4C39"/>
+</svg>
