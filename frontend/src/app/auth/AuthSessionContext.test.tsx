@@ -19,6 +19,14 @@ const guestSession = {
   read_only: true,
 };
 
+const liveSession = {
+  mode: "live",
+  workspace_label: "Live workspace",
+  email: "operator@example.com",
+  display_name: "Operator",
+  read_only: false,
+};
+
 function response(status: number, body?: unknown): Response {
   return {
     status,
@@ -89,6 +97,57 @@ describe("workspace access", () => {
     const fetch = vi
       .fn()
       .mockResolvedValueOnce(response(401))
+      .mockResolvedValueOnce(response(200, guestSession));
+    vi.stubGlobal("fetch", fetch);
+    render(<AuthBoundary>workspace</AuthBoundary>);
+
+    expect(await screen.findByText("workspace")).toBeVisible();
+    expect(auth.continueAsGuest).toHaveBeenCalledTimes(1);
+    expect(auth.continueWithGoogle).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("");
+  });
+
+  it("sends Open workspace from guest into the live Google path", async () => {
+    window.history.replaceState({}, "", "/app/overview?access=live");
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(response(200, guestSession))
+      .mockResolvedValueOnce(response(200, liveSession));
+    vi.stubGlobal("fetch", fetch);
+    render(<AuthBoundary>workspace</AuthBoundary>);
+
+    const google = await screen.findByRole("button", {
+      name: "Continue with Google",
+    });
+    expect(
+      screen.queryByRole("button", { name: /Demo Workspace/i }),
+    ).toBeNull();
+    expect(auth.clearProductSession).toHaveBeenCalledTimes(1);
+    expect(auth.continueAsGuest).not.toHaveBeenCalled();
+    fireEvent.click(google);
+    expect(await screen.findByText("workspace")).toBeVisible();
+    expect(auth.continueWithGoogle).toHaveBeenCalledTimes(1);
+    expect(window.location.search).toBe("");
+  });
+
+  it("resumes an existing live session when Open workspace is requested", async () => {
+    window.history.replaceState({}, "", "/app/overview?access=live");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(response(200, liveSession)),
+    );
+    render(<AuthBoundary>workspace</AuthBoundary>);
+
+    expect(await screen.findByText("workspace")).toBeVisible();
+    expect(auth.clearProductSession).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("");
+  });
+
+  it("switches an existing live session to guest when Live Demo is requested", async () => {
+    window.history.replaceState({}, "", "/app?demo=1");
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(response(200, liveSession))
       .mockResolvedValueOnce(response(200, guestSession));
     vi.stubGlobal("fetch", fetch);
     render(<AuthBoundary>workspace</AuthBoundary>);

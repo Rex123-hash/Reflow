@@ -13,8 +13,17 @@ export function SiteHeader({ current }: { current?: "story" | "faq" } = {}) {
   const home = current === "story" || current === undefined ? "" : "/";
   return (
     <header className="site-header">
-      <Link className="brand" to={home === "" ? "#top" : "/"} aria-label="Reflow home">
-        <img src={reflowMarkUrl} alt="" className="brand-mark" aria-hidden="true" />
+      <Link
+        className="brand"
+        to={home === "" ? "#top" : "/"}
+        aria-label="Reflow home"
+      >
+        <img
+          src={reflowMarkUrl}
+          alt=""
+          className="brand-mark"
+          aria-hidden="true"
+        />
         <span>Reflow</span>
       </Link>
       <nav aria-label="Primary navigation">
@@ -33,7 +42,10 @@ export function SiteHeader({ current }: { current?: "story" | "faq" } = {}) {
         <Link className="button button-small button-primary" to="/app?demo=1">
           Live demo <span aria-hidden="true">→</span>
         </Link>
-        <Link className="button button-small button-secondary" to="/app/overview">
+        <Link
+          className="button button-small button-secondary"
+          to="/app/overview?access=live"
+        >
           Open workspace
         </Link>
       </div>

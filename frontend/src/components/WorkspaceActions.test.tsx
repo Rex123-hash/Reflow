@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
+import { SiteHeader } from "./SiteHeader";
 import { WorkspaceActions } from "./WorkspaceActions";
 
 describe("landing workspace actions", () => {
@@ -17,6 +18,18 @@ describe("landing workspace actions", () => {
     );
     expect(
       screen.getByRole("link", { name: /open workspace/i }),
-    ).toHaveAttribute("href", "/app/overview");
+    ).toHaveAttribute("href", "/app/overview?access=live");
+  });
+
+  it("routes the header workspace action through the same chooser", () => {
+    render(
+      <MemoryRouter>
+        <SiteHeader />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole("link", { name: /open workspace/i }),
+    ).toHaveAttribute("href", "/app/overview?access=live");
   });
 });

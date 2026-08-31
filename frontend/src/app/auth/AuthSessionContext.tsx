@@ -40,6 +40,28 @@ async function readSession(): Promise<AuthSession | null> {
   return (await response.json()) as AuthSession;
 }
 
+type WorkspaceAccessRequest = "live" | "guest" | null;
+
+function consumeWorkspaceAccessRequest(): WorkspaceAccessRequest {
+  if (typeof window === "undefined") return null;
+  const url = new URL(window.location.href);
+  const request =
+    url.searchParams.get("access") === "live"
+      ? "live"
+      : url.searchParams.get("demo") === "1"
+        ? "guest"
+        : null;
+  if (!request) return null;
+  url.searchParams.delete("access");
+  url.searchParams.delete("demo");
+  window.history.replaceState(
+    window.history.state,
+    "",
+    `${url.pathname}${url.search}${url.hash}`,
+  );
+  return request;
+}
+
 export function AuthBoundary({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<"loading" | "entry" | "ready" | "error">(
     "loading",
@@ -47,15 +69,28 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [busy, setBusy] = useState<"google" | "guest" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const demoRequested =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("demo") === "1";
+  const [entryMode, setEntryMode] = useState<"all" | "live">("all");
 
   const refresh = useCallback(async () => {
     setStatus("loading");
     setMessage(null);
     try {
-      const current = await readSession();
+      const request = consumeWorkspaceAccessRequest();
+      let current = await readSession();
+      if (request === "guest" && current?.mode !== "guest") {
+        await continueAsGuest();
+        current = await readSession();
+        if (current?.mode !== "guest")
+          throw new Error("The Demo Workspace session was not established.");
+      }
+      if (request === "live" && current?.mode !== "live") {
+        if (current?.mode === "guest") await clearProductSession();
+        setEntryMode("live");
+        setSession(null);
+        setStatus("entry");
+        return;
+      }
+      setEntryMode("all");
       setSession(current);
       setStatus(current ? "ready" : "entry");
     } catch (error) {
@@ -72,6 +107,7 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const expired = () => {
+      setEntryMode("all");
       setSession(null);
       setMessage("Your product session expired. Sign in again to continue.");
       setStatus("entry");
@@ -89,6 +125,7 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
       const current = await readSession();
       if (!current)
         throw new Error("The secure product session was not established.");
+      setEntryMode("all");
       setSession(current);
       setStatus("ready");
     } catch (error) {
@@ -102,18 +139,9 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
     }
   };
 
-  useEffect(() => {
-    if (status !== "entry" || !demoRequested || busy !== null) return;
-    window.history.replaceState(
-      window.history.state,
-      "",
-      `${window.location.pathname}${window.location.hash}`,
-    );
-    void enter("guest");
-  }, [demoRequested, status]);
-
   const endSession = useCallback(async () => {
     await clearProductSession();
+    setEntryMode("all");
     setSession(null);
     setStatus("entry");
   }, []);
@@ -148,7 +176,11 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
         <section className="auth-card">
           <img src={reflowMarkUrl} alt="" aria-hidden="true" />
           <p className="auth-kicker">Reflow</p>
-          <h1>Enter the recovery workspace</h1>
+          <h1>
+            {entryMode === "live"
+              ? "Enter the live workspace"
+              : "Enter the recovery workspace"}
+          </h1>
           <p className="auth-lede">
             Inspect objective truth, recovery evidence, and the durable
             execution record.
@@ -162,14 +194,16 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
             >
               {busy === "google" ? "Connecting…" : "Continue with Google"}
             </button>
-            <button
-              className="auth-secondary"
-              type="button"
-              disabled={busy !== null}
-              onClick={() => void enter("guest")}
-            >
-              {busy === "guest" ? "Opening demo…" : "Explore Demo Workspace"}
-            </button>
+            {entryMode === "all" ? (
+              <button
+                className="auth-secondary"
+                type="button"
+                disabled={busy !== null}
+                onClick={() => void enter("guest")}
+              >
+                {busy === "guest" ? "Opening demo…" : "Explore Demo Workspace"}
+              </button>
+            ) : null}
           </div>
           {message ? (
             <p className="auth-error" role="alert">
@@ -177,8 +211,9 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
             </p>
           ) : null}
           <p className="auth-note">
-            No Google account required. Real Reflow reasoning is enabled;
-            external changes remain disabled.
+            {entryMode === "live"
+              ? "Continue with Google to enter the live workspace."
+              : "No Google account required. Real Reflow reasoning is enabled; external changes remain disabled."}
           </p>
         </section>
       </main>
