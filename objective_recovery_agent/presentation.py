@@ -81,6 +81,7 @@ _MEANINGFUL_EVENTS = {
     "ACTION_DUPLICATE_SUPPRESSED",
     "CALENDAR_WRITE_ACKNOWLEDGED",
     "ACTION_RECEIPT_VERIFIED",
+    "ACTION_RECEIPT_VERIFICATION_FAILED",
     "GITHUB_RELEASE_ACKNOWLEDGED",
     "GITHUB_RUN_PINNED",
     "OBJECTIVE_VERIFICATION_FAILED",
@@ -101,6 +102,9 @@ _EVENT_MESSAGES = {
     "ACTION_CLAIMED": "An external action was claimed idempotently.",
     "CALENDAR_WRITE_ACKNOWLEDGED": "Calendar acknowledged the coordination write.",
     "ACTION_RECEIPT_VERIFIED": "External action receipt was independently verified.",
+    "ACTION_RECEIPT_VERIFICATION_FAILED": (
+        "External action read-back did not match the intended state."
+    ),
     "GITHUB_RELEASE_ACKNOWLEDGED": "GitHub acknowledged the exact release.",
     "GITHUB_RUN_PINNED": "The exact GitHub Actions run and attempt were pinned.",
     "OBJECTIVE_VERIFICATION_FAILED": (
@@ -136,6 +140,7 @@ _EVENT_PHASES = {
     "ACTION_DUPLICATE_SUPPRESSED": EventPhase.SYSTEM,
     "CALENDAR_WRITE_ACKNOWLEDGED": EventPhase.ACT,
     "ACTION_RECEIPT_VERIFIED": EventPhase.ACT,
+    "ACTION_RECEIPT_VERIFICATION_FAILED": EventPhase.VERIFY,
     "GITHUB_RELEASE_ACKNOWLEDGED": EventPhase.ACT,
     "GITHUB_RUN_PINNED": EventPhase.ACT,
     "OBJECTIVE_VERIFICATION_FAILED": EventPhase.VERIFY,
@@ -393,10 +398,17 @@ class PresentationService:
     def overview(self) -> OverviewView:
         objectives = self.objectives()
         all_items = objectives.items
+        objective_created_at = {
+            str(value["objective_id"]): _iso(value.get("created_at"))
+            for value in self._store.list_objectives()
+        }
         current = max(
             all_items,
             key=lambda item: (
-                _deadline(item.updated_at) if item.updated_at else datetime.min.replace(tzinfo=UTC)
+                _deadline(objective_created_at[item.objective_id])
+                if objective_created_at.get(item.objective_id)
+                else datetime.min.replace(tzinfo=UTC),
+                item.objective_id,
             ),
             default=None,
         )

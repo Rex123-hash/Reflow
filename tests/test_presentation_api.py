@@ -466,6 +466,44 @@ def test_overview_uses_latest_objective_without_erasing_history() -> None:
     }
 
 
+def test_overview_uses_objective_creation_time_not_historical_reconciliation_time() -> None:
+    store = restored_store()
+    store.objectives["release-qualification-new"] = {
+        "objective_id": "release-qualification-new",
+        "objective_version": 1,
+        "label": "SHIP VERIFIED RELEASE",
+        "deadline_at_utc": "2026-08-31T17:50:50+00:00",
+        "deadline_timezone": "Etc/UTC",
+        "created_at": "2026-08-31T09:50:50+00:00",
+    }
+    store.incidents[INCIDENT].update(
+        {
+            "stage": "VERIFICATION_FAILED",
+            "status": "action_receipt_verification_failed",
+            "updated_at": "2026-08-31T12:00:00+00:00",
+        }
+    )
+    store.incidents["incident-new"] = {
+        "incident_id": "incident-new",
+        "objective_id": "release-qualification-new",
+        "objective_version": 1,
+        "stage": "RESOLVED",
+        "status": "objective_restored",
+        "revision": 16,
+        "updated_at": "2026-08-31T09:53:05+00:00",
+    }
+
+    presentation = service(store)
+    overview = presentation.overview()
+    items = {item.objective_id: item for item in presentation.objectives().items}
+
+    assert overview.current_priority is not None
+    assert overview.current_priority.objective_id == "release-qualification-new"
+    assert overview.current_priority.objective_health is ObjectiveHealth.RESTORED
+    assert items["release-v2"].health is ObjectiveHealth.NEEDS_ATTENTION
+    assert items["release-qualification-new"].health is ObjectiveHealth.RESTORED
+
+
 def test_recovery_spine_keeps_failed_attempt_and_recovery_branch_distinct() -> None:
     case = service().recovery_case(INCIDENT)
     assert [attempt.attempt_number for attempt in case.attempts] == [1, 2]

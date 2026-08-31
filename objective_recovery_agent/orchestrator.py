@@ -647,6 +647,7 @@ class RecoveryOrchestrator:
                 "action_receipt_id": receipt.receipt_id,
                 "action_receipt_status": receipt.status.value,
             }
+            result_stage = IncidentStage.VERIFICATION_FAILED
             if receipt.status is ReceiptStatus.VERIFIED and self._p1c_publisher is not None:
                 verified_effect = {
                     "receipt_id": receipt.receipt_id,
@@ -667,10 +668,19 @@ class RecoveryOrchestrator:
                     publish_p1c_handoff(self._ledger, self._p1c_publisher, handoff)
                 except Exception as error:
                     raise P1CContinuationPublishFailure from error
-            else:
+                result_stage = IncidentStage.VERIFYING
+            elif receipt.status is ReceiptStatus.VERIFIED:
                 self._checkpoint(
                     incident_id,
                     IncidentStage.VERIFYING,
+                    terminal_fields,
+                    event_id=disruption.event_id,
+                )
+                result_stage = IncidentStage.VERIFYING
+            else:
+                self._checkpoint(
+                    incident_id,
+                    IncidentStage.VERIFICATION_FAILED,
                     terminal_fields,
                     event_id=disruption.event_id,
                 )
@@ -678,7 +688,7 @@ class RecoveryOrchestrator:
                 incident_id,
                 False,
                 False,
-                IncidentStage.VERIFYING,
+                result_stage,
                 selected.plan_id,
                 0,
             )

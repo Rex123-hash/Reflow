@@ -31,6 +31,8 @@ from objective_recovery_agent.schemas import (
 )
 from pydantic import ValidationError
 
+from objective_recovery.domain.models import ActionReceipt, EvidenceKind, ReceiptStatus
+
 
 def disruption(event_id: str = "event-backend-lead-unavailable") -> DisruptionEvent:
     return DisruptionEvent(
@@ -186,6 +188,22 @@ def three_valid_plans() -> PlanningRun:
     )
 
 
+class FailedCalendarReadback:
+    def execute_selected_plan(self, **kwargs: Any) -> ActionReceipt:
+        plan = kwargs["plan"]
+        return ActionReceipt(
+            receipt_id="receipt-calendar-mismatch",
+            action_id=plan.actions[0].action_id,
+            idempotency_key=plan.actions[0].idempotency_key,
+            status=ReceiptStatus.VERIFICATION_FAILED,
+            evidence_kind=EvidenceKind.EXTERNAL,
+            observed_at=datetime(2026, 8, 25, 12, 5, tzinfo=UTC),
+            external_event_id="calendar-event-mismatch",
+            observed_state=(("summary", "Unexpected server state"),),
+            verification_differences=("summary",),
+        )
+
+
 @pytest.mark.asyncio
 async def test_fresh_event_pins_and_plans_from_persisted_objective() -> None:
     objective = ObjectiveRecord(
@@ -216,6 +234,23 @@ async def test_fresh_event_pins_and_plans_from_persisted_objective() -> None:
     assert planner.last_input.protected_deadline == objective.deadline_at_utc
     assert "release-v2" not in planner.last_input.affected_node_ids
     assert objective.objective_id in planner.last_input.affected_node_ids
+
+
+@pytest.mark.asyncio
+async def test_failed_calendar_readback_terminates_verification_truthfully() -> None:
+    ledger = InMemoryWorkflowLedger()
+    result = await RecoveryOrchestrator(
+        ledger,
+        StubPlanner(three_valid_plans()),
+        FailedCalendarReadback(),
+    ).process(disruption("event-calendar-mismatch"), "pubsub-calendar-mismatch")
+
+    incident = ledger.incidents[result.incident_id]
+    assert result.stage is IncidentStage.VERIFICATION_FAILED
+    assert incident["stage"] == IncidentStage.VERIFICATION_FAILED.value
+    assert incident["status"] == "action_receipt_verification_failed"
+    assert incident["action_receipt_status"] == ReceiptStatus.VERIFICATION_FAILED.value
+    assert ledger.claims["event-calendar-mismatch"]["state"] == "completed"
 
 
 @pytest.mark.asyncio
