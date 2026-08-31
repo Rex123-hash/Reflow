@@ -160,9 +160,16 @@ export function StageChip({
       ) : (
         <i aria-hidden="true" />
       )}
-      {attemptNumber != null
-        ? `Recovery ${String(attemptNumber).padStart(2, "0")} · ${label}`
-        : label}
+      {attemptNumber != null ? (
+        <span className="stage-chip-copy">
+          <span className="stage-chip-attempt">
+            Recovery {String(attemptNumber).padStart(2, "0")} ·
+          </span>{" "}
+          <span className="stage-chip-label">{label}</span>
+        </span>
+      ) : (
+        label
+      )}
     </span>
   );
 }

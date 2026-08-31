@@ -56,6 +56,26 @@
   vertical-align: middle;
 }
 
+/* Recovery chips wrap only at the semantic boundary between the attempt and its
+   stage. Each phrase stays intact, so narrow rows never split words awkwardly. */
+.objectives-table .stage-chip {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.objectives-table .stage-chip-copy {
+  display: inline-flex;
+  flex-wrap: wrap;
+  column-gap: 0.35em;
+  row-gap: 1px;
+  line-height: 1.2;
+}
+
+.objectives-table .stage-chip-attempt,
+.objectives-table .stage-chip-label {
+  white-space: nowrap;
+}
+
 /* Keep the trailing action's border and chevron inside the card's clipped edge. */
 .objectives-table td.numeric {
   padding-right: var(--space-5);

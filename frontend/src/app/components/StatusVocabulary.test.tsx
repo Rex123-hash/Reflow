@@ -9,13 +9,16 @@ describe("completed verification vocabulary", () => {
     render(
       <StageChip stage="VERIFY" attemptNumber={2} health="NEEDS_ATTENTION" />,
     );
-    expect(screen.getByText("Recovery 02 · Verification failed")).toHaveClass(
-      "is-failed",
-    );
+    const chip = screen.getByText("Verification failed").closest(".stage-chip");
+    expect(chip).toHaveClass("is-failed");
+    expect(chip).toHaveTextContent("Recovery 02 · Verification failed");
+    expect(screen.getByText("Recovery 02 ·")).toHaveClass("stage-chip-attempt");
   });
 
   it("keeps active verification in motion", () => {
     render(<StageChip stage="VERIFY" attemptNumber={2} health="RECOVERING" />);
-    expect(screen.getByText("Recovery 02 · Verify")).toHaveClass("is-current");
+    const chip = screen.getByText("Verify").closest(".stage-chip");
+    expect(chip).toHaveClass("is-current");
+    expect(chip).toHaveTextContent("Recovery 02 · Verify");
   });
 });
