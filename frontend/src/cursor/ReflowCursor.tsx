@@ -4,9 +4,9 @@ import "./reflowCursor.css";
 const FINE_POINTER = "(pointer: fine) and (hover: hover)";
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 const INTERACTIVE =
-  'a, button, summary, select, [role="button"], [role="link"], [data-cursor-interactive]';
+  'a[href], button, summary, select, label[for], input[type="button"], input[type="submit"], input[type="reset"], [role="button"], [role="link"], [data-cursor-interactive]';
 const TEXTUAL =
-  'input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, [contenteditable="true"], p, h1, h2, h3, h4, h5, h6, li, dt, dd, code, pre, blockquote, figcaption, td, th';
+  'input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, [contenteditable="true"]';
 const NATIVE_STATE = ':disabled, [aria-disabled="true"]';
 const DRAGGABLE = '[draggable="true"]';
 

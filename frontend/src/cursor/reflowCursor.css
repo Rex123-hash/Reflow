@@ -7,7 +7,18 @@
   }
 
   html.reflow-cursor-ready
-    :where(a, button, summary, select, [role="button"], [role="link"]) {
+    :where(
+      a[href],
+      button,
+      summary,
+      select,
+      label[for],
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"],
+      [role="button"],
+      [role="link"]
+    ) {
     cursor:
       url("/cursors/reflow-grab.svg") 11 9,
       grab;
@@ -15,44 +26,28 @@
 
   html.reflow-cursor-ready
     :where(
-      p,
-      h1,
-      h2,
-      h3,
-      h4,
-      h5,
-      h6,
-      li,
-      dt,
-      dd,
-      code,
-      pre,
-      blockquote,
-      figcaption,
-      td,
-      th
-    ) {
-    cursor:
-      url("/cursors/reflow-text.svg") 8 12,
-      text;
-  }
-
-  html.reflow-cursor-ready
-    :where(
-      a,
+      a[href],
       button,
       summary,
       select,
+      label[for],
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"],
       [role="button"],
       [role="link"],
       [data-cursor-interactive]
     ),
   html.reflow-cursor-ready
     :where(
-      a,
+      a[href],
       button,
       summary,
       select,
+      label[for],
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"],
       [role="button"],
       [role="link"],
       [data-cursor-interactive]
@@ -65,20 +60,28 @@
 
   html.reflow-cursor-ready
     :where(
-      a,
+      a[href],
       button,
       summary,
       select,
+      label[for],
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"],
       [role="button"],
       [role="link"],
       [data-cursor-interactive]
     ):active,
   html.reflow-cursor-ready
     :where(
-      a,
+      a[href],
       button,
       summary,
       select,
+      label[for],
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"],
       [role="button"],
       [role="link"],
       [data-cursor-interactive]
@@ -97,9 +100,7 @@
       textarea,
       [contenteditable="true"]
     ) {
-    cursor:
-      url("/cursors/reflow-text.svg") 8 12,
-      text;
+    cursor: text;
   }
 
   html.reflow-cursor-ready :where(button, input, select, textarea):disabled,
