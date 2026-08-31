@@ -56,6 +56,11 @@
   vertical-align: middle;
 }
 
+/* Keep the trailing action's border and chevron inside the card's clipped edge. */
+.objectives-table td.numeric {
+  padding-right: var(--space-5);
+}
+
 /* The deadline is one value and reads as one line; at the row's new size it was
    breaking between the date and the time. */
 .objectives-table td.mono {

@@ -30,10 +30,24 @@ const isFilter = (value: string | null): value is ObjectiveFilter =>
  */
 export function ObjectivesRoute() {
   // React Router preserves the document's scroll position between sibling routes.
-  // On this index route that could leave the masthead underneath the sticky app
-  // navigation after arriving from a longer workspace page.
+  // Browsers may also restore it after React's layout phase during a reload, so
+  // keep restoration manual while this route is mounted and repeat the reset
+  // after the first two painted frames.
   useLayoutEffect(() => {
-    window.scrollTo(0, 0);
+    const previousRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    const reset = () => window.scrollTo(0, 0);
+    let finalFrame = 0;
+    reset();
+    const nextFrame = window.requestAnimationFrame(() => {
+      reset();
+      finalFrame = window.requestAnimationFrame(reset);
+    });
+    return () => {
+      window.cancelAnimationFrame(nextFrame);
+      window.cancelAnimationFrame(finalFrame);
+      window.history.scrollRestoration = previousRestoration;
+    };
   }, []);
 
   const [params, setParams] = useSearchParams();
