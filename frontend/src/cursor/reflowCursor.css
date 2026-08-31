@@ -9,8 +9,8 @@
   html.reflow-cursor-ready
     :where(a, button, summary, select, [role="button"], [role="link"]) {
     cursor:
-      url("/cursors/reflow-pointer.svg") 1 1,
-      pointer;
+      url("/cursors/reflow-grab.svg") 11 9,
+      grab;
   }
 
   html.reflow-cursor-ready
@@ -59,8 +59,34 @@
     )
     * {
     cursor:
-      url("/cursors/reflow-pointer.svg") 1 1,
-      pointer;
+      url("/cursors/reflow-grab.svg") 11 9,
+      grab;
+  }
+
+  html.reflow-cursor-ready
+    :where(
+      a,
+      button,
+      summary,
+      select,
+      [role="button"],
+      [role="link"],
+      [data-cursor-interactive]
+    ):active,
+  html.reflow-cursor-ready
+    :where(
+      a,
+      button,
+      summary,
+      select,
+      [role="button"],
+      [role="link"],
+      [data-cursor-interactive]
+    ):active
+    * {
+    cursor:
+      url("/cursors/reflow-grabbing.svg") 11 10,
+      grabbing;
   }
 
   html.reflow-cursor-ready
