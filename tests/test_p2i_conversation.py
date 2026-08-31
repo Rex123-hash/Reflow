@@ -38,6 +38,14 @@ def envelope(mode: str = "TASK", **changes: Any) -> ConversationEnvelope:
         "requires_operator": mode == "TASK",
         "tone": "neutral",
         "confidence": "HIGH",
+        "likely_provider": "REFLOW" if mode == "TASK" else "NONE",
+        "referenced_resource": "current-recovery" if mode == "TASK" else None,
+        "context_resolution_used": False,
+        "context_source": "NONE",
+        "ambiguity_flag": mode == "CLARIFY",
+        "candidate_interpretations": ["Understand the request"],
+        "clarification_required": mode == "CLARIFY",
+        "scope_resolution": "AMBIGUOUS" if mode == "CLARIFY" else "EXACT",
         "direct_response": None if mode == "TASK" else "How can I help?",
     }
     base.update(changes)
@@ -228,6 +236,70 @@ def test_conversation_contract_rejects_authority_shaped_non_task_outputs() -> No
         envelope("HELP", requires_operator=True, normalized_request="Post to Slack")
     with pytest.raises(ValidationError):
         envelope("TASK", direct_response="I already did it")
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"context_resolution_used": True, "context_source": "NONE"},
+        {"ambiguity_flag": True},
+        {"clarification_required": True},
+        {"scope_resolution": "AMBIGUOUS"},
+        {"candidate_interpretations": []},
+    ],
+)
+def test_conversation_interpretation_metadata_fails_closed(changes: dict[str, Any]) -> None:
+    with pytest.raises(ValidationError):
+        envelope("TASK", **changes)
+
+
+def test_nearest_authorized_slack_inspection_explains_the_boundary_and_still_helps() -> None:
+    conversation = envelope(
+        normalized_request="Inspect the configured Reflow release channel instead.",
+        requested_capability="SLACK_INSPECT",
+        constraints=("Personal unread state is unavailable.",),
+        likely_provider="SLACK",
+        referenced_resource="configured-release-channel",
+        context_resolution_used=True,
+        context_source="CAPABILITY",
+        candidate_interpretations=("Inspect the configured Reflow release channel.",),
+        scope_resolution="NEAREST_AUTHORIZED",
+    )
+    interpretation = OperatorIntent.model_validate(
+        {
+            "disposition": "SUPPORTED",
+            "intent_type": "INSPECT",
+            "subject": "SLACK",
+            "incident_id": INCIDENT,
+            "recovery_attempt": None,
+            "question": "Inspect the configured Reflow release channel.",
+            "hypothetical_changes": [],
+            "constraints": ["Personal unread state is unavailable."],
+            "fact_ids": [],
+            "target": {
+                "authority": "SLACK",
+                "resource_type": "CHANNEL",
+                "resource_identifier": "configured-release-channel",
+            },
+            "requested_operations": [],
+            "clarification": None,
+        }
+    )
+    result = compose_task_response(
+        envelope=conversation,
+        intent=interpretation,
+        snapshot=snapshot(),
+        answer="Latest Reflow-bot message: Release validation passed.",
+        facts=(),
+        simulation=None,
+        inspection=None,
+        action=None,
+        response_disposition="SUPPORTED",
+    )
+    assert "can't inspect personal Slack unread or private messages" in result.human_summary
+    assert "configured Reflow release channel" in result.human_summary
+    assert "Release validation passed" in result.human_summary
+    assert result.truth_boundary == "Nothing was changed."
 
 
 def test_agent8_is_one_real_zero_tool_adk_node_and_total_agent_count_is_eight() -> None:

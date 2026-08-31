@@ -168,6 +168,9 @@ export async function spokenRequestKey(
         context.user_goal,
         context.normalized_request ?? null,
         context.human_summary,
+        context.likely_provider ?? "NONE",
+        context.referenced_resource ?? null,
+        context.context_source ?? "NONE",
       ]
     : null;
   const digest = await crypto.subtle.digest(

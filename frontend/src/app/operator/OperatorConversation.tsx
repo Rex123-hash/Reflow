@@ -288,6 +288,9 @@ export function OperatorConversation({
           user_goal: response.conversation.user_goal,
           normalized_request: response.conversation.normalized_request,
           human_summary: response.human_response.human_summary,
+          likely_provider: response.conversation.likely_provider,
+          referenced_resource: response.conversation.referenced_resource,
+          context_source: response.conversation.context_source,
         }
       : undefined;
     setSubmitted(requested);

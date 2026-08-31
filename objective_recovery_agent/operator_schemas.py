@@ -15,6 +15,17 @@ IntentType = Literal["INSPECT", "EXPLAIN", "SIMULATE", "ACT"]
 ConversationMode = Literal["GENERAL", "HELP", "TASK", "CLARIFY"]
 ConversationTone = Literal["neutral", "concise", "informal", "urgent"]
 ConversationConfidence = Literal["LOW", "MEDIUM", "HIGH"]
+ConversationProvider = Literal[
+    "NONE",
+    "REFLOW",
+    "SLACK",
+    "JIRA",
+    "GOOGLE_CALENDAR",
+    "GMAIL",
+    "GITHUB",
+]
+ContextSource = Literal["NONE", "CAPABILITY", "CONVERSATION", "RECOVERY"]
+ScopeResolution = Literal["EXACT", "CONFIGURED_DEFAULT", "NEAREST_AUTHORIZED", "AMBIGUOUS"]
 ConversationCapability = Literal[
     "CAPABILITY_HELP",
     "RECOVERY_INSPECT",
@@ -64,6 +75,9 @@ class ConversationContext(OperatorModel):
     user_goal: ShortText
     normalized_request: ShortText | None = None
     human_summary: ShortText
+    likely_provider: ConversationProvider = "NONE"
+    referenced_resource: ShortText | None = None
+    context_source: ContextSource = "NONE"
 
 
 class OperatorQuery(OperatorModel):
@@ -143,10 +157,26 @@ class ConversationEnvelope(OperatorModel):
     requires_operator: bool
     tone: ConversationTone
     confidence: ConversationConfidence
+    likely_provider: ConversationProvider
+    referenced_resource: ShortText | None = None
+    context_resolution_used: bool
+    context_source: ContextSource
+    ambiguity_flag: bool
+    candidate_interpretations: tuple[ShortText, ...] = Field(min_length=1, max_length=3)
+    clarification_required: bool
+    scope_resolution: ScopeResolution
     direct_response: ShortText | None = None
 
     @model_validator(mode="after")
     def bounded_route(self) -> ConversationEnvelope:
+        if self.context_resolution_used != (self.context_source != "NONE"):
+            raise ValueError("Context resolution flag and source must agree")
+        if self.clarification_required != (self.mode == "CLARIFY"):
+            raise ValueError("Clarification flag must match conversation mode")
+        if self.ambiguity_flag != self.clarification_required:
+            raise ValueError("Only unresolved ambiguity may require clarification")
+        if (self.scope_resolution == "AMBIGUOUS") != self.clarification_required:
+            raise ValueError("Ambiguous scope must require clarification")
         if self.mode == "TASK":
             if (
                 not self.requires_operator

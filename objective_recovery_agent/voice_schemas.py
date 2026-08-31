@@ -46,10 +46,9 @@ VoiceFailure = Literal[
 ]
 
 
-def _bounded_pending_clarification(context: ConversationContext | None) -> bool:
+def _bounded_previous_context(context: ConversationContext | None) -> bool:
     return context is None or (
-        context.mode == "CLARIFY"
-        and sum(
+        sum(
             len(value or "")
             for value in (
                 context.user_goal,
@@ -217,9 +216,9 @@ class VoiceOperatorHandoff(VoiceModel):
     )
 
     @model_validator(mode="after")
-    def one_bounded_clarification(self) -> VoiceOperatorHandoff:
-        if not _bounded_pending_clarification(self.conversation_context):
-            raise ValueError("Voice context must be one bounded pending clarification")
+    def one_bounded_previous_turn(self) -> VoiceOperatorHandoff:
+        if not _bounded_previous_context(self.conversation_context):
+            raise ValueError("Voice context must be one bounded preceding turn")
         return self
 
 
@@ -260,10 +259,10 @@ class VoiceOperatorHandoffResult(VoiceModel):
             raise ValueError("Objective recovery cannot be claimed from this outcome")
         if (self.approval_required_action_id is not None) != (self.outcome == "APPROVAL_REQUIRED"):
             raise ValueError("An approval identifier belongs only to an approval-required result")
-        if (self.conversation_context is not None) != (self.outcome == "CLARIFICATION_REQUIRED"):
-            raise ValueError("Conversation context belongs only to a pending clarification")
-        if not _bounded_pending_clarification(self.conversation_context):
-            raise ValueError("Voice context must be one bounded pending clarification")
+        if self.outcome == "HANDOFF_FAILED" and self.conversation_context is not None:
+            raise ValueError("A failed handoff cannot invent conversation context")
+        if not _bounded_previous_context(self.conversation_context):
+            raise ValueError("Voice context must be one bounded preceding turn")
         if not self.spoken_result.startswith(VOICE_RESULT_LEAD[self.outcome]):
             raise ValueError("The spoken result must open with the server-owned state sentence")
         return self

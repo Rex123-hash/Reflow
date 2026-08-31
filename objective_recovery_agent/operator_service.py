@@ -83,11 +83,27 @@ def _replay_conversation(query: OperatorQuery, action: OperatorActionView) -> Co
         requires_operator=True,
         tone="neutral",
         confidence="HIGH",
+        likely_provider=(
+            "SLACK"
+            if capability == "SLACK_POST"
+            else "GOOGLE_CALENDAR"
+            if capability in {"CALENDAR_CREATE", "CALENDAR_UPDATE"}
+            else "JIRA"
+            if capability == "JIRA_UPDATE"
+            else "REFLOW"
+        ),
+        referenced_resource=action.resource_identifier,
+        context_resolution_used=False,
+        context_source="NONE",
+        ambiguity_flag=False,
+        candidate_interpretations=(safe_text(query.message),),
+        clarification_required=False,
+        scope_resolution="EXACT",
     )
 
 
 def query_fingerprint(query: OperatorQuery) -> str:
-    """Bind a retry to both the utterance and its one bounded clarification context."""
+    """Bind a retry to the utterance and its bounded immediately preceding context."""
     return hashlib.sha256(
         json.dumps(
             {

@@ -16,20 +16,44 @@ export type CalendarReminderConfiguration = {
   use_default: boolean;
 };
 export type ConversationContext = {
+  context_source?: "NONE" | "CAPABILITY" | "CONVERSATION" | "RECOVERY";
   human_summary: string;
+  likely_provider?:
+    | "NONE"
+    | "REFLOW"
+    | "SLACK"
+    | "JIRA"
+    | "GOOGLE_CALENDAR"
+    | "GMAIL"
+    | "GITHUB";
   mode: "GENERAL" | "HELP" | "TASK" | "CLARIFY";
   normalized_request?: string | null;
+  referenced_resource?: string | null;
   user_goal: string;
 };
 export type ConversationEntity = { name: string; value: string };
 export type ConversationEnvelope = {
+  ambiguity_flag: boolean;
+  candidate_interpretations: string[];
+  clarification_required: boolean;
   confidence: "LOW" | "MEDIUM" | "HIGH";
   constraints?: string[];
+  context_resolution_used: boolean;
+  context_source: "NONE" | "CAPABILITY" | "CONVERSATION" | "RECOVERY";
   direct_response?: string | null;
   entities?: ConversationEntity[];
+  likely_provider:
+    | "NONE"
+    | "REFLOW"
+    | "SLACK"
+    | "JIRA"
+    | "GOOGLE_CALENDAR"
+    | "GMAIL"
+    | "GITHUB";
   missing_information?: string[];
   mode: "GENERAL" | "HELP" | "TASK" | "CLARIFY";
   normalized_request?: string | null;
+  referenced_resource?: string | null;
   requested_capability?:
     | "CAPABILITY_HELP"
     | "RECOVERY_INSPECT"
@@ -48,6 +72,8 @@ export type ConversationEnvelope = {
     | "UNKNOWN_OPERATIONAL"
     | null;
   requires_operator: boolean;
+  scope_resolution:
+    "EXACT" | "CONFIGURED_DEFAULT" | "NEAREST_AUTHORIZED" | "AMBIGUOUS";
   tone: "neutral" | "concise" | "informal" | "urgent";
   user_goal: string;
 };

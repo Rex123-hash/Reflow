@@ -344,8 +344,15 @@ def compose_task_response(
     if intent.intent_type == "EXPLAIN":
         return _explanation(intent, snapshot, facts, answer)
     if inspection is not None or intent.intent_type == "INSPECT":
+        boundary = (
+            "I can't inspect personal Slack unread or private messages, so I checked the "
+            "configured Reflow release channel instead. "
+            if envelope.likely_provider == "SLACK"
+            and envelope.scope_resolution == "NEAREST_AUTHORIZED"
+            else ""
+        )
         return HumanResponse(
-            human_summary=polish_human_text(f"Here's what I found. {answer}"),
+            human_summary=polish_human_text(f"{boundary}Here's what I found. {answer}"),
             situation_type="INSPECTION",
             current_state="The configured resource was inspected.",
             next_step="Open the technical details for exact provenance.",

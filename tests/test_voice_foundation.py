@@ -124,6 +124,14 @@ def envelope() -> ConversationEnvelope:
         requires_operator=True,
         tone="neutral",
         confidence="HIGH",
+        likely_provider="SLACK",
+        referenced_resource="configured-release-channel",
+        context_resolution_used=True,
+        context_source="CAPABILITY",
+        ambiguity_flag=False,
+        candidate_interpretations=("Post the release status to the configured channel.",),
+        clarification_required=False,
+        scope_resolution="CONFIGURED_DEFAULT",
     )
 
 
@@ -948,25 +956,28 @@ def test_the_handoff_rejects_a_request_outside_the_bounded_contract() -> None:
     assert backend.operator_calls == []
 
 
-def test_voice_context_is_one_pending_clarification_and_bounded_in_size() -> None:
+def test_voice_context_is_one_preceding_turn_and_bounded_in_size() -> None:
     base = {
         "voice_session_id": SESSION_ID,
         "incident_id": INCIDENT,
         "spoken_request": "Ends at 6 PM.",
     }
-    with pytest.raises(ValidationError, match="pending clarification"):
-        VoiceOperatorHandoff.model_validate(
-            base
-            | {
-                "conversation_context": {
-                    "mode": "TASK",
-                    "user_goal": "Create an event",
-                    "normalized_request": "Create an event tomorrow.",
-                    "human_summary": "Pending.",
-                }
+    bounded = VoiceOperatorHandoff.model_validate(
+        base
+        | {
+            "conversation_context": {
+                "mode": "TASK",
+                "user_goal": "Inspect Slack",
+                "normalized_request": "Inspect the configured release channel.",
+                "human_summary": "The configured channel was inspected.",
+                "likely_provider": "SLACK",
+                "referenced_resource": "configured-release-channel",
+                "context_source": "CAPABILITY",
             }
-        )
-    with pytest.raises(ValidationError, match="pending clarification"):
+        }
+    )
+    assert bounded.conversation_context is not None
+    with pytest.raises(ValidationError, match="bounded preceding turn"):
         VoiceOperatorHandoff.model_validate(
             base
             | {
@@ -1074,7 +1085,7 @@ def test_a_refused_operator_result_stays_refused_in_the_voice_contract(
     assert result.spoken_result.startswith(VOICE_RESULT_LEAD[outcome])
 
 
-def test_only_a_pending_clarification_returns_bounded_context() -> None:
+def test_every_completed_turn_returns_one_bounded_follow_up_context() -> None:
     clarification = result_for(
         operator_response(
             disposition="CLARIFICATION_REQUIRED",
@@ -1082,27 +1093,26 @@ def test_only_a_pending_clarification_returns_bounded_context() -> None:
         )
     )
     assert clarification.conversation_context == ConversationContext(
-        mode="CLARIFY",
+        mode="TASK",
         user_goal="Post the release status",
         normalized_request=SPOKEN,
         human_summary="Reflow reports the current state of that request.",
+        likely_provider="SLACK",
+        referenced_resource="configured-release-channel",
+        context_source="CAPABILITY",
     )
 
     resolved = result_for(operator_response())
-    assert resolved.conversation_context is None
-    with pytest.raises(ValidationError, match="pending clarification"):
-        VoiceOperatorHandoffResult.model_validate(
-            resolved.model_dump() | {"conversation_context": clarification.conversation_context}
-        )
-    with pytest.raises(ValidationError, match="bounded pending clarification"):
+    assert resolved.conversation_context == clarification.conversation_context
+    with pytest.raises(ValidationError, match="bounded preceding turn"):
         VoiceOperatorHandoffResult.model_validate(
             clarification.model_dump()
             | {
                 "conversation_context": {
                     "mode": "TASK",
-                    "user_goal": "Create an event",
-                    "normalized_request": "Create an event tomorrow.",
-                    "human_summary": "Pending.",
+                    "user_goal": "g" * 800,
+                    "normalized_request": "r" * 800,
+                    "human_summary": "h" * 800,
                 }
             }
         )

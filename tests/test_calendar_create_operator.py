@@ -186,6 +186,14 @@ def create_conversation() -> ConversationEnvelope:
         requires_operator=True,
         tone="neutral",
         confidence="HIGH",
+        likely_provider="GOOGLE_CALENDAR",
+        referenced_resource="configured-operator-calendar",
+        context_resolution_used=True,
+        context_source="CAPABILITY",
+        ambiguity_flag=False,
+        candidate_interpretations=("Create the configured Calendar event.",),
+        clarification_required=False,
+        scope_resolution="CONFIGURED_DEFAULT",
     )
 
 

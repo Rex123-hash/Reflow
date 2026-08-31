@@ -64,17 +64,18 @@ def handoff_result(
         "CONVERSATIONAL",
         "ACTION_VERIFIED",
     }
-    conversation_context = (
-        ConversationContext(
-            mode="CLARIFY",
-            user_goal=safe_text(response.conversation.user_goal, 400),
-            normalized_request=safe_text(
-                response.conversation.normalized_request or spoken_request, 800
-            ),
-            human_summary=safe_text(response.human_response.human_summary, 400),
-        )
-        if outcome == "CLARIFICATION_REQUIRED"
-        else None
+    conversation_context = ConversationContext(
+        mode=response.conversation.mode,
+        user_goal=safe_text(response.conversation.user_goal, 400),
+        normalized_request=(
+            safe_text(response.conversation.normalized_request or spoken_request, 800)
+            if response.conversation.mode in {"TASK", "CLARIFY"}
+            else None
+        ),
+        human_summary=safe_text(response.human_response.human_summary, 400),
+        likely_provider=response.conversation.likely_provider,
+        referenced_resource=response.conversation.referenced_resource,
+        context_source=response.conversation.context_source,
     )
     return VoiceOperatorHandoffResult(
         voice_session_id=voice_session_id,

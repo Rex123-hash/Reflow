@@ -87,6 +87,14 @@ async def test_forensic_observers_do_not_change_simulation_validation(
                 requires_operator=True,
                 tone="neutral",
                 confidence="HIGH",
+                likely_provider="GITHUB",
+                referenced_resource="current-recovery",
+                context_resolution_used=True,
+                context_source="RECOVERY",
+                ambiguity_flag=False,
+                candidate_interpretations=("Simulate Candidate A passing CI.",),
+                clarification_required=False,
+                scope_resolution="EXACT",
             )
             if node.name == "conversation_understanding_agent"
             else simulation

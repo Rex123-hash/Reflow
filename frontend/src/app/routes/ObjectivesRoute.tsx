@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { ObjectiveFilter } from "../contract/uiContract";
 import { EmptyState, ErrorState, LoadingState } from "../components/Feedback";
@@ -28,6 +29,13 @@ const isFilter = (value: string | null): value is ObjectiveFilter =>
  * contract exposes none of those and Reflow does not invent metrics.
  */
 export function ObjectivesRoute() {
+  // React Router preserves the document's scroll position between sibling routes.
+  // On this index route that could leave the masthead underneath the sticky app
+  // navigation after arriving from a longer workspace page.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [params, setParams] = useSearchParams();
   const raw = params.get("status");
   const filter: ObjectiveFilter = isFilter(raw) ? raw : "all";

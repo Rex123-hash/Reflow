@@ -122,6 +122,9 @@ def trace_document(records: list[dict[str, Any]]) -> dict[str, Any]:
             "human_summary": record.get("human_summary"),
             "mode": record.get("conversation", {}).get("mode"),
             "capability": record.get("conversation", {}).get("requested_capability"),
+            "provider": record.get("conversation", {}).get("likely_provider"),
+            "resource": record.get("conversation", {}).get("referenced_resource"),
+            "scope_resolution": record.get("conversation", {}).get("scope_resolution"),
             "agents": [item["agent_id"] for item in record.get("agents", [])],
         }
         item: dict[str, Any] = {
@@ -241,6 +244,35 @@ async def evaluate_case(case: dict[str, Any]) -> dict[str, Any]:
             value in (conversation.normalized_request or conversation.user_goal)
             for value in case.get("preserve", [])
         ),
+        "normalized": all(
+            value.casefold() in (conversation.normalized_request or "").casefold()
+            for value in case.get("normalized_contains", [])
+        ),
+        "provider": (
+            case.get("provider") is None
+            or conversation.likely_provider == case.get("provider")
+        ),
+        "resource": (
+            case.get("resource") is None
+            or conversation.referenced_resource == case.get("resource")
+        ),
+        "context_used": (
+            case.get("context_used") is None
+            or conversation.context_resolution_used == case.get("context_used")
+        ),
+        "ambiguity": (
+            case.get("ambiguity") is None
+            or conversation.ambiguity_flag == case.get("ambiguity")
+        ),
+        "clarification": (
+            case.get("clarification_required") is None
+            or conversation.clarification_required == case.get("clarification_required")
+        ),
+        "scope_resolution": (
+            case.get("scope_resolution") is None
+            or conversation.scope_resolution == case.get("scope_resolution")
+        ),
+        "candidate_interpretation": bool(conversation.candidate_interpretations),
     }
     if case["mode"] == "TASK":
         checks.update(
@@ -250,7 +282,35 @@ async def evaluate_case(case: dict[str, Any]) -> dict[str, Any]:
                     intent is not None and intent.disposition == case.get("disposition")
                 ),
                 "subject": intent is not None and intent.subject == case.get("subject"),
+                "target": (
+                    case.get("target") is None
+                    or (
+                        intent is not None
+                        and intent.target is not None
+                        and intent.target.resource_identifier == case.get("target")
+                    )
+                ),
+                "target_absent": (
+                    not case.get("target_absent")
+                    or (intent is not None and intent.target is None)
+                ),
             }
+        )
+    combined = json.dumps(
+        {
+            "conversation": conversation.model_dump(mode="json"),
+            "intent": intent.model_dump(mode="json") if intent else None,
+        }
+    ).casefold()
+    checks["no_scope_expansion"] = all(
+        value.casefold() not in combined for value in case.get("forbid", [])
+    )
+    if case.get("nearest_authorized"):
+        checks["nearest_authorized_help"] = (
+            intent is not None
+            and intent.disposition == "SUPPORTED"
+            and "configured reflow release channel" in human.human_summary.casefold()
+            and "personal slack" in human.human_summary.casefold()
         )
     if case["id"] in {"i_policy_denial", "q_mass_mention"}:
         message = (

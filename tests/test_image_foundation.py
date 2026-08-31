@@ -83,6 +83,14 @@ def conversation(
             "requires_operator": mode == "TASK",
             "tone": "neutral",
             "confidence": "HIGH",
+            "likely_provider": "REFLOW" if mode == "TASK" else "NONE",
+            "referenced_resource": "current-recovery" if mode == "TASK" else None,
+            "context_resolution_used": False,
+            "context_source": "NONE",
+            "ambiguity_flag": mode == "CLARIFY",
+            "candidate_interpretations": [message],
+            "clarification_required": mode == "CLARIFY",
+            "scope_resolution": "AMBIGUOUS" if mode == "CLARIFY" else "EXACT",
             "direct_response": None if mode == "TASK" else "The screenshot shows a failed CI run.",
         }
     )

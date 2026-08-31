@@ -141,10 +141,35 @@
       "ConversationContext": {
         "additionalProperties": false,
         "properties": {
+          "context_source": {
+            "default": "NONE",
+            "enum": [
+              "NONE",
+              "CAPABILITY",
+              "CONVERSATION",
+              "RECOVERY"
+            ],
+            "title": "Context Source",
+            "type": "string"
+          },
           "human_summary": {
             "maxLength": 800,
             "minLength": 1,
             "title": "Human Summary",
+            "type": "string"
+          },
+          "likely_provider": {
+            "default": "NONE",
+            "enum": [
+              "NONE",
+              "REFLOW",
+              "SLACK",
+              "JIRA",
+              "GOOGLE_CALENDAR",
+              "GMAIL",
+              "GITHUB"
+            ],
+            "title": "Likely Provider",
             "type": "string"
           },
           "mode": {
@@ -170,6 +195,20 @@
             ],
             "default": null,
             "title": "Normalized Request"
+          },
+          "referenced_resource": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Referenced Resource"
           },
           "user_goal": {
             "maxLength": 800,
@@ -211,6 +250,25 @@
       "ConversationEnvelope": {
         "additionalProperties": false,
         "properties": {
+          "ambiguity_flag": {
+            "title": "Ambiguity Flag",
+            "type": "boolean"
+          },
+          "candidate_interpretations": {
+            "items": {
+              "maxLength": 800,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Candidate Interpretations",
+            "type": "array"
+          },
+          "clarification_required": {
+            "title": "Clarification Required",
+            "type": "boolean"
+          },
           "confidence": {
             "enum": [
               "LOW",
@@ -230,6 +288,20 @@
             "maxItems": 6,
             "title": "Constraints",
             "type": "array"
+          },
+          "context_resolution_used": {
+            "title": "Context Resolution Used",
+            "type": "boolean"
+          },
+          "context_source": {
+            "enum": [
+              "NONE",
+              "CAPABILITY",
+              "CONVERSATION",
+              "RECOVERY"
+            ],
+            "title": "Context Source",
+            "type": "string"
           },
           "direct_response": {
             "anyOf": [
@@ -253,6 +325,19 @@
             "maxItems": 8,
             "title": "Entities",
             "type": "array"
+          },
+          "likely_provider": {
+            "enum": [
+              "NONE",
+              "REFLOW",
+              "SLACK",
+              "JIRA",
+              "GOOGLE_CALENDAR",
+              "GMAIL",
+              "GITHUB"
+            ],
+            "title": "Likely Provider",
+            "type": "string"
           },
           "missing_information": {
             "default": [],
@@ -289,6 +374,20 @@
             "default": null,
             "title": "Normalized Request"
           },
+          "referenced_resource": {
+            "anyOf": [
+              {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Referenced Resource"
+          },
           "requested_capability": {
             "anyOf": [
               {
@@ -322,6 +421,16 @@
             "title": "Requires Operator",
             "type": "boolean"
           },
+          "scope_resolution": {
+            "enum": [
+              "EXACT",
+              "CONFIGURED_DEFAULT",
+              "NEAREST_AUTHORIZED",
+              "AMBIGUOUS"
+            ],
+            "title": "Scope Resolution",
+            "type": "string"
+          },
           "tone": {
             "enum": [
               "neutral",
@@ -344,7 +453,14 @@
           "user_goal",
           "requires_operator",
           "tone",
-          "confidence"
+          "confidence",
+          "likely_provider",
+          "context_resolution_used",
+          "context_source",
+          "ambiguity_flag",
+          "candidate_interpretations",
+          "clarification_required",
+          "scope_resolution"
         ],
         "title": "ConversationEnvelope",
         "type": "object"

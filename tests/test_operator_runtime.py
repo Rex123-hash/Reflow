@@ -165,6 +165,11 @@ class FakeAgents:
                 "CALENDAR_UPDATE" if self.intent.intent_type == "ACT" else "CALENDAR_INSPECT"
             ),
         }.get(self.intent.subject, "RECOVERY_EXPLAIN")
+        provider = {
+            "SLACK": "SLACK",
+            "JIRA": "JIRA",
+            "CALENDAR": "GOOGLE_CALENDAR",
+        }.get(self.intent.subject, "REFLOW")
         return (
             ConversationEnvelope.model_validate(
                 {
@@ -175,6 +180,14 @@ class FakeAgents:
                     "requires_operator": True,
                     "tone": "neutral",
                     "confidence": "HIGH",
+                    "likely_provider": provider,
+                    "referenced_resource": "configured-resource",
+                    "context_resolution_used": False,
+                    "context_source": "NONE",
+                    "ambiguity_flag": False,
+                    "candidate_interpretations": [payload.message],
+                    "clarification_required": False,
+                    "scope_resolution": "EXACT",
                 }
             ),
             trace("conversation_understanding_agent", request_id),
