@@ -655,6 +655,10 @@ class PresentationService:
         actions: list[ActionReceiptView],
     ) -> list[RecoveryAttemptView]:
         failed = _as_dict(incident.get("github_verification"))
+        receipt_verification_failed = (
+            incident.get("stage") == "VERIFICATION_FAILED"
+            and incident.get("action_receipt_status") == "verification_failed"
+        )
         failed_check: Any = next(iter(_as_list(failed.get("checks"))), {})
         failure_reason = str(_as_dict(failed_check).get("reason", "")) or None
         if not failed.get("passed", True):
@@ -663,8 +667,12 @@ class PresentationService:
             failing = _as_list(_as_dict(jobs[0]).get("failing_steps")) if jobs else []
             if failing:
                 failure_reason = f"{failing[0]} failed."
+        if receipt_verification_failed:
+            failure_reason = "Independent external read-back did not match the intended state."
         first_status = (
-            SemanticStatus.FAILED if failed.get("passed") is False else SemanticStatus.CURRENT
+            SemanticStatus.FAILED
+            if failed.get("passed") is False or receipt_verification_failed
+            else SemanticStatus.CURRENT
         )
         if incident.get("stage") == "RESOLVED" and not failed:
             first_status = SemanticStatus.COMPLETED
@@ -720,14 +728,22 @@ class PresentationService:
                 RecoveryStageView(
                     stage_id="recovery-1-verify",
                     semantic_kind=WorkflowStage.VERIFY,
-                    title="Verify",
-                    subtitle="The external action was verified but CI remained unhealthy.",
+                    title="Verification failed" if receipt_verification_failed else "Verify",
+                    subtitle=(
+                        "Independent Calendar read-back did not match the intended state."
+                        if receipt_verification_failed
+                        else "The external action was verified but CI remained unhealthy."
+                    ),
                     status=(
                         SemanticStatus.FAILED
-                        if failed.get("passed") is False
+                        if failed.get("passed") is False or receipt_verification_failed
                         else SemanticStatus.PENDING
                     ),
-                    timestamp=_iso(failed.get("observed_at")),
+                    timestamp=(
+                        self._event_time(events, "ACTION_RECEIPT_VERIFICATION_FAILED")
+                        if receipt_verification_failed
+                        else _iso(failed.get("observed_at"))
+                    ),
                     related_evidence_ids=(
                         ["objective-verification:1"]
                         if failed or incident.get("github_action_receipt_id")

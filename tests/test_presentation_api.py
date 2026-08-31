@@ -504,6 +504,55 @@ def test_overview_uses_objective_creation_time_not_historical_reconciliation_tim
     assert items["release-qualification-new"].health is ObjectiveHealth.RESTORED
 
 
+def test_calendar_readback_failure_is_completed_failure_in_recovery_history() -> None:
+    store = restored_store()
+    incident = store.incidents[INCIDENT]
+    incident.update(
+        {
+            "stage": "VERIFICATION_FAILED",
+            "status": "action_receipt_verification_failed",
+            "action_receipt_status": "verification_failed",
+            "revision": 10,
+        }
+    )
+    for field in (
+        "github_verification",
+        "github_evidence",
+        "github_action_receipt_id",
+        "final_verification",
+        "resolved_at",
+    ):
+        incident.pop(field, None)
+    store.revisions.pop((INCIDENT, 2))
+    store.events[INCIDENT] = [
+        event for event in store.events[INCIDENT] if event["event_type"] != "OBJECTIVE_RESTORED"
+    ]
+    store.events[INCIDENT].append(
+        {
+            "_document_id": "event-calendar-verification-failed",
+            "event_type": "ACTION_RECEIPT_VERIFICATION_FAILED",
+            "key": "receipt-calendar",
+            "details": {"receipt_id": "receipt-calendar", "status": "verification_failed"},
+            "occurred_at": "2026-08-31T09:06:43+00:00",
+        }
+    )
+
+    presentation = service(store)
+    case = presentation.recovery_case(INCIDENT)
+    verify = next(
+        stage for stage in case.attempts[0].stages if stage.semantic_kind is WorkflowStage.VERIFY
+    )
+
+    assert case.attempts[0].status is SemanticStatus.FAILED
+    assert verify.title == "Verification failed"
+    assert verify.status is SemanticStatus.FAILED
+    assert verify.timestamp == "2026-08-31T09:06:43+00:00"
+    assert any(
+        event.semantic_type == "ACTION_RECEIPT_VERIFICATION_FAILED"
+        for event in presentation.events(INCIDENT).events
+    )
+
+
 def test_recovery_spine_keeps_failed_attempt_and_recovery_branch_distinct() -> None:
     case = service().recovery_case(INCIDENT)
     assert [attempt.attempt_number for attempt in case.attempts] == [1, 2]
