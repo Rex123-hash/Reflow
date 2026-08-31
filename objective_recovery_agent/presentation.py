@@ -393,9 +393,12 @@ class PresentationService:
     def overview(self) -> OverviewView:
         objectives = self.objectives()
         all_items = objectives.items
-        current = next(
-            (item for item in all_items if item.objective_id == "release-v2"),
-            all_items[0] if all_items else None,
+        current = max(
+            all_items,
+            key=lambda item: (
+                _deadline(item.updated_at) if item.updated_at else datetime.min.replace(tzinfo=UTC)
+            ),
+            default=None,
         )
         priority: CurrentPriority | None = None
         recent: list[ExecutionEventView] = []

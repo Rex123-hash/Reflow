@@ -434,6 +434,38 @@ def test_overview_and_objectives_use_semantic_truth_without_vanity_fields() -> N
     assert service().objectives(ObjectiveFilter.ACTIVE).items == []
 
 
+def test_overview_uses_latest_objective_without_erasing_history() -> None:
+    store = restored_store()
+    store.objectives["release-qualification-new"] = {
+        "objective_id": "release-qualification-new",
+        "objective_version": 1,
+        "label": "SHIP VERIFIED RELEASE",
+        "deadline_at_utc": "2026-08-31T17:50:50+00:00",
+        "deadline_timezone": "Etc/UTC",
+        "created_at": "2026-08-31T09:50:50+00:00",
+    }
+    store.incidents["incident-new"] = {
+        "incident_id": "incident-new",
+        "objective_id": "release-qualification-new",
+        "objective_version": 1,
+        "stage": "RESOLVED",
+        "status": "objective_restored",
+        "revision": 16,
+        "updated_at": "2026-08-31T09:53:05+00:00",
+    }
+
+    presentation = service(store)
+    overview = presentation.overview()
+
+    assert overview.current_priority is not None
+    assert overview.current_priority.objective_id == "release-qualification-new"
+    assert overview.current_priority.objective_health is ObjectiveHealth.RESTORED
+    assert {item.objective_id for item in presentation.objectives().items} == {
+        "release-v2",
+        "release-qualification-new",
+    }
+
+
 def test_recovery_spine_keeps_failed_attempt_and_recovery_branch_distinct() -> None:
     case = service().recovery_case(INCIDENT)
     assert [attempt.attempt_number for attempt in case.attempts] == [1, 2]
