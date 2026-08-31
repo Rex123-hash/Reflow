@@ -146,12 +146,12 @@ export function ObjectivesRoute() {
               <tr>
                 {/* The identity column takes the slack on a wide desktop canvas; the
                     rest are sized to their content so no column stretches absurdly. */}
-                <th style={{ width: "28%" }}>Objective</th>
+                <th style={{ width: "24%" }}>Objective</th>
                 <th style={{ width: "12%" }}>Health</th>
-                <th style={{ width: "18%" }}>Workflow stage</th>
+                <th style={{ width: "22%" }}>Workflow stage</th>
                 <th style={{ width: "19%" }}>Protected deadline</th>
-                <th style={{ width: "14%" }}>Last observed</th>
-                <th className="numeric" style={{ width: "9%" }} />
+                <th style={{ width: "12%" }}>Last observed</th>
+                <th className="numeric" style={{ width: "11%" }} />
               </tr>
             </thead>
             <tbody>
