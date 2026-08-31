@@ -19,7 +19,9 @@ from objective_recovery_agent.calendar_contract import (
     CalendarPolicyError,
     CalendarWriteAcknowledgement,
     authorize_calendar_action,
+    normalize_calendar_event,
     project_calendar_action,
+    verification_differences,
 )
 from objective_recovery_agent.calendar_execution import (
     CalendarExecutionFailure,
@@ -316,6 +318,70 @@ def test_semantically_equal_calendar_timezone_offset_verifies() -> None:
     receipt = executor.execute(action)
     assert receipt.status is ReceiptStatus.VERIFIED
     assert gateway.insert_calls == 0
+
+
+def calendar_time_differences(
+    *, desired_start: str, desired_end: str, observed_start: str, observed_end: str
+) -> tuple[str, ...]:
+    action = intent()
+    action = action.model_copy(
+        update={
+            "desired": action.desired.model_copy(
+                update={"start": desired_start, "end": desired_end}
+            )
+        }
+    )
+    payload = event_payload(action)
+    payload["start"] = {"dateTime": observed_start}
+    payload["end"] = {"dateTime": observed_end}
+    observed = normalize_calendar_event(calendar_id=CALENDAR_ID, payload=payload)
+    return verification_differences(action, observed)
+
+
+def test_calendar_readback_may_drop_fractional_seconds() -> None:
+    assert calendar_time_differences(
+        desired_start="2026-08-31T13:06:06.663017Z",
+        desired_end="2026-08-31T14:06:06.663017Z",
+        observed_start="2026-08-31T13:06:06Z",
+        observed_end="2026-08-31T14:06:06Z",
+    ) == ()
+
+
+def test_calendar_readback_one_second_difference_still_fails() -> None:
+    assert calendar_time_differences(
+        desired_start="2026-08-31T13:06:06.663017Z",
+        desired_end="2026-08-31T14:06:06.663017Z",
+        observed_start="2026-08-31T13:06:07Z",
+        observed_end="2026-08-31T14:06:06Z",
+    ) == ("start",)
+
+
+def test_calendar_readback_equivalent_timezone_is_same_instant() -> None:
+    assert calendar_time_differences(
+        desired_start="2026-08-31T13:06:06.663017Z",
+        desired_end="2026-08-31T14:06:06.663017Z",
+        observed_start="2026-08-31T18:36:06+05:30",
+        observed_end="2026-08-31T19:36:06+05:30",
+    ) == ()
+
+
+@pytest.mark.parametrize(
+    ("observed_start", "observed_end", "expected"),
+    [
+        ("not-a-time", "2026-08-31T14:06:06Z", ("start",)),
+        ("2026-08-31T13:06:06Z", "not-a-time", ("end",)),
+        ("2026-08-31T13:06:06Z", "2026-08-31T14:06:07Z", ("end",)),
+    ],
+)
+def test_calendar_readback_bad_or_incorrect_boundary_fails(
+    observed_start: str, observed_end: str, expected: tuple[str, ...]
+) -> None:
+    assert calendar_time_differences(
+        desired_start="2026-08-31T13:06:06.663017Z",
+        desired_end="2026-08-31T14:06:06.663017Z",
+        observed_start=observed_start,
+        observed_end=observed_end,
+    ) == expected
 
 
 def test_transient_write_error_is_bounded_and_retried() -> None:

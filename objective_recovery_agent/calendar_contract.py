@@ -235,8 +235,27 @@ def verification_differences(
         "calendar_id": intent.calendar_id,
     }
     actual = observed.model_dump(mode="json")
+
+    def timestamps_match(desired: object, read_back: object) -> bool:
+        try:
+            expected_at = datetime.fromisoformat(str(desired).replace("Z", "+00:00"))
+            observed_at = datetime.fromisoformat(str(read_back).replace("Z", "+00:00"))
+        except ValueError:
+            return False
+        if expected_at.tzinfo is None or observed_at.tzinfo is None:
+            return False
+        expected_at = expected_at.astimezone(UTC).replace(microsecond=0)
+        observed_at = observed_at.astimezone(UTC).replace(microsecond=0)
+        return expected_at == observed_at
+
     return tuple(
-        key for key in sorted(expected) if _canonical(expected[key]) != _canonical(actual.get(key))
+        key
+        for key in sorted(expected)
+        if (
+            not timestamps_match(expected[key], actual.get(key))
+            if key in {"start", "end"}
+            else _canonical(expected[key]) != _canonical(actual.get(key))
+        )
     )
 
 
