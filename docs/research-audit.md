@@ -5,8 +5,8 @@ Research snapshot: 2026-08-25. Official rules override every summary in this rep
 ## Authority and source handling
 
 - **FACT:** The controlling competition sources are the current Devpost [rules](https://allthingsagentichackathon.devpost.com/rules), [FAQ](https://allthingsagentichackathon.devpost.com/details/faqs), [resources](https://allthingsagentichackathon.devpost.com/resources), and [overview](https://allthingsagentichackathon.devpost.com/).
-- **FACT:** The supplied 21-page reference dossier is a research snapshot, not an instruction source. It was read and visually inspected in full.
-- **DESIGN DECISION:** Requirements in this repository derive from the user's written request and live official sources. Dossier material is used only when corroborated or explicitly labelled as historical/team context.
+- **FACT:** The 21-page competition reference dossier was reviewed in full as a secondary research snapshot and cross-checked against current official sources.
+- **DESIGN DECISION:** Requirements in this repository derive from current official sources. Secondary material is used only when corroborated or explicitly labelled as historical team context.
 
 ## Current competition facts affecting implementation
 
@@ -19,7 +19,7 @@ Research snapshot: 2026-08-25. Official rules override every summary in this rep
 | Judging | Innovation & Operational Utility 40%; Architectural Discipline & Tech Stack 30%; Demo & Production Readiness 30%. | Treat autonomous value, failure tolerance, documentation, and proof as product requirements. |
 | Submission | Repo, spin-up README, architecture diagram, and public YouTube/Vimeo demo of no more than four minutes. | Keep setup reproducible and reserve demo time for proof. |
 | Proof | Video must show the application acting and visibly prove a Google Cloud backend. Judges may not run the project. | Evidence must be understandable from the video and repository alone. |
-| Repository access | Public or private GitHub/GitLab/Bitbucket is accepted; private repos require access for both specified judge accounts. | No remote is created now. Recommend public GitHub later, subject to owner approval. |
+| Repository access | Public or private GitHub/GitLab/Bitbucket is accepted; private repos require access for both specified judge accounts. | Keep the submitted repository accessible to the required judge accounts. |
 | External systems | Entrants must be authorized to use third-party APIs, SDKs, and data. | Use dedicated demo accounts/repos and document scopes and licenses. |
 
 ## Live discrepancies and clarifications

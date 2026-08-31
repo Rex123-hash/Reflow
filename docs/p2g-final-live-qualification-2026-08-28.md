@@ -120,7 +120,7 @@ deployment configuration were not changed during this final phase.
 | BZ | Marketing source changed | NONE; frontend source unchanged in this qualification. |
 | CA | Source commit | `4182d52d01b54dbdad824d3035eae193158aeb87` — dedicated Calendar routing, regression tests, bounded eval pacing and scoped deployment configuration. |
 | CB | Proof/docs commit | This report and two proof JSON files are the final local docs-only commit; SHA supplied in the final handoff. No product changes to hide the failures. |
-| CC | Git remote status | Not inspected or contacted; the latest instruction leaves the push to a separate step. |
+| CC | Git remote status | Remote Git operations were outside this qualification; no fetch or push was performed. |
 | CD | Remote main before SHA | Not fetched / not determined. |
 | CE | Push result | NOT ATTEMPTED. |
 | CF | Remote main after SHA | Not fetched / not determined; no remote update by this task. |

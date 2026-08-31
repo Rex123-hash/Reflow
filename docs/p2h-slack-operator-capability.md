@@ -367,7 +367,8 @@ uncertain; token rotation is manual via Secret Manager (no token-management feat
 
 Source commit: `ac57ab3d3614f6baadeb65e70a49465b86c86277`. This is an implementation commit,
 **not a qualified-for-deployment commit**. Proof/docs are in the immediately following local commit
-(its hash is reported in the handoff; a commit cannot contain its own final hash). No push is authorized.
+(its hash is recorded separately because a commit cannot contain its own final hash). No push was
+performed during this qualification stage.
 
 ## 16. Final A–AM report index
 
@@ -463,8 +464,8 @@ For a future run, choose new evaluation output names; do not overwrite these pre
 Started at `b2ee95f4e7c87bdb6fb0b086bed49824617336af`, following source
 `ac57ab3d3614f6baadeb65e70a49465b86c86277`. Repository status/history/diff were inspected first.
 The pre-existing untracked `frontend/op-input.mjs` is untouched and excluded from both commits.
-No push occurred. The user explicitly authorized small semantics-preserving model/eval repairs,
-not new capabilities, weaker criteria, more time or retries, or external writes.
+No push occurred. The repair remained limited to small semantics-preserving model/evaluation
+changes, without new capabilities, weaker criteria, more time or retries, or external writes.
 
 Only two runtime instruction strings changed: Agent 6's Slack appendix and Agent 7's existing
 evidence-citation invariant. An AST comparison against `b2ee95f` is identical after excluding
@@ -531,8 +532,8 @@ UNSUPPORTED before considering missing parameters; ambiguous recipient or missin
 clarifies; configured inspect/post remains supported; quoted mass mentions remain in typed ACT
 for deterministic policy to deny. The general supplied-message-clause rule replaces an exact
 evaluation-message example. No keyword classifier, hardcoded result, permission judgment, new
-authority or broader Slack action was added. This is the user-authorized precision/redundancy
-cleanup, **not a claimed proven cure for provider stalls**.
+authority or broader Slack action was added. This is a bounded precision/redundancy cleanup,
+**not a claimed proven cure for provider stalls**.
 
 ### 17.4 Every targeted diagnostic
 
@@ -729,7 +730,7 @@ scripts/operator_eval_forensics.py
 tests/test_operator_eval_forensics.py
 ```
 
-Qualification commands already executed (record only, not an instruction to rerun):
+Qualification command record:
 
 ```text
 uv run python -m scripts.operator_eval_forensics --suite intent --prefix p2h-repair-final-intent
@@ -741,7 +742,7 @@ uv run agents-cli eval grade --traces artifacts/p2h-repair-final-recovery-traces
 Safe current claim: “The bounded Slack Operator implementation is model-qualified locally with
 24/24 expanded and 8/8 frozen regression cases under unchanged criteria. Authorized live Slack
 proof and deployment have not occurred.” Human Slack setup was **not** required for this model
-qualification. **FINAL VERDICT: P2H MODEL QUALIFICATION READY. STOP.**
+qualification. **FINAL VERDICT: P2H MODEL QUALIFICATION READY.**
 
 ## 18. Human-setup continuation: pre-live only
 

@@ -1,4 +1,4 @@
-# Reflow — submission notes
+# Reflow — submission reference
 
 One source of truth for submission copy, so the same numbers and the same claims appear everywhere. Every figure here is verifiable in this repository or in the linked proof records.
 
@@ -12,7 +12,7 @@ Reflow is an autonomous objective recovery engine — a closed loop, not an assi
 
 **One line:** Gemini reasons. Code enforces. Adapters act. Verifier proves.
 
-**Say this, not that.** Reflow is an engine that contains AI, not an AI that answers questions. The canonical recovery required zero human interventions *after the external trigger* — say it that way, because Operator workflows are deliberately human-initiated. Operator (type, talk, show) is a window onto the loop and a bounded control surface — never describe it as the product. The specification lists *generic chatbot* as an explicit non-goal.
+**Positioning.** Reflow is an engine that contains AI rather than a question-answering assistant. The canonical recovery required zero human interventions *after the external trigger*; Operator workflows remain deliberately human-initiated. Operator (type, talk, show) is a window onto the loop and a bounded control surface, while the autonomous recovery engine remains the product core. The specification lists *generic chatbot* as an explicit non-goal.
 
 ---
 
@@ -131,7 +131,7 @@ Two boundaries hold: visual evidence is not authoritative live system state, and
 - A verified action does not imply a recovered objective.
 - Provider and model services carry their own availability and quota behavior.
 
-**Do not write** "fully autonomous operations platform", "self-healing infrastructure", or any phrasing implying Reflow can act on arbitrary systems. It acts on configured resources under policy, and says so.
+**Claim boundary.** Reflow is not presented as a "fully autonomous operations platform" or "self-healing infrastructure," and it cannot act on arbitrary systems. Its authority is limited to configured resources under deterministic policy.
 
 ---
 
@@ -146,20 +146,22 @@ Two boundaries hold: visual evidence is not authoritative live system state, and
 | Frontend tests | 167 passing across 20 files |
 | Frontend typecheck, lint, format, build | Clean |
 
-The stale guard pins thirteen paths against commit `6b9b6f1`. Twelve are byte-identical; the only divergence is a two-line design-token substitution in a frontend presentation component. State it as a stale guard, never as "all tests green".
+The stale guard pins thirteen paths against commit `6b9b6f1`. Twelve are byte-identical; the only divergence is a two-line design-token substitution in a frontend presentation component. The accurate result is therefore one known-stale guard rather than an unqualified "all tests green" claim.
 
 ---
 
-## Demo talking points
+## Judge demo guide
 
-0. **Say what it is first.** Reflow is an engine that protects an outcome, with AI inside it. Nothing in the demo was asked for.
-1. **Open on the failure.** Recovery 01 is action-verified and still marked FAILED. Say the line: an action can be verified and the objective still not be recovered.
-2. **Show the branch.** Recovery 02 branched from the failed attempt, with the failed effect excluded so it could not repeat it.
-3. **Show the receipt.** Evidence carries the external reference and the independent read-back, not just a log line.
-4. **Ask Operator why.** A plain-language answer first, technical provenance underneath, and an explicit statement that nothing was changed.
-5. **Ask for something unsupported.** The product refuses and says no action was taken. That refusal is the architecture, visible.
-6. **Show it a screenshot.** Observed, inferred and not-visible are three separate columns, and the handoff says nothing was acted on.
-7. **Close on authority.** Eight agents propose. Code decides. Adapters act. The verifier proves.
+The following sequence maps visible product evidence to Reflow's core claims:
+
+0. **Product identity.** Reflow protects an outcome with AI inside a governed recovery engine. The canonical incident began with an external Gmail trigger rather than a typed request.
+1. **Failure as evidence.** Recovery 01 is action-verified and still marked FAILED, demonstrating that a verified action does not necessarily recover the objective.
+2. **Recovery branch.** Recovery 02 branches from the failed attempt and excludes the failed effect so the same dead end cannot be repeated.
+3. **Independent proof.** Evidence includes the external reference and independent read-back rather than only an application log.
+4. **Operator explanation.** A plain-language answer appears before technical provenance and explicitly states that the inspection changed nothing.
+5. **Visible refusal.** Unsupported requests produce a refusal and a clear statement that no action was taken.
+6. **Visual evidence boundary.** Screenshot analysis separates observed, inferred and not-visible details, while the handoff confirms that nothing was acted on.
+7. **Authority boundary.** Eight agents propose. Code decides. Adapters act. The verifier proves.
 
 ---
 

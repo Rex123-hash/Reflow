@@ -266,4 +266,5 @@ Post-deployment evidence adds this report, `docs/p2e-a-signin-pending.png`, and
   was required for the proven fresh runtime read. The earlier embedded-browser sign-in
   delay is not claimed to have been diagnosed or fixed by a Reflow source change.
 - **AD:** **LIVE CALENDAR DASHBOARD GO.**
-  Milestone complete. Stop; do not begin Agents 6/7 or another milestone automatically.
+  This qualification is limited to the Calendar dashboard; later agent milestones are documented
+  in their own evidence records.
