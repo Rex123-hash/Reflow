@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
   <defs>
-    <linearGradient id="reflow-link-hand" x1="7" y1="3" x2="23" y2="27" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#d8c28f"/>
-      <stop offset="0.38" stop-color="#587664"/>
-      <stop offset="0.72" stop-color="#1d4c39"/>
-      <stop offset="1" stop-color="#172f25"/>
+    <linearGradient id="reflow-link-hand" x1="6" y1="3" x2="22" y2="27" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#dce6df"/>
+      <stop offset="0.48" stop-color="#819b8b"/>
+      <stop offset="1" stop-color="#315b48"/>
     </linearGradient>
     <filter id="reflow-link-shadow" x="-45%" y="-35%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="2" stdDeviation="1.35" flood-color="#17211c" flood-opacity=".38"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.1" flood-color="#8eaa99" flood-opacity=".34"/>
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.1" flood-color="#173d2e" flood-opacity=".28"/>
     </filter>
   </defs>
   <path d="M11.1 3.4a1.85 1.85 0 0 1 3.7 0v8.15a1.75 1.75 0 0 1 3.4.6v.55a1.75 1.75 0 0 1 3.35.62v.6a1.75 1.75 0 0 1 3.3.75v3.5c0 4.35-3.05 7.55-7.35 7.55h-1.85c-2.45 0-4.15-1-5.35-2.75l-3.95-5.75a1.95 1.95 0 0 1 3.1-2.35l1.65 2.1Z" fill="url(#reflow-link-hand)" stroke="#fffdf8" stroke-width="1.55" stroke-linejoin="round" filter="url(#reflow-link-shadow)"/>

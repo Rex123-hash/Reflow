@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
   <defs>
-    <linearGradient id="reflow-link-hand-active" x1="7" y1="4" x2="23" y2="28" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#c5aa70"/>
-      <stop offset="0.4" stop-color="#426650"/>
-      <stop offset="0.74" stop-color="#173d2e"/>
-      <stop offset="1" stop-color="#17211c"/>
+    <linearGradient id="reflow-link-hand-active" x1="6" y1="3" x2="22" y2="27" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#cad8ce"/>
+      <stop offset="0.48" stop-color="#728f7e"/>
+      <stop offset="1" stop-color="#294f3e"/>
     </linearGradient>
     <filter id="reflow-link-shadow-active" x="-45%" y="-35%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#17211c" flood-opacity=".42"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="1.8" flood-color="#829f8d" flood-opacity=".3"/>
+      <feDropShadow dx="0" dy="1.2" stdDeviation="1" flood-color="#173d2e" flood-opacity=".3"/>
     </filter>
   </defs>
   <g transform="translate(0 .55)">
