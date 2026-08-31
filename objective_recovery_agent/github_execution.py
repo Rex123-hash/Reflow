@@ -92,14 +92,15 @@ class GitHubP1CService:
         fingerprint = failed_verification_fingerprint(
             {"verification": verification, "evidence": evidence}
         )
+        incident = self._workflow.load_incident(intent.incident_id)
         fields = {
             "github_action_receipt_id": receipt_id,
             "github_action_receipt_status": ReceiptStatus.VERIFIED.value,
             "github_verification": verification,
             "github_evidence": evidence,
             "failed_verification_fingerprint": fingerprint,
-            "objective_id": "release-v2",
-            "objective_version": 1,
+            "objective_id": str(incident.get("objective_id", "release-v2")),
+            "objective_version": int(incident.get("objective_version", 1)),
         }
         if not self._automatic_recovery_handoff:
             self._workflow.save_checkpoint(
@@ -323,8 +324,10 @@ class GitHubP1CService:
             observed_at=observed_at,
             source_reference=evidence.run.url,
         )
+        incident_data = self._workflow.load_incident(intent.incident_id)
+        objective_id = str(incident_data.get("objective_id", "release-v2"))
         verification = DeterministicObjectiveVerifier().verify(
-            objective_id="release-v2",
+            objective_id=objective_id,
             invariants=(
                 ObjectiveInvariant(
                     intent.invariant_id,
@@ -337,7 +340,7 @@ class GitHubP1CService:
         )
         incident = Incident(
             incident_id=intent.incident_id,
-            objective_id="release-v2",
+            objective_id=objective_id,
             status=IncidentStatus.VERIFYING,
             history=[IncidentStatus.VERIFYING],
         )

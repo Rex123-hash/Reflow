@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from objective_recovery_agent import fast_api_app
 from objective_recovery_agent.ledger import InMemoryWorkflowLedger
+from objective_recovery_agent.objective_store import InMemoryObjectiveStore
 from objective_recovery_agent.orchestrator import RecoveryOrchestrator
 from objective_recovery_agent.schemas import (
     ActionParameter,
@@ -18,6 +19,7 @@ from objective_recovery_agent.schemas import (
     CritiqueGeneration,
     DisruptionEvent,
     IncidentStage,
+    ObjectiveRecord,
     PlanAssumptionOutput,
     PlanCritique,
     PlanningRun,
@@ -138,6 +140,7 @@ class StubPlanner:
         self.critic_error = critic_error
         self.planner_calls = 0
         self.critic_calls = 0
+        self.last_input: Any = None
 
     @property
     def calls(self) -> int:
@@ -145,6 +148,7 @@ class StubPlanner:
 
     async def generate_candidates(self, planning_input: Any) -> CandidateGeneration:
         self.planner_calls += 1
+        self.last_input = planning_input
         if isinstance(self.run, BaseException):
             raise self.run
         return CandidateGeneration(
@@ -180,6 +184,38 @@ def three_valid_plans() -> PlanningRun:
         candidate("risk", StrategyType.RISK_MINIMIZATION_FIRST, risk=20),
         candidate("balance", StrategyType.RESOURCE_BALANCE_FIRST, risk=25),
     )
+
+
+@pytest.mark.asyncio
+async def test_fresh_event_pins_and_plans_from_persisted_objective() -> None:
+    objective = ObjectiveRecord(
+        objective_id="release-qualification-fresh",
+        label="SHIP RELEASE V2",
+        deadline_local="2026-09-01 18:00:00",
+        deadline_timezone="Etc/UTC",
+        deadline_at_utc="2026-09-01T18:00:00Z",
+        objective_version=1,
+        protected_commitment=True,
+    )
+    objectives = InMemoryObjectiveStore()
+    objectives.ensure_objective(objective)
+    event = disruption("event-fresh-objective").model_copy(
+        update={"objective_id": objective.objective_id, "objective_version": 1}
+    )
+    ledger = InMemoryWorkflowLedger()
+    planner = StubPlanner(three_valid_plans())
+
+    await RecoveryOrchestrator(ledger, planner, objective_store=objectives).process(
+        event, "pubsub-fresh-objective"
+    )
+
+    incident = next(iter(ledger.incidents.values()))
+    assert incident["objective_id"] == objective.objective_id
+    assert incident["objective_version"] == 1
+    assert planner.last_input.objective_id == objective.objective_id
+    assert planner.last_input.protected_deadline == objective.deadline_at_utc
+    assert "release-v2" not in planner.last_input.affected_node_ids
+    assert objective.objective_id in planner.last_input.affected_node_ids
 
 
 @pytest.mark.asyncio

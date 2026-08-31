@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from objective_recovery_agent.world import build_policy_engine
 
 from objective_recovery.application.selection import select_best_valid_plan
 from objective_recovery.domain.errors import NoValidPlanError
@@ -107,6 +108,21 @@ def test_valid_policy_path_allows_missing_unprotected_deadline_mapping() -> None
         ]
     ).evaluate(candidate)
     assert decision.is_valid
+
+
+def test_runtime_policy_uses_fresh_protected_deadline() -> None:
+    fresh_deadline = datetime(2026, 9, 1, 18, tzinfo=UTC)
+    before_fresh = plan(
+        "fresh-deadline",
+        deadlines=(DeadlineChange("commit-release", fresh_deadline - timedelta(minutes=1)),),
+    )
+    after_fresh = plan(
+        "late",
+        deadlines=(DeadlineChange("commit-release", fresh_deadline + timedelta(minutes=1)),),
+    )
+
+    assert build_policy_engine(fresh_deadline).evaluate(before_fresh).is_valid
+    assert not build_policy_engine(fresh_deadline).evaluate(after_fresh).is_valid
 
 
 def test_plan_selection_is_stable_across_input_order() -> None:

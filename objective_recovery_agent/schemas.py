@@ -91,6 +91,8 @@ class DisruptionEvent(StrictModel):
     summary: Annotated[str, Field(min_length=3, max_length=1000)]
     disrupted_node_ids: Annotated[list[str], Field(min_length=1, max_length=20)]
     evidence_references: Annotated[list[str], Field(min_length=1, max_length=20)]
+    objective_id: Annotated[str, Field(min_length=3, max_length=160)] = "release-v2"
+    objective_version: Annotated[int, Field(ge=1)] = 1
 
     @field_validator("occurred_at", mode="before")
     @classmethod

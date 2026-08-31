@@ -31,7 +31,7 @@ from objective_recovery_agent.calendar_gateway import (
 )
 from objective_recovery_agent.ledger import InMemoryWorkflowLedger
 from objective_recovery_agent.orchestrator import RecoveryOrchestrator
-from objective_recovery_agent.schemas import DisruptionEvent
+from objective_recovery_agent.schemas import DisruptionEvent, ObjectiveRecord
 from objective_recovery_agent.world import planning_input
 
 from objective_recovery.domain.errors import DuplicateIdempotencyKeyError
@@ -98,6 +98,33 @@ def intent() -> CalendarActionIntent:
         context=planning_input("incident-p1b", event),
         calendar_id=CALENDAR_ID,
     )
+
+
+def test_fresh_objective_deadline_drives_calendar_projection() -> None:
+    objective = ObjectiveRecord(
+        objective_id="release-qualification-fresh",
+        label="SHIP RELEASE V2",
+        deadline_local="2026-09-01 18:00:00",
+        deadline_timezone="Etc/UTC",
+        deadline_at_utc="2026-09-01T18:00:00Z",
+        objective_version=1,
+        protected_commitment=True,
+    )
+    context = planning_input(
+        "incident-fresh",
+        disruption().model_copy(update={"objective_id": objective.objective_id}),
+        objective,
+    )
+    projected = project_calendar_action(
+        incident_id="incident-fresh",
+        plan=selected_plan(),
+        context=context,
+        calendar_id=CALENDAR_ID,
+    )
+
+    assert projected.protected_deadline == "2026-09-01T18:00:00+00:00"
+    assert projected.desired.start == "2026-09-01T14:00:00+00:00"
+    assert projected.desired.end == "2026-09-01T15:00:00+00:00"
 
 
 def event_payload(action: CalendarActionIntent, *, summary: str | None = None) -> dict[str, object]:

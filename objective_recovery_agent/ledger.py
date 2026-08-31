@@ -160,6 +160,8 @@ class FirestoreWorkflowLedger:
                 {
                     "incident_id": incident_id,
                     "source_event_id": event.event_id,
+                    "objective_id": event.objective_id,
+                    "objective_version": event.objective_version,
                     "stage": IncidentStage.EVENT_RECEIVED.value,
                     "status": "detected",
                     "disruption": event.model_dump(mode="json"),
@@ -452,6 +454,8 @@ class InMemoryWorkflowLedger:
             self.incidents[incident_id] = {
                 "incident_id": incident_id,
                 "source_event_id": event.event_id,
+                "objective_id": event.objective_id,
+                "objective_version": event.objective_version,
                 "stage": IncidentStage.EVENT_RECEIVED.value,
                 "status": "detected",
                 "disruption": event.model_dump(mode="json"),

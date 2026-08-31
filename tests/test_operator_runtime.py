@@ -602,7 +602,7 @@ def test_frozen_calendar_and_existing_five_agent_semantics_unchanged() -> None:
             [
                 "git",
                 "diff",
-                    "0893f925870f7b2b561f64d3fe8337f80d0a1f67",
+                "0893f925870f7b2b561f64d3fe8337f80d0a1f67",
                 "--exit-code",
                 "--",
                 "objective_recovery_agent/calendar_gateway.py",
@@ -624,14 +624,16 @@ def test_frozen_calendar_and_existing_five_agent_semantics_unchanged() -> None:
         == 0
     )
 
-    def function(source: str, name: str) -> str:
+    def function_node(source: str, name: str) -> ast.FunctionDef | ast.AsyncFunctionDef:
         tree = ast.parse(source)
-        node = next(
+        return next(
             item
             for item in tree.body
             if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name == name
         )
-        return ast.dump(node, include_attributes=False)
+
+    def function(source: str, name: str) -> str:
+        return ast.dump(function_node(source, name), include_attributes=False)
 
     old = subprocess.check_output(
         ["git", "show", "6b9b6f1:objective_recovery_agent/fast_api_app.py"], text=True
@@ -640,11 +642,27 @@ def test_frozen_calendar_and_existing_five_agent_semantics_unchanged() -> None:
     for name in (
         "get_external_reality_service",
         "ui_external_reality",
-        "get_orchestrator",
         "get_p1c_service",
         "get_p1d_service",
     ):
         assert function(old, name) == function(current, name)
+
+    old_orchestrator = function_node(old, "get_orchestrator")
+    current_orchestrator = function_node(current, "get_orchestrator")
+    current_call = next(
+        node
+        for node in ast.walk(current_orchestrator)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "RecoveryOrchestrator"
+    )
+    objective_store = current_call.args.pop()
+    assert isinstance(objective_store, ast.Call)
+    assert isinstance(objective_store.func, ast.Name)
+    assert objective_store.func.id == "FirestoreObjectiveStore"
+    assert ast.dump(old_orchestrator, include_attributes=False) == ast.dump(
+        current_orchestrator, include_attributes=False
+    )
 
 
 @pytest.mark.asyncio

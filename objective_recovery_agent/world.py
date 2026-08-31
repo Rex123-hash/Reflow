@@ -12,7 +12,13 @@ from objective_recovery.domain.policy import (
     ProtectedDeadlinePolicy,
     RequiredSkillsPolicy,
 )
-from objective_recovery_agent.schemas import DisruptionEvent, PlanningInput, ResourceOption
+from objective_recovery_agent.objective_store import CANONICAL_OBJECTIVE
+from objective_recovery_agent.schemas import (
+    DisruptionEvent,
+    ObjectiveRecord,
+    PlanningInput,
+    ResourceOption,
+)
 
 OBJECTIVE_ID = "release-v2"
 PROTECTED_DEADLINE = datetime(2026, 8, 28, 17, tzinfo=UTC)
@@ -60,24 +66,38 @@ RESOURCES = (
 )
 
 
-def build_graph() -> OperationalGraph:
+def build_graph(objective: ObjectiveRecord = CANONICAL_OBJECTIVE) -> OperationalGraph:
     graph = OperationalGraph()
     for node in _NODES:
-        graph.add_node(node)
+        graph.add_node(
+            OperationalNode(objective.objective_id, node.kind, objective.label)
+            if node.node_id == OBJECTIVE_ID
+            else node
+        )
     for edge in _EDGES:
-        graph.add_edge(edge)
+        graph.add_edge(
+            OperationalEdge(objective.objective_id, edge.target_id, edge.relation)
+            if edge.source_id == OBJECTIVE_ID
+            else edge
+        )
     return graph
 
 
-def objective_graph_snapshot() -> dict[str, object]:
+def objective_graph_snapshot(objective: ObjectiveRecord = CANONICAL_OBJECTIVE) -> dict[str, object]:
     return {
         "nodes": [
-            {"node_id": node.node_id, "kind": node.kind.value, "label": node.label}
+            {
+                "node_id": objective.objective_id if node.node_id == OBJECTIVE_ID else node.node_id,
+                "kind": node.kind.value,
+                "label": objective.label if node.node_id == OBJECTIVE_ID else node.label,
+            }
             for node in _NODES
         ],
         "edges": [
             {
-                "source_id": edge.source_id,
+                "source_id": (
+                    objective.objective_id if edge.source_id == OBJECTIVE_ID else edge.source_id
+                ),
                 "target_id": edge.target_id,
                 "relation": edge.relation,
             }
@@ -86,7 +106,7 @@ def objective_graph_snapshot() -> dict[str, object]:
     }
 
 
-def build_policy_engine() -> PolicyEngine:
+def build_policy_engine(deadline: datetime = PROTECTED_DEADLINE) -> PolicyEngine:
     return PolicyEngine(
         (
             MaxWorkloadPolicy(),
@@ -97,18 +117,22 @@ def build_policy_engine() -> PolicyEngine:
                     "person-qa": frozenset({"qa", "python"}),
                 }
             ),
-            ProtectedDeadlinePolicy({"commit-release": PROTECTED_DEADLINE}),
+            ProtectedDeadlinePolicy({"commit-release": deadline}),
         )
     )
 
 
-def planning_input(incident_id: str, event: DisruptionEvent) -> PlanningInput:
-    affected = build_graph().blast_radius(event.disrupted_node_ids)
+def planning_input(
+    incident_id: str,
+    event: DisruptionEvent,
+    objective: ObjectiveRecord = CANONICAL_OBJECTIVE,
+) -> PlanningInput:
+    affected = build_graph(objective).blast_radius(event.disrupted_node_ids)
     return PlanningInput(
         incident_id=incident_id,
-        objective_id=OBJECTIVE_ID,
-        objective_label="Ship Release V2 by Friday 5 PM",
-        protected_deadline=PROTECTED_DEADLINE.isoformat(),
+        objective_id=objective.objective_id,
+        objective_label=objective.label,
+        protected_deadline=objective.deadline_at_utc,
         disruption=event,
         affected_node_ids=[node.node_id for node in affected],
         affected_node_labels=[node.label for node in affected],

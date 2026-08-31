@@ -12,6 +12,7 @@ from objective_recovery_agent.p1d import (
     P1DConfiguration,
     P1DService,
     P1DState,
+    build_replanning_input,
     evaluate_replan_candidates,
 )
 from objective_recovery_agent.p1d_store import InMemoryP1DStore
@@ -101,6 +102,7 @@ def context(artifacts: list[RecoveryArtifact]) -> ReplanningInput:
         workflow_id="343576501",
         workflow_path=PATH,
     )
+
     return ReplanningInput(
         incident_id="incident-p1d-canonical",
         plan_revision=2,
@@ -151,6 +153,71 @@ def context(artifacts: list[RecoveryArtifact]) -> ReplanningInput:
         unhealthy_reason="CI failed",
         policy_summary=["fail closed"],
     )
+
+
+def test_replanning_reloads_incident_pinned_fresh_objective() -> None:
+    fresh = ObjectiveRecord(
+        objective_id="release-qualification-fresh",
+        label="SHIP RELEASE V2",
+        deadline_local="2026-09-01 18:00:00",
+        deadline_timezone="Etc/UTC",
+        deadline_at_utc="2026-09-01T18:00:00Z",
+        objective_version=1,
+        protected_commitment=True,
+    )
+
+    class Objectives:
+        def __init__(self) -> None:
+            self.listed: list[str] = []
+
+        def load_objective(self, objective_id: str) -> ObjectiveRecord:
+            assert objective_id == fresh.objective_id
+            return fresh
+
+        def list_available_artifacts(self, objective_id: str) -> tuple[RecoveryArtifact, ...]:
+            self.listed.append(objective_id)
+            return () if objective_id == fresh.objective_id else (artifact(B),)
+
+    class Evidence:
+        def load_action_evidence(self, receipt_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
+            return ({"idempotency_key": receipt_id}, {"receipt_id": receipt_id})
+
+    incident = {
+        "incident_id": "incident-fresh-objective",
+        "objective_id": fresh.objective_id,
+        "objective_version": 1,
+        "action_receipt_id": "calendar-receipt",
+        "github_action_receipt_id": "github-receipt",
+        "selected_plan_id": "plan-a",
+        "selected_plan": {"plan_id": "plan-a"},
+        "policy_decisions": [],
+        "github_verification": {"observed_at": NOW.isoformat()},
+        "github_evidence": {
+            "repository": REPOSITORY,
+            "workflow_id": 343576501,
+            "workflow_path": PATH,
+            "tag_sha": A,
+            "release_id": 100,
+            "run_id": 200,
+            "status": "completed",
+            "conclusion": "failure",
+            "read_back_at": NOW.isoformat(),
+            "jobs": [],
+        },
+    }
+    objectives = Objectives()
+
+    restored = build_replanning_input(
+        incident=incident,
+        objective_store=cast(Any, objectives),
+        p1d_store=cast(Any, Evidence()),
+    )
+
+    assert restored.objective == fresh
+    assert restored.objective.deadline_at_utc == "2026-09-01T18:00:00+00:00"
+    assert restored.objective_graph["nodes"][0]["node_id"] == fresh.objective_id
+    assert objectives.listed == [fresh.objective_id, "release-v2"]
+    assert restored.available_recovery_artifacts[0].candidate_sha == B
 
 
 def critiques(plans: list[RecoveryPlanCandidate], scores: dict[str, int]) -> CritiqueGeneration:

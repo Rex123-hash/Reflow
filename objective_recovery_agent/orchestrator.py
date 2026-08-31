@@ -28,6 +28,7 @@ from objective_recovery_agent.calendar_execution import (
     CalendarExecutionFailure,
 )
 from objective_recovery_agent.ledger import WorkflowLedger
+from objective_recovery_agent.objective_store import CANONICAL_OBJECTIVE, ObjectiveStore
 from objective_recovery_agent.observability import OperationalEvent, emit_operational_event
 from objective_recovery_agent.planning import PlanningPhaseError, pairwise_diversity
 from objective_recovery_agent.recovery_outbox import (
@@ -157,11 +158,13 @@ class RecoveryOrchestrator:
         planner: PlanningService,
         calendar_executor: CalendarActionExecutor | None = None,
         p1c_publisher: P1CContinuationPublisher | None = None,
+        objective_store: ObjectiveStore | None = None,
     ) -> None:
         self._ledger = ledger
         self._planner = planner
         self._calendar_executor = calendar_executor
         self._p1c_publisher = p1c_publisher
+        self._objective_store = objective_store
 
     async def process(self, disruption: DisruptionEvent, message_id: str) -> ProcessResult:
         started = time.perf_counter()
@@ -333,6 +336,16 @@ class RecoveryOrchestrator:
         resumed: bool,
     ) -> ProcessResult:
         incident = self._ledger.load_incident(incident_id)
+        objective = (
+            self._objective_store.load_objective(disruption.objective_id)
+            if self._objective_store is not None
+            else CANONICAL_OBJECTIVE
+        )
+        if (
+            objective.objective_id != disruption.objective_id
+            or objective.objective_version != disruption.objective_version
+        ):
+            raise ValueError("disruption does not match its persisted objective version")
         if resumed:
             emit_operational_event(
                 OperationalEvent.WORKFLOW_RESUMED,
@@ -348,7 +361,7 @@ class RecoveryOrchestrator:
                 {"attempt": attempt, "resumed_from_stage": incident.get("stage")},
             )
         try:
-            context = planning_input(incident_id, disruption)
+            context = planning_input(incident_id, disruption, objective)
         except Exception as error:
             emit_operational_event(
                 OperationalEvent.IMPACT_MAPPING_FAILED,
@@ -486,7 +499,7 @@ class RecoveryOrchestrator:
                 )
 
         critiques = {item.plan_id: item for item in planning_run.critiques.critiques}
-        policy = build_policy_engine()
+        policy = build_policy_engine(datetime.fromisoformat(objective.deadline_at_utc))
         evaluated: list[EvaluatedPlan] = []
         decisions: list[dict[str, object]] = []
         for candidate in planning_run.candidates.plans:
@@ -627,7 +640,7 @@ class RecoveryOrchestrator:
                     "external_event_id": receipt.external_event_id,
                 },
             )
-            terminal_fields = {
+            terminal_fields: dict[str, object] = {
                 "status": "action_receipt_verified"
                 if receipt.status is ReceiptStatus.VERIFIED
                 else "action_receipt_verification_failed",

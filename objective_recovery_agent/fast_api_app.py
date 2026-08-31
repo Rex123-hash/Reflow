@@ -117,6 +117,7 @@ def get_orchestrator() -> RecoveryOrchestrator:
         )
         if calendar_executor is not None
         else None,
+        FirestoreObjectiveStore(project_id),
     )
 
 

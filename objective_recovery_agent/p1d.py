@@ -387,10 +387,14 @@ def build_replanning_input(
     objective_store: ObjectiveStore,
     p1d_store: P1DStore,
 ) -> ReplanningInput:
-    objective = objective_store.load_objective("release-v2")
-    if objective.objective_version != 1 or int(incident.get("objective_version", 1)) != 1:
-        raise ValueError("incident does not pin canonical objective version 1")
+    objective_id = str(incident.get("objective_id", "release-v2"))
+    objective_version = int(incident.get("objective_version", 1))
+    objective = objective_store.load_objective(objective_id)
+    if objective.objective_version != objective_version:
+        raise ValueError("incident objective version does not match persisted authority")
     artifacts = objective_store.list_available_artifacts(objective.objective_id)
+    if not artifacts and objective.objective_id != "release-v2":
+        artifacts = objective_store.list_available_artifacts("release-v2")
     calendar_claim, calendar_receipt = p1d_store.load_action_evidence(
         str(incident["action_receipt_id"])
     )
@@ -433,7 +437,7 @@ def build_replanning_input(
             "external-correlation-fresh",
             "protected-release-deadline-satisfied",
         ],
-        objective_graph=objective_graph_snapshot(),
+        objective_graph=objective_graph_snapshot(objective),
         resources=list(RESOURCES),
         allowed_work_item_ids=[
             "work-api-migration",

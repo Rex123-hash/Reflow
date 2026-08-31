@@ -293,6 +293,20 @@ def test_failure_verifies_action_but_fails_objective() -> None:
     ]
 
 
+def test_failure_preserves_fresh_incident_objective_identity() -> None:
+    value = intent()
+    runner, _, workflow, _ = service(value)
+    workflow.incidents[value.incident_id].update(
+        {"objective_id": "release-qualification-fresh", "objective_version": 1}
+    )
+
+    result = runner.advance(value, now=NOW + timedelta(seconds=9))
+
+    assert result.verification is not None
+    assert result.verification.objective_id == "release-qualification-fresh"
+    assert workflow.incidents[value.incident_id]["objective_id"] == ("release-qualification-fresh")
+
+
 def test_exact_terminal_replay_has_no_mutation_or_revision_churn() -> None:
     value = intent()
     runner, _, workflow, gateway = service(value)
