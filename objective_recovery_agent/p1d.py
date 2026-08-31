@@ -1184,6 +1184,21 @@ class P1DService:
                 "revision-2",
                 {"active_candidate_sha": validation_intent.candidate_sha},
             )
+        else:
+            self._workflow.record_event(
+                handoff.incident_id,
+                WorkflowEventType.OBJECTIVE_VERIFICATION_FAILED,
+                "revision-2",
+                {
+                    "plan_revision": PLAN_REVISION,
+                    "objective_id": replanning_input.objective.objective_id,
+                    "observed_at": verification.observed_at.isoformat(),
+                    "failed_invariant_ids": [
+                        check.invariant_id for check in verification.checks if not check.passed
+                    ],
+                    "invariant_count": len(verification.checks),
+                },
+            )
         return P1DResult(
             handoff.incident_id,
             P1DState.RESOLVED if verification.passed else P1DState.RECOVERY_FAILED,

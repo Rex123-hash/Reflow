@@ -730,6 +730,16 @@ class PresentationService:
         )
         selected = _as_dict(selection.get("selected_plan"))
         terminal = incident.get("stage") == "RESOLVED"
+        closed_unrecovered = (
+            incident.get("stage") == "VERIFICATION_FAILED"
+            and incident.get("status") == "recovery_incomplete"
+        )
+        second_verification = _as_dict(incident.get("final_verification"))
+        second_failed_invariants = [
+            str(_as_dict(check).get("invariant_id"))
+            for check in _as_list(second_verification.get("checks"))
+            if _as_dict(check).get("passed") is False
+        ]
         current = workflow_stage(str(incident.get("stage")))
 
         def status_for(kind: WorkflowStage) -> SemanticStatus:
@@ -742,6 +752,12 @@ class PresentationService:
             ]
             if terminal:
                 return SemanticStatus.COMPLETED
+            if closed_unrecovered:
+                if kind is WorkflowStage.VERIFY:
+                    return SemanticStatus.FAILED
+                if kind is WorkflowStage.RESTORED:
+                    return SemanticStatus.UNAVAILABLE
+                return SemanticStatus.COMPLETED
             if current == kind:
                 return SemanticStatus.CURRENT
             if current in order and order.index(kind) < order.index(current):
@@ -752,7 +768,13 @@ class PresentationService:
             RecoveryAttemptView(
                 attempt_number=2,
                 label="Recovery 02",
-                status=(SemanticStatus.COMPLETED if terminal else SemanticStatus.CURRENT),
+                status=(
+                    SemanticStatus.COMPLETED
+                    if terminal
+                    else SemanticStatus.FAILED
+                    if closed_unrecovered
+                    else SemanticStatus.CURRENT
+                ),
                 branch_from_attempt=1,
                 branch_reason=(
                     "Recovery 01 was action-verified, but release-validation-green was false."
@@ -795,19 +817,42 @@ class PresentationService:
                     RecoveryStageView(
                         stage_id="recovery-2-verify",
                         semantic_kind=WorkflowStage.VERIFY,
-                        title="Verify",
+                        title="Verification failed" if closed_unrecovered else "Verify",
                         subtitle=(
-                            "External evidence was read back and objective invariants evaluated."
+                            "Objective invariants were evaluated and rejected the objective."
+                            if closed_unrecovered
+                            else "External evidence was read back and objective invariants "
+                            "evaluated."
                         ),
                         status=status_for(WorkflowStage.VERIFY),
-                        timestamp=self._event_time(events, "OBJECTIVE_VERIFICATION_STARTED"),
+                        timestamp=(
+                            _iso(second_verification.get("observed_at"))
+                            if closed_unrecovered
+                            else None
+                        )
+                        or self._event_time(
+                            events,
+                            "OBJECTIVE_VERIFICATION_FAILED"
+                            if closed_unrecovered
+                            else "OBJECTIVE_VERIFICATION_STARTED",
+                        )
+                        or self._event_time(events, "OBJECTIVE_VERIFICATION_STARTED"),
                         related_evidence_ids=["objective-verification:2"],
+                        failure_reason=(
+                            f"{', '.join(second_failed_invariants)} did not hold."
+                            if closed_unrecovered and second_failed_invariants
+                            else None
+                        ),
                     ),
                     RecoveryStageView(
                         stage_id="recovery-2-restored",
                         semantic_kind=WorkflowStage.RESTORED,
                         title="Restored",
-                        subtitle="All required objective invariants passed.",
+                        subtitle=(
+                            "The objective was not restored by this recovery."
+                            if closed_unrecovered
+                            else "All required objective invariants passed."
+                        ),
                         status=status_for(WorkflowStage.RESTORED),
                         timestamp=self._event_time(events, "OBJECTIVE_RESTORED"),
                     ),
@@ -1478,15 +1523,24 @@ class PresentationService:
             if failed.get("passed") is False
             else "Recovery 02 exists because the prior recovery did not restore every invariant."
         )
-        changed = (
-            "Recovery 02 replaced the failed candidate with an immutable revised candidate, "
-            "validated it, and promoted that exact release to full/latest."
-            if context.health is ObjectiveHealth.RESTORED
-            else (
+        if context.health is ObjectiveHealth.RESTORED:
+            changed = (
+                "Recovery 02 replaced the failed candidate with an immutable revised candidate, "
+                "validated it, and promoted that exact release to full/latest."
+            )
+        elif (
+            context.incident_stage == "VERIFICATION_FAILED"
+            and context.incident_status == "recovery_incomplete"
+        ):
+            changed = (
+                "Recovery 02 executed and was read back, but objective verification completed "
+                "and rejected the objective."
+            )
+        else:
+            changed = (
                 "Recovery 02 uses a materially revised candidate and new external "
                 "action identities."
             )
-        )
         return RecoverySummary(
             what_happened=happened,
             why_current_recovery_exists=why,

@@ -117,6 +117,7 @@ export function OperatorRoute() {
               <StageChip
                 stage={data.objective.workflow_stage}
                 attemptNumber={data.objective.current_recovery_number}
+                health={data.objective.health}
               />
               <span className="mono operator-incident">{incidentId}</span>
             </div>

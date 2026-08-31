@@ -125,6 +125,7 @@ export function OverviewRoute() {
                 <StageChip
                   stage={priority.active_workflow_stage}
                   attemptNumber={priority.active_recovery_number}
+                  health={priority.objective_health}
                 />
               </dd>
             </div>

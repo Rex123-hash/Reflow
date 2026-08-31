@@ -87,6 +87,23 @@ export const stageLabel = (stage: WorkflowStage): string =>
   STAGE_LABEL[stage] ?? titleCase(stage);
 
 /**
+ * VERIFY plus NEEDS_ATTENTION decodes to exactly one persisted incident stage.
+ *
+ * The backend derives `workflow_stage` VERIFY only from `VERIFYING` or
+ * `VERIFICATION_FAILED`, and `health` NEEDS_ATTENTION only from `NO_VALID_PLAN`,
+ * `PLANNING_FAILED`, `PARTIAL_FAILURE` or `VERIFICATION_FAILED`. The one stage in both
+ * sets is `VERIFICATION_FAILED`, so this is a decode of backend truth rather than a
+ * guess about it, and this file still computes no status of its own.
+ *
+ * It matters because a verification that had already finished and rejected the
+ * objective was rendering as "Verify", which is the word for work still in flight.
+ */
+export const isCompletedVerificationFailure = (
+  stage: WorkflowStage,
+  health: ObjectiveHealth | null | undefined,
+): boolean => stage === "VERIFY" && health === "NEEDS_ATTENTION";
+
+/**
  * One glyph per stage, from the ring family in `Icon`.
  *
  * The glyph replaces the chip's open dot rather than joining it: the dot said only
@@ -116,17 +133,26 @@ const STAGE_GLYPH: Record<WorkflowStage, IconName> = {
 export function StageChip({
   stage,
   attemptNumber,
+  health,
 }: {
   stage: WorkflowStage;
   attemptNumber?: number | null;
+  /**
+   * Objective health from the same view. Supplying it lets a finished, failed
+   * verification say so instead of borrowing the in-flight "Verify" wording.
+   */
+  health?: ObjectiveHealth | null;
 }) {
-  const modifier =
-    stage === "RESTORED"
+  const failedOutcome = isCompletedVerificationFailure(stage, health);
+  const modifier = failedOutcome
+    ? "is-failed"
+    : stage === "RESTORED"
       ? "is-restored"
       : stage === "VERIFY" || stage === "REPLAN"
         ? "is-current"
         : "";
   const glyph = STAGE_GLYPH[stage];
+  const label = failedOutcome ? "Verification failed" : stageLabel(stage);
   return (
     <span className={`stage-chip ${modifier}`.trim()}>
       {glyph ? (
@@ -135,8 +161,8 @@ export function StageChip({
         <i aria-hidden="true" />
       )}
       {attemptNumber != null
-        ? `Recovery ${String(attemptNumber).padStart(2, "0")} · ${stageLabel(stage)}`
-        : stageLabel(stage)}
+        ? `Recovery ${String(attemptNumber).padStart(2, "0")} · ${label}`
+        : label}
     </span>
   );
 }

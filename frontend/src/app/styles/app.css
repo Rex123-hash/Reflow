@@ -590,6 +590,23 @@
   background: currentColor;
 }
 
+/* A completed verification that rejected the objective. It carries the failed tone
+   at full weight rather than the brass of an in-flight stage: the run is over, and
+   the chip must not read as motion. */
+.stage-chip.is-failed {
+  color: var(--failed-ink);
+  border-color: var(--failed-line);
+  background: var(--failed-fill);
+}
+
+.stage-chip.is-failed > .stage-chip-glyph {
+  opacity: 1;
+}
+
+.stage-chip.is-failed > i {
+  background: currentColor;
+}
+
 /* ------------------------------------------------------------- primitives --- */
 
 /**

@@ -40,6 +40,7 @@ export function ObjectiveContextBar({
           <StageChip
             stage={objective.workflow_stage}
             attemptNumber={objective.current_recovery_number}
+            health={objective.health}
           />
         </dd>
       </dl>

@@ -159,6 +159,7 @@ export function ObjectivesRoute() {
                       <StageChip
                         stage={item.workflow_stage}
                         attemptNumber={item.active_recovery_number}
+                        health={item.health}
                       />
                     ) : (
                       <span className="observed-absent">not in recovery</span>
