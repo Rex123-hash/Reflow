@@ -20,8 +20,8 @@
       [role="link"]
     ) {
     cursor:
-      url("/cursors/reflow-grab.svg") 11 9,
-      grab;
+      url("/cursors/reflow-grab.svg") 10 2,
+      pointer;
   }
 
   html.reflow-cursor-ready
@@ -54,8 +54,8 @@
     )
     * {
     cursor:
-      url("/cursors/reflow-grab.svg") 11 9,
-      grab;
+      url("/cursors/reflow-grab.svg") 10 2,
+      pointer;
   }
 
   html.reflow-cursor-ready
@@ -88,8 +88,8 @@
     ):active
     * {
     cursor:
-      url("/cursors/reflow-grabbing.svg") 11 10,
-      grabbing;
+      url("/cursors/reflow-grabbing.svg") 10 3,
+      pointer;
   }
 
   html.reflow-cursor-ready
