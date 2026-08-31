@@ -52,13 +52,27 @@
   overflow: hidden;
 }
 
+.objectives-table {
+  table-layout: fixed;
+}
+
 .objectives-table tbody td {
   vertical-align: middle;
 }
 
-/* Keep the trailing action's border and chevron inside the card's clipped edge. */
+/* Completed failure labels are intentionally explicit and can be longer than an
+   in-flight stage. Wrap them inside their own column instead of invading the
+   protected-deadline cell at narrower desktop widths. */
+.objectives-table .stage-chip {
+  max-width: 100%;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+/* The fixed layout makes the declared column widths fit the card instead of letting
+   long deadline/stage content silently enlarge the table past its clipped edge. */
 .objectives-table td.numeric {
-  padding-right: var(--space-5);
+  padding-right: var(--space-4);
 }
 
 /* The deadline is one value and reads as one line; at the row's new size it was
