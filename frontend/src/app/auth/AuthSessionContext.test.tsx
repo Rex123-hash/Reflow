@@ -107,7 +107,7 @@ describe("workspace access", () => {
     expect(window.location.search).toBe("");
   });
 
-  it("sends Open workspace from guest into the live Google path", async () => {
+  it("sends Open workspace from guest to the original chooser without resuming demo", async () => {
     window.history.replaceState({}, "", "/app/overview?access=live");
     const fetch = vi
       .fn()
@@ -120,8 +120,12 @@ describe("workspace access", () => {
       name: "Continue with Google",
     });
     expect(
-      screen.queryByRole("button", { name: /Demo Workspace/i }),
-    ).toBeNull();
+      screen.getByRole("button", { name: "Explore Demo Workspace" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Enter the recovery workspace" }),
+    ).toBeVisible();
+    expect(screen.getByText(/No Google account required/i)).toBeVisible();
     expect(auth.clearProductSession).toHaveBeenCalledTimes(1);
     expect(auth.continueAsGuest).not.toHaveBeenCalled();
     fireEvent.click(google);

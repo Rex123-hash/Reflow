@@ -5,10 +5,25 @@ import { SiteHeader } from "./SiteHeader";
 import { WorkspaceActions } from "./WorkspaceActions";
 
 describe("landing workspace actions", () => {
-  it("offers an explicit demo and a non-OAuth workspace route", () => {
+  it("restores the single live-workspace action at the bottom", () => {
     render(
       <MemoryRouter>
         <WorkspaceActions className="hero-actions" />
+      </MemoryRouter>,
+    );
+
+    const liveWorkspace = screen.getByRole("link", {
+      name: /open live workspace/i,
+    });
+    expect(liveWorkspace).toHaveAttribute("href", "/app/overview?access=live");
+    expect(liveWorkspace).toHaveClass("button-primary");
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+  });
+
+  it("keeps the demo and live actions in the top-right header", () => {
+    render(
+      <MemoryRouter>
+        <SiteHeader />
       </MemoryRouter>,
     );
 
@@ -16,18 +31,6 @@ describe("landing workspace actions", () => {
       "href",
       "/app?demo=1",
     );
-    expect(
-      screen.getByRole("link", { name: /open workspace/i }),
-    ).toHaveAttribute("href", "/app/overview?access=live");
-  });
-
-  it("routes the header workspace action through the same chooser", () => {
-    render(
-      <MemoryRouter>
-        <SiteHeader />
-      </MemoryRouter>,
-    );
-
     expect(
       screen.getByRole("link", { name: /open workspace/i }),
     ).toHaveAttribute("href", "/app/overview?access=live");
